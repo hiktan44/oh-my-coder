@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>任务历史 - Oh My Coder</title>
+    <title>Görev Geçmişi - Oh My Coder</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/style.css?v=20260506">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -107,34 +107,34 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/" class="nav-link">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link active">历史</a>
-                <a href="/docs" class="nav-link">文档</a>
-                <a href="/settings" class="nav-link">设置</a>
+                <a href="/" class="nav-link">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link">Gösterge Paneli</a>
+                <a href="/history" class="nav-link active">Geçmiş</a>
+                <a href="/docs" class="nav-link">Belgeler</a>
+                <a href="/settings" class="nav-link">Ayarlar</a>
             </div>
             <div class="nav-actions">
-                <div class="nav-toggle" id="themeToggle" title="切换主题">☀️</div>
+                <div class="nav-toggle" id="themeToggle" title="Temayı değiştir">☀️</div>
                 <button class="nav-hamburger" id="navHamburger">☰</button>
             </div>
         </div>
     </nav>
 
     <main class="container">
-        <h1 class="page-title">📋 任务历史</h1>
-        <p class="page-desc">查看所有已执行的任务和结果。</p>
+        <h1 class="page-title">📋 Görev Geçmişi</h1>
+        <p class="page-desc">Yürütülen tüm görevleri ve sonuçlarını görüntüleyin.</p>
 
         <div class="history-toolbar">
-            <input type="text" class="history-search" id="searchInput" placeholder="🔍 搜索任务...">
-            <button class="btn btn-ghost btn-sm" onclick="loadHistory()">刷新</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearAllTasks()" style="color:var(--danger);">清除全部</button>
+            <input type="text" class="history-search" id="searchInput" placeholder="🔍 Görev ara...">
+            <button class="btn btn-ghost btn-sm" onclick="loadHistory()">Yenile</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearAllTasks()" style="color:var(--danger);">Tümünü Temizle</button>
         </div>
 
         <div class="history-list" id="historyList">
             <div class="empty-state">
                 <span class="empty-state-icon">📭</span>
-                <div class="empty-state-title">暂无历史记录</div>
-                <div class="empty-state-desc">执行任务后，历史记录会出现在这里。</div>
+                <div class="empty-state-title">Henüz geçmiş kayıt yok</div>
+                <div class="empty-state-desc">Görev yürüttükten sonra geçmiş kayıtları burada görünecek.</div>
             </div>
         </div>
     </main>
@@ -143,15 +143,15 @@
     <div class="modal-overlay" id="taskModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">任务详情</h2>
+                <h2 class="modal-title" id="modalTitle">Görev Detayı</h2>
                 <button class="modal-close" onclick="closeModal()">×</button>
             </div>
             <div class="modal-body" id="modalBody">
-                加载中...
+                Yükleniyor...
             </div>
             <div class="modal-actions">
-                <button class="btn btn-ghost" onclick="closeModal()">关闭</button>
-                <button class="btn btn-primary" id="saveReportBtn" onclick="saveReportToDesktop()">📄 保存报告到桌面</button>
+                <button class="btn btn-ghost" onclick="closeModal()">Kapat</button>
+                <button class="btn btn-primary" id="saveReportBtn" onclick="saveReportToDesktop()">📄 Raporu Masaüstüne Kaydet</button>
             </div>
         </div>
     </div>
@@ -185,21 +185,21 @@
         // Load history
         async function loadHistory() {
             const list = document.getElementById('historyList');
-            list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">加载中...</div>';
+            list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</div>';
             try {
                 const res = await fetch('/api/history');
                 const data = await res.json();
                 const records = data.records || data.history || [];
                 if (!records.length) {
-                    list.innerHTML = `<div class="empty-state"><span class="empty-state-icon">📭</span><div class="empty-state-title">暂无历史记录</div><div class="empty-state-desc">执行任务后，历史记录会出现在这里。</div></div>`;
+                    list.innerHTML = `<div class="empty-state"><span class="empty-state-icon">📭</span><div class="empty-state-title">Henüz geçmiş kayıt yok</div><div class="empty-state-desc">Görev yürüttükten sonra geçmiş kayıtları burada görünecek.</div></div>`;
                     return;
                 }
                 list.innerHTML = records.map(r => {
                     const status = r.status || 'unknown';
                     const statusBadge = status === 'completed'
-                        ? '<span class="badge badge-success">成功</span>'
+                        ? '<span class="badge badge-success">Başarılı</span>'
                         : status === 'failed'
-                            ? '<span class="badge badge-danger">失败</span>'
+                            ? '<span class="badge badge-danger">Başarısız</span>'
                             : '<span class="badge badge-muted">' + status + '</span>';
                     const ts = r.started_at || '-';
                     const wf = r.workflow || '-';
@@ -213,7 +213,7 @@
                                 <span class="history-item-title">${title}</span>
                                 <div style="display:flex;align-items:center;gap:8px;">
                                     ${statusBadge}
-                                    <button class="btn-delete-task" onclick="event.stopPropagation();deleteTask('${taskId}')" title="删除任务">🗑️</button>
+                                    <button class="btn-delete-task" onclick="event.stopPropagation();deleteTask('${taskId}')" title="Görevi sil">🗑️</button>
                                 </div>
                             </div>
                             <div class="history-item-meta">
@@ -225,7 +225,7 @@
                         </div>`;
                 }).join('');
             } catch (e) {
-                list.innerHTML = `<div class="empty-state"><span class="empty-state-icon">⚠️</span><div class="empty-state-title">加载失败</div><div class="empty-state-desc">无法获取历史记录。</div></div>`;
+                list.innerHTML = `<div class="empty-state"><span class="empty-state-icon">⚠️</span><div class="empty-state-title">Yükleme başarısız</div><div class="empty-state-desc">Geçmiş kayıtları alınamadı.</div></div>`;
             }
         }
 
@@ -242,7 +242,7 @@
 
         // Delete task
         async function deleteTask(taskId) {
-            if (!confirm('确定要删除这个任务吗？')) return;
+            if (!confirm('Bu görevi silmek istediğinizden emin misiniz?')) return;
             try {
                 const res = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
                 if (res.ok) {
@@ -250,16 +250,16 @@
                     if (item) { item.style.opacity = '0'; item.style.transform = 'translateX(20px)'; setTimeout(() => item.remove(), 300); }
                     setTimeout(() => { if (!document.querySelector('.history-item')) loadHistory(); }, 400);
                 } else {
-                    alert('删除失败');
+                    alert('Silme başarısız');
                 }
             } catch (e) {
-                alert('删除失败: ' + e.message);
+                alert('Silme başarısız: ' + e.message);
             }
         }
 
         // Clear all tasks
         async function clearAllTasks() {
-            if (!confirm('确定要清除所有任务记录吗？此操作不可恢复。')) return;
+            if (!confirm('Tüm görev kayıtlarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) return;
             try {
                 const res = await fetch('/api/tasks');
                 const data = await res.json();
@@ -269,7 +269,7 @@
                 }
                 loadHistory();
             } catch (e) {
-                alert('清除失败: ' + e.message);
+                alert('Temizleme başarısız: ' + e.message);
             }
         }
 
@@ -282,26 +282,26 @@
             const modal = document.getElementById('taskModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalBody = document.getElementById('modalBody');
-            
+
             modal.classList.add('active');
-            modalTitle.textContent = '任务详情';
-            modalBody.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">加载中...</div>';
+            modalTitle.textContent = 'Görev Detayı';
+            modalBody.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">Yükleniyor...</div>';
 
             try {
                 const res = await fetch(`/api/history/${taskId}`);
-                if (!res.ok) throw new Error('任务不存在');
+                if (!res.ok) throw new Error('Görev bulunamadı');
                 const task = await res.json();
 
-                modalTitle.textContent = task.task || '任务详情';
-                
-                let html = `<div style="margin-bottom:16px;">\n                    <p><strong>状态：</strong>${task.status === 'completed' ? '✅ 成功' : '❌ 失败'}</p>\n                    <p><strong>工作流：</strong>${esc(task.workflow || '-')}</p>\n                    <p><strong>模型：</strong>${esc(task.model || '-')}</p>\n                    <p><strong>项目路径：</strong>${esc(task.project_path || '-')}</p>\n                    <p><strong>开始时间：</strong>${esc(task.started_at || '-')}</p>\n                    <p><strong>完成时间：</strong>${esc(task.completed_at || '-')}</p>\n                </div>`;
+                modalTitle.textContent = task.task || 'Görev Detayı';
+
+                let html = `<div style="margin-bottom:16px;">\n                    <p><strong>Durum:</strong>${task.status === 'completed' ? '✅ Başarılı' : '❌ Başarısız'}</p>\n                    <p><strong>İş akışı:</strong>${esc(task.workflow || '-')}</p>\n                    <p><strong>Model:</strong>${esc(task.model || '-')}</p>\n                    <p><strong>Proje yolu:</strong>${esc(task.project_path || '-')}</p>\n                    <p><strong>Başlangıç zamanı:</strong>${esc(task.started_at || '-')}</p>\n                    <p><strong>Bitiş zamanı:</strong>${esc(task.completed_at || '-')}</p>\n                </div>`;
 
                 if (task.stats) {
-                    html += `<h3 style="margin:16px 0 8px;font-size:15px;">📊 统计</h3>\n                    <p>Tokens: ${(task.stats.total_tokens || 0).toLocaleString()}</p>\n                    <p>执行时间: ${task.stats.execution_time || 0}s</p>\n                    <p>完成步骤: ${esc((task.stats.steps_completed || []).join(', ') || '-')}</p>`;
+                    html += `<h3 style="margin:16px 0 8px;font-size:15px;">📊 İstatistikler</h3>\n                    <p>Tokens: ${(task.stats.total_tokens || 0).toLocaleString()}</p>\n                    <p>Yürütme süresi: ${task.stats.execution_time || 0}s</p>\n                    <p>Tamamlanan adımlar: ${esc((task.stats.steps_completed || []).join(', ') || '-')}</p>`;
                 }
 
                 if (task.result) {
-                    html += `<h3 style="margin:16px 0 8px;font-size:15px;">📝 结果</h3>`;
+                    html += `<h3 style="margin:16px 0 8px;font-size:15px;">📝 Sonuç</h3>`;
                     if (typeof task.result === 'object') {
                         html += `<pre>${esc(JSON.stringify(task.result, null, 2))}</pre>`;
                     } else {
@@ -310,12 +310,12 @@
                 }
 
                 if (task.error) {
-                    html += `<h3 style="margin:16px 0 8px;font-size:15px;color:var(--danger)">⚠️ 错误</h3>\n                    <pre style="color:var(--danger)">${esc(task.error)}</pre>`;
+                    html += `<h3 style="margin:16px 0 8px;font-size:15px;color:var(--danger)">⚠️ Hata</h3>\n                    <pre style="color:var(--danger)">${esc(task.error)}</pre>`;
                 }
 
                 modalBody.innerHTML = html;
             } catch (e) {
-                modalBody.innerHTML = `<div style="color:var(--danger)">加载失败: ${esc(e.message)}</div>`;
+                modalBody.innerHTML = `<div style="color:var(--danger)">Yükleme başarısız: ${esc(e.message)}</div>`;
             }
         }
 
@@ -328,10 +328,10 @@
         // Save report to desktop
         async function saveReportToDesktop() {
             if (!currentTaskId) return;
-            
+
             const btn = document.getElementById('saveReportBtn');
             btn.disabled = true;
-            btn.textContent = '保存中...';
+            btn.textContent = 'Kaydediliyor...';
 
             try {
                 const res = await fetch('/api/save-report', {
@@ -341,15 +341,15 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    btn.textContent = '✅ 已保存';
-                    alert(`报告已保存到: ${data.path}`);
+                    btn.textContent = '✅ Kaydedildi';
+                    alert(`Rapor şuraya kaydedildi: ${data.path}`);
                 } else {
-                    throw new Error(data.detail || '保存失败');
+                    throw new Error(data.detail || 'Kaydetme başarısız');
                 }
             } catch (e) {
-                btn.textContent = '📄 保存报告到桌面';
+                btn.textContent = '📄 Raporu Masaüstüne Kaydet';
                 btn.disabled = false;
-                alert('保存失败: ' + e.message);
+                alert('Kaydetme başarısız: ' + e.message);
             }
         }
 

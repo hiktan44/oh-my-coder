@@ -1,9 +1,9 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
-Agents 模块
+Ajanlar modülü
 
-所有 Agent 的导出入口。
-使用装饰器 @register_agent 自动注册。
+Tüm Ajanların dışa aktarım girişi.
+@register_agent dekoratörü kullanılarak otomatik kaydedilir.
 """
 
 from .analyst import AnalystAgent
@@ -17,7 +17,7 @@ from .code_simplifier import CodeSimplifierAgent
 from .critic import CriticAgent
 from .data_agent import DataAgent
 
-# ---- 新增 Agent（2026-04-12）----
+# ---- Yeni eklenen Ajanlar (2026-04-12) ----
 from .database import DatabaseAgent
 from .debugger import DebuggerAgent
 from .designer import DesignerAgent
@@ -42,14 +42,14 @@ from .verifier import VerifierAgent
 from .vision import VisionAgent
 from .writer import WriterAgent
 
-# 导出所有 Agent（分组严格对齐 docs/guide/agents.md）
+# Tüm Ajanları dışa aktar (gruplama docs/guide/agents.md ile birebir uyumlu)
 __all__ = [
     "BaseAgent",
     "register_agent",
     "get_agent",
     "list_agents",
     # ========================
-    # 构建 / 分析通道（9）
+    # Yapım / Analiz kanalı (9)
     # ========================
     "ExploreAgent",
     "AnalystAgent",
@@ -62,12 +62,12 @@ __all__ = [
     "PerformanceAgent",
     "CodeResearchAgent",
     # ========================
-    # 审查通道（2）
+    # İnceleme kanalı (2)
     # ========================
     "CodeReviewerAgent",
     "SecurityReviewerAgent",
     # ========================
-    # 领域通道（16）
+    # Alan kanalı (16)
     # ========================
     "TestEngineerAgent",
     "DesignerAgent",
@@ -86,12 +86,12 @@ __all__ = [
     "AuthAgent",
     "DataAgent",
     # ========================
-    # 协调通道（4）
+    # Koordinasyon kanalı (4)
     # ========================
     "PromptAgent",
     "SelfImprovingAgent",
     "SkillManageAgent",
     "CriticAgent",
-    # Self-Improving 基础设施
+    # Self-Improving altyapısı
     "LearningStore",
 ]

@@ -1,26 +1,26 @@
 name: doc
-description: 文档生成流程：架构设计 → 初稿撰写 → 长篇精修 → 完整性校验
+description: dokumantasyonolusturakis: mimari tasarim → ilk taslak yazyaz → uzunlukyaziince ayar → tamkontroldogrula
 steps:
   - id: architect
     agent: architect
-    description: 架构设计与文档框架
+    description: mimari tasarimiledokumantasyoniskelet
     timeout: 300
     retry: 0
   - id: writer
     agent: writer
-    description: 内容初稿撰写
+    description: icerikilk taslak yazyaz
     dependencies: [architect]
     timeout: 600
     retry: 1
   - id: document
     agent: document
-    description: 长篇文档精修与格式化
+    description: uzunlukyazidokumantasyonince ayarileformat
     dependencies: [writer]
     timeout: 600
     retry: 0
   - id: verifier
     agent: verifier
-    description: 文档完整性校验
+    description: dokumantasyontamkontroldogrula
     dependencies: [document]
     timeout: 300
     retry: 0

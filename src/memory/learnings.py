@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 """
-学习记忆 - 踩坑记录、最佳实践
+ogrenogrenhafiza - tuzakkayit, en iyi uygulamalar
 
-存储：
-- 错误模式（什么情况下会出错）
-- 解决方案（如何修复）
-- 最佳实践（推荐做法）
-- 技术笔记
+depolama: 
+- hatamod (nedurumaltyapacakyanlis) 
+- cozplan (orneginneduzeltme) 
+- en iyi uygulamalar (oneryapyontem) 
+- tekniktekniknot
 
-设计：
-- Markdown 格式，便于阅读和版本控制
-- 按类别组织（errors, solutions, best-practices, notes）
-- 支持搜索
+tasarim: 
+- Markdown format, kolaydeokuokuvesurumkontrol
+- goresinifayrigrupduzen (errors, solutions, best-practices, notes) 
+- destekara
 """
 
 import re
@@ -24,14 +24,14 @@ from typing import Any, Optional
 
 @dataclass
 class LearningEntry:
-    """学习条目"""
+    """ogrenogrenogrehedef"""
 
     id: str
     category: str  # "error", "solution", "best-practice", "note"
     title: str
     content: str
     tags: list[str] = field(default_factory=list)
-    context: str = ""  # 触发场景
+    context: str = ""  # tetikgondersenaryo
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
 
@@ -44,19 +44,19 @@ class LearningEntry:
 
 
 class LearningsMemory:
-    """学习记忆管理器"""
+    """ogrenogrenhafizayonet"""
 
     CATEGORIES = ["error", "solution", "best-practice", "note"]
 
     def __init__(self, storage_dir: Path):
         """
         Args:
-            storage_dir: 存储目录
+            storage_dir: depolamadizin
         """
         self.storage_dir = storage_dir / "learnings"
         self.storage_dir.mkdir(parents=True, exist_ok=True)
 
-        # 按类别分目录
+        # goresinifayripuandizin
         for cat in self.CATEGORIES:
             (self.storage_dir / cat).mkdir(exist_ok=True)
 
@@ -65,13 +65,13 @@ class LearningsMemory:
         self._load_index()
 
     def _load_index(self):
-        """加载索引"""
+        """yukleindeks"""
         if self.index_file.exists():
             data = self._parse_markdown_index()
             self._index = {k: LearningEntry.from_dict(v) for k, v in data.items()}
 
     def _parse_markdown_index(self) -> dict[str, dict]:
-        """从 Markdown 文件解析索引"""
+        """ Markdown dosyaayristirindeks"""
         index = {}
         for cat in self.CATEGORIES:
             cat_dir = self.storage_dir / cat
@@ -84,14 +84,14 @@ class LearningsMemory:
         return index
 
     def _parse_learning_file(self, path: Path) -> Optional[LearningEntry]:
-        """解析单个 Markdown 文件"""
+        """ayristirtekil Markdown dosya"""
         try:
             content = path.read_text()
-            # 简单解析：从标题提取
+            # basittekilayristir: baslikcikar
             lines = content.split("\n")
             title = lines[0].lstrip("# ").strip() if lines else path.stem
 
-            # 提取 tags
+            # cikar tags
             tags = []
             tag_match = re.search(r"\[tags?: ([^\]]+)\]", content)
             if tag_match:
@@ -108,7 +108,7 @@ class LearningsMemory:
             return None
 
     def _save_entry(self, entry: LearningEntry):
-        """保存条目到 Markdown 文件"""
+        """kaydetogrehedefkadar Markdown dosya"""
         cat_dir = self.storage_dir / entry.category
         cat_dir.mkdir(exist_ok=True)
 
@@ -117,7 +117,7 @@ class LearningsMemory:
         if entry.tags:
             content += f"[tags: {', '.join(entry.tags)}]\n\n"
         if entry.context:
-            content += f"**场景**: {entry.context}\n\n"
+            content += f"**senaryo**: {entry.context}\n\n"
         content += entry.content
 
         file_path.write_text(content)
@@ -130,8 +130,8 @@ class LearningsMemory:
         tags: Optional[list[str]] = None,
         context: str = "",
     ) -> LearningEntry:
-        """添加学习条目"""
-        # 生成 ID
+        """ekleogrenogrenogrehedef"""
+        # olustur ID
         import uuid
 
         entry_id = f"{title.lower().replace(' ', '-')[:30]}-{uuid.uuid4().hex[:4]}"
@@ -152,14 +152,14 @@ class LearningsMemory:
         return entry
 
     def _save_index(self):
-        """保存索引"""
+        """kaydetindeks"""
         data = {k: v.to_dict() for k, v in self._index.items()}
         import json
 
         self.index_file.write_text(json.dumps(data, ensure_ascii=False, indent=2))
 
     def search(self, query: str, category: Optional[str] = None) -> list[LearningEntry]:
-        """搜索学习条目"""
+        """araogrenogrenogrehedef"""
         results = []
         query_lower = query.lower()
 
@@ -167,7 +167,7 @@ class LearningsMemory:
             if category and entry.category != category:
                 continue
 
-            # 搜索标题、内容、tags
+            # arabaslik, icerik, tags
             if (
                 query_lower in entry.title.lower()
                 or query_lower in entry.content.lower()
@@ -178,18 +178,18 @@ class LearningsMemory:
         return results
 
     def get_by_category(self, category: str) -> list[LearningEntry]:
-        """按类别获取"""
+        """goresinifayrial"""
         return [e for e in self._index.values() if e.category == category]
 
     def get_recent(self, limit: int = 10) -> list[LearningEntry]:
-        """获取最近添加的"""
+        """alenyakinekle"""
         sorted_entries = sorted(
             self._index.values(), key=lambda e: e.created_at, reverse=True
         )
         return sorted_entries[:limit]
 
     def delete(self, entry_id: str) -> bool:
-        """删除条目"""
+        """silogrehedef"""
         if entry_id not in self._index:
             return False
 

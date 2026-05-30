@@ -4,19 +4,19 @@ from __future__ import annotations
 
 
 """
-Agent 基类 - 所有智能体的基类
+Agent temel sınıf - Tüm aracılar için temel sınıf
 
-设计原则：
-1. 每个 Agent 职责单一、明确
-2. 通过 Prompt 定义角色和行为
-3. 自动记录工作过程和产出
-4. 支持与其他 Agent 协作
+Tasarım ilkeleri:
+1. her biri Agent Tek ve net sorumluluklar
+2. geçmek Prompt Rolleri ve davranışları tanımlayın
+3. İş süreçlerini ve çıktılarını otomatik olarak kaydedin
+4. Destek ve diğer Agent işbirliği
 
-Agent 生命周期：
-1. 初始化（加载配置和 Prompt）
-2. 接收任务
-3. 执行（调用模型、使用工具）
-4. 输出结果
+Agent yaşam döngüsü:
+1. Başlatma (yapılandırmayı yükleme ve Prompt)
+2. görevleri al
+3. Yürütme (modelleri çağırma, araçları kullanma)
+4. Çıktı sonuçları
 """
 
 import asyncio
@@ -33,16 +33,16 @@ from src.models.base import Message, ModelResponse
 
 logger = logging.getLogger(__name__)
 
-# 工具 Schema 定义（OpenAI function calling 格式）
+# alet Schema tanım(OpenAI function calling Biçimi)
 WEB_FETCH_TOOL_SCHEMA = {
     "type": "function",
     "function": {
         "name": "web_fetch",
-        "description": "获取指定 URL 的网页文本内容，用于访问外部链接、查阅在线文档",
+        "description": "Belirtilen alın URL Harici bağlantılara erişmek ve çevrimiçi belgelere danışmak için kullanılan web sayfası metin içeriği",
         "parameters": {
             "type": "object",
             "properties": {
-                "url": {"type": "string", "description": "要访问的 URL"}
+                "url": {"type": "string", "description": "erişmek URL"}
             },
             "required": ["url"],
         },
@@ -56,80 +56,80 @@ if TYPE_CHECKING:
 
 
 class AgentStatus(Enum):
-    """Agent 状态"""
+    """Agent durum"""
 
-    IDLE = "idle"  # 空闲
-    WORKING = "working"  # 工作中
-    WAITING = "waiting"  # 等待输入
-    COMPLETED = "completed"  # 已完成
-    FAILED = "failed"  # 失败
+    IDLE = "idle"  # boşta
+    WORKING = "working"  # işte
+    WAITING = "waiting"  # giriş bekleniyor
+    COMPLETED = "completed"  # Tamamlanmış
+    FAILED = "failed"  # hata
 
 
 class AgentLane(Enum):
-    """Agent 通道 - 对应原项目的四大通道"""
+    """Agent koridor - Orijinal projeye karşılık gelen dört ana kanal"""
 
-    BUILD_ANALYSIS = "build_analysis"  # 构建/分析
-    REVIEW = "review"  # 审查
-    DOMAIN = "domain"  # 领域
-    COORDINATION = "coordination"  # 协调
+    BUILD_ANALYSIS = "build_analysis"  # inşa etmek/analiz etmek
+    REVIEW = "review"  # gözden geçirmek
+    DOMAIN = "domain"  # alan
+    COORDINATION = "coordination"  # koordinasyon
 
 
 @dataclass
 class AgentContext:
-    """Agent 执行上下文"""
+    """Agent yürütme bağlamı"""
 
-    project_path: Path  # 项目路径
-    task_description: str  # 任务描述
-    working_directory: Optional[Path] = None  # 工作目录
-    relevant_files: list[Path] = field(default_factory=list)  # 相关文件
-    previous_outputs: dict[str, Any] = field(default_factory=dict)  # 前序 Agent 输出
-    metadata: dict[str, Any] = field(default_factory=dict)  # 其他元数据
-    skill_context: str = ""  # Tier 0 自动注入：Skill 经验清单（由 Orchestrator 填充）
+    project_path: Path  # Proje yolu
+    task_description: str  # Görev açıklaması
+    working_directory: Optional[Path] = None  # çalışma dizini
+    relevant_files: list[Path] = field(default_factory=list)  # İlgili belgeler
+    previous_outputs: dict[str, Any] = field(default_factory=dict)  # Önsöz Agent çıktı
+    metadata: dict[str, Any] = field(default_factory=dict)  # Diğer meta veriler
+    skill_context: str = ""  # Tier 0 Otomatik enjeksiyon:Skill Deneyim Kontrol Listesi (tarafından: Orchestrator doldurma)
     override_model: Optional[str] = (
-        None  # 用户指定的模型 ID（如 "glm-4-flash"），来自前端选择
+        None  # kullanıcı tarafından belirlenen model ID(beğenmek "glm-4-flash"), ön uç seçiminden
     )
 
 
 @dataclass
 class AgentOutput:
-    """Agent 输出"""
+    """Agent çıktı"""
 
-    agent_name: str  # Agent 名称
-    status: AgentStatus  # 执行状态
-    result: Optional[str] = None  # 主要结果
-    artifacts: dict[str, Any] = field(default_factory=dict)  # 产物（文件、数据等）
-    recommendations: list[str] = field(default_factory=list)  # 推荐后续步骤
-    next_agent: Optional[str] = None  # 推荐下一个 Agent
-    usage: dict[str, int] = field(default_factory=dict)  # Token 使用
-    execution_time: float = 0.0  # 执行时间（秒）
-    error: Optional[str] = None  # 错误信息
+    agent_name: str  # Agent isim
+    status: AgentStatus  # Yürütme durumu
+    result: Optional[str] = None  # Ana sonuçlar
+    artifacts: dict[str, Any] = field(default_factory=dict)  # Ürünler (belgeler, veriler vb.)
+    recommendations: list[str] = field(default_factory=list)  # Önerilen sonraki adımlar
+    next_agent: Optional[str] = None  # Sonrakini öner Agent
+    usage: dict[str, int] = field(default_factory=dict)  # Token kullanmak
+    execution_time: float = 0.0  # Yürütme süresi (saniye)
+    error: Optional[str] = None  # hata mesajı
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
 class BaseAgent(ABC):
     """
-    Agent 基类
+    Agent temel sınıf
 
-    核心方法：
-    - execute(): 执行任务（模板方法）
-    - _prepare_prompt(): 准备 Prompt
-    - _run(): 实际执行逻辑（子类实现）
-    - _post_process(): 后处理
+    Temel yöntemler:
+    - execute(): Görevleri yürütme (şablon yöntemi)
+    - _prepare_prompt(): Hazırlanmak Prompt
+    - _run(): Gerçek yürütme mantığı (alt sınıf uygulaması)
+    - _post_process(): İşlem sonrası
 
-    子类需要实现：
-    - _run(): 核心执行逻辑
-    - 定义 name, description, default_tier 等属性
+    Alt sınıfların uygulaması gerekir:
+    - _run(): çekirdek yürütme mantığı
+    - tanım name, description, default_tier özellikler
     """
 
-    # 子类必须覆盖的属性
+    # Alt sınıfların geçersiz kılması gereken özellikler
     name: str = "base_agent"
-    description: str = "基类 Agent"
+    description: str = "temel sınıf Agent"
     lane: AgentLane = AgentLane.BUILD_ANALYSIS
     default_tier = "medium"  # low, medium, high
 
-    # 可选属性
+    # İsteğe bağlı özellikler
     icon: str = "🤖"
-    tools: list[str] = ["web_fetch"]  # 可用工具列表，默认启用 web_fetch
+    tools: list[str] = ["web_fetch"]  # Varsayılan olarak etkinleştirilmiş, kullanılabilir araçların listesi web_fetch
 
     def __init__(
         self,
@@ -139,9 +139,9 @@ class BaseAgent(ABC):
     ):
         """
         Args:
-            model_router: 模型路由器（可选，CLI info 等只读场景可不传）
-            config: Agent 特定配置
-            orchestrator: Orchestrator 实例（用于调用子 Agent），由 Orchestrator.get_agent() 自动注入
+            model_router: model yönlendirici (isteğe bağlı,CLI info Salt okunur sahneyi beklerken geçmenize gerek yoktur)
+            config: Agent özel konfigürasyon
+            orchestrator: Orchestrator örnek (sub'u çağırmak için) Agent), bağlıdır Orchestrator.get_agent() otomatik enjeksiyon
         """
         self.model_router = model_router
         self.orchestrator = orchestrator
@@ -149,10 +149,10 @@ class BaseAgent(ABC):
         self.status = AgentStatus.IDLE
         self._output_history: list[AgentOutput] = []
         self._last_model_response: Optional[Any] = (
-            None  # 缓存最后一次 ModelResponse，用于 token 统计
+            None  # son kez önbellek ModelResponse, için kullanılır token istatistikler
         )
 
-        # 初始化工作目录上下文扫描器
+        # Çalışma dizini bağlam tarayıcısını başlatın
         try:
             from ..context import WorkspaceScanner
 
@@ -162,41 +162,41 @@ class BaseAgent(ABC):
             else:
                 self.workspace_scanner = WorkspaceScanner(Path.cwd())
         except Exception:
-            # 浏览器上下文感知失败不影响 Agent 初始化
+            # Tarayıcı bağlamı farkındalığının başarısız olması, Agent başlatma
             self.workspace_scanner = None
 
     @property
     @abstractmethod
     def system_prompt(self) -> str:
-        """返回系统提示词（定义 Agent 的角色和行为）"""
+        """Sistem istemi sözcüğüne geri dön (tanım Agent rol ve davranış)"""
         pass
 
     def get_workspace_context(self, max_depth: int = 3) -> str:
         """
-        获取工作目录上下文
+        Çalışma dizini bağlamını alın
 
-        扫描项目目录，生成文件树结构，用于增强 Agent 的上下文感知能力。
+        Proje dizinini tarayın ve geliştirme için bir dosya ağacı yapısı oluşturun Agent bağlam farkındalığı.
 
         Args:
-            max_depth: 最大扫描深度
+            max_depth: Maksimum tarama derinliği
 
         Returns:
-            str: 文件树上下文字符串
+            str: dosya ağacı bağlam dizesi
         """
         if self.workspace_scanner is None:
-            return "[工作目录上下文不可用]"
+            return "[Çalışma dizini içeriği mevcut değil]"
 
         try:
             return self.workspace_scanner.to_context_string(max_depth=max_depth)
         except Exception as e:
-            return f"[工作目录上下文扫描失败: {e}]"
+            return f"[Çalışma dizini içerik taraması başarısız oldu: {e}]"
 
     def get_full_context(self, max_depth: int = 3) -> dict[str, str]:
         """
-        获取完整上下文（文件 + 浏览器）
+        Tam bağlamı alın (dosya + tarayıcı)
 
         Returns:
-            Dict[str, str]: 包含 workspace 和 browser 上下文字典
+            Dict[str, str]: Katmak workspace Ve browser bağlam sözlüğü
         """
         from ..context import BrowserAwareness
 
@@ -209,35 +209,35 @@ class BaseAgent(ABC):
             browser_ctx = asyncio.run(awareness.get_current_tab())
             result["browser"] = browser_ctx.to_context_string()
         except Exception:
-            result["browser"] = "[浏览器上下文不可用]"
+            result["browser"] = "[Tarayıcı içeriği mevcut değil]"
 
         return result
 
     def get_context_prompt(self, context: AgentContext) -> str:
-        """根据上下文生成额外提示词"""
+        """Bağlama göre ek bilgi istemi sözcükleri oluşturun"""
         parts = []
 
         if context.task_description:
-            parts.append(f"## 当前任务\n{context.task_description}")
+            parts.append(f"## mevcut görev\n{context.task_description}")
 
         if context.project_path:
-            parts.append(f"## 项目路径\n{context.project_path}")
+            parts.append(f"## Proje yolu\n{context.project_path}")
 
-        # 添加工目录上下文（文件树）
+        # Çalışma dizini bağlamı ekle (dosya ağacı)
         workspace_ctx = self.get_workspace_context()
-        if workspace_ctx and workspace_ctx != "[工作目录上下文不可用]":
-            parts.append(f"## 项目文件结构\n{workspace_ctx}")
+        if workspace_ctx and workspace_ctx != "[Çalışma dizini içeriği mevcut değil]":
+            parts.append(f"## Proje dosya yapısı\n{workspace_ctx}")
 
         if context.relevant_files:
             files_str = "\n".join(str(f) for f in context.relevant_files)
-            parts.append(f"## 相关文件\n{files_str}")
+            parts.append(f"## İlgili belgeler\n{files_str}")
 
         if context.previous_outputs:
-            parts.append("## 前序工作成果")
+            parts.append("## Ön çalışma sonuçları")
             for agent_name, output in context.previous_outputs.items():
                 parts.append(f"### {agent_name}\n{output}")
 
-        # Tier 0: 追加 Skill 经验上下文
+        # Tier 0: Ekle Skill ampirik bağlam
         if context.skill_context:
             parts.append(context.skill_context)
 
@@ -245,14 +245,14 @@ class BaseAgent(ABC):
 
     async def execute(self, context: AgentContext, **kwargs) -> AgentOutput:
         """
-        执行任务（模板方法）
+        Görevleri yürütme (şablon yöntemi)
 
-        流程：
-        1. 更新状态
-        2. 准备 Prompt
-        3. 调用模型
-        4. 后处理
-        5. 记录输出
+        işlem:
+        1. güncelleme durumu
+        2. Hazırlanmak Prompt
+        3. çağrı modeli
+        4. İşlem sonrası
+        5. Günlük çıkışı
         """
         import time
 
@@ -261,19 +261,19 @@ class BaseAgent(ABC):
         self.status = AgentStatus.WORKING
 
         try:
-            # 保存用户指定的模型（供 _run 中 route_and_call 使用）
+            # Kullanıcı tarafından belirlenen modeli kaydedin (için _run orta route_and_call kullanmak)
             self._override_model = getattr(context, "override_model", None)
 
-            # 准备 Prompt
+            # Hazırlanmak Prompt
             prompt = self._prepare_prompt(context)
 
-            # 执行
+            # uygulamak
             result = await self._run(context, prompt, **kwargs)
 
-            # 后处理
+            # İşlem sonrası
             output = self._post_process(result, context)
 
-            # 填充 token 使用统计（从缓存的 ModelResponse 中提取）
+            # doldurma token Kullanım istatistikleri (önbelleğe alınmış ModelResponse çıkarılan)
             if self._last_model_response is not None:
                 usage = self._last_model_response.usage
                 output.usage = {
@@ -289,22 +289,22 @@ class BaseAgent(ABC):
             output = AgentOutput(
                 agent_name=self.name,
                 status=AgentStatus.FAILED,
-                error=f"{type(e).__name__}",  # 只记录类型，不泄露详情
+                error=f"{type(e).__name__}",  # Yalnızca türü kaydedin, ayrıntıları açıklamayın
                 execution_time=time.time() - start_time,
             )
             self.status = AgentStatus.FAILED
 
-        # 记录历史
+        # geçmişi kaydet
         self._output_history.append(output)
 
         return output
 
     def _prepare_prompt(self, context: AgentContext) -> list[dict[str, str]]:
         """
-        准备完整的 Prompt
+        eksiksiz hazırlan Prompt
 
         Returns:
-            List[Dict]: 消息列表（系统 + 用户）
+            List[Dict]: Mesaj listesi (sistem + kullanıcı)
         """
         messages = [
             {"role": "system", "content": self.system_prompt},
@@ -321,15 +321,15 @@ class BaseAgent(ABC):
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
         """
-        实际执行逻辑（子类实现）
+        Gerçek yürütme mantığı (alt sınıf uygulaması)
 
         Args:
-            context: 执行上下文
-            prompt: 准备好的 Prompt
-            **kwargs: 额外参数
+            context: yürütme bağlamı
+            prompt: hazır Prompt
+            **kwargs: ekstra parametreler
 
         Returns:
-            str: 执行结果
+            str: Yürütme sonucu
         """
         pass
 
@@ -339,9 +339,9 @@ class BaseAgent(ABC):
         context: AgentContext,
     ) -> AgentOutput:
         """
-        后处理（子类可覆盖）
+        İşlem sonrası (alt sınıflar tarafından geçersiz kılınabilir)
 
-        默认实现：直接包装为输出
+        Varsayılan uygulama: doğrudan çıktı olarak paketlenir
         """
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
@@ -357,12 +357,12 @@ class BaseAgent(ABC):
         **kwargs,
     ) -> ModelResponse:
         """
-        调用模型（自动注入用户指定的模型覆盖）
+        Modeli çağırın (kullanıcı tarafından belirlenen model geçersiz kılmalarını otomatik olarak enjekte eder)
 
-        支持工具调用：self.tools 非空时自动注入工具定义，
-        模型返回 tool_calls 时自动执行工具并回传结果，最多 5 轮。
+        Destek aracı çağrıları:self.tools Boş olmadığında takım tanımını otomatik olarak enjekte edin,
+        Model iadeleri tool_calls En fazla aracı otomatik olarak çalıştırın ve sonuçları döndürün 5 teker.
         """
-        # 强制注入 web_fetch 工具（所有 Agent 默认可用）
+        # Zorla enjeksiyon web_fetch Araçlar (tümü Agent varsayılan olarak mevcuttur)
         if "tools" not in kwargs:
             if "web_fetch" in SUPPORTED_TOOLS:
                 kwargs["tools"] = [SUPPORTED_TOOLS["web_fetch"]]
@@ -370,7 +370,7 @@ class BaseAgent(ABC):
         available_tools = {"web_fetch": self._web_fetch_tool}
         current_messages: list[Message] = list(messages)
 
-        for _ in range(5):  # 最多 5 轮工具调用
+        for _ in range(5):  # en 5 tekerlek aracı çağrısı
             response = await self.model_router.route_and_call(
                 task_type=task_type,
                 messages=current_messages,
@@ -384,14 +384,14 @@ class BaseAgent(ABC):
             if not response.tool_calls:
                 return response
 
-            # 先追加 assistant 消息（带 tool_calls），DeepSeek 要求这个顺序
+            # Önce ekle assistant mesaj (ile tool_calls),DeepSeek bu siparişi gerektir
             current_messages.append(Message(
                 role="assistant",
                 content=response.content or "",
                 tool_calls=response.tool_calls,
             ))
 
-            # 执行工具调用
+            # Araç çağrısını yürüt
             for tc in response.tool_calls:
                 func_name = tc.get("function", {}).get("name", "")
                 func_args_str = tc.get("function", {}).get("arguments", "{}")
@@ -415,17 +415,17 @@ class BaseAgent(ABC):
                     name=func_name,
                 ))
 
-            # 后续轮次不再传 tools
+            # Sonraki turlarda devredilmeyecektir. tools
             kwargs = {k: v for k, v in kwargs.items() if k != "tools"}
 
         return response
 
     async def _web_fetch_tool(self, args_json) -> str:
-        """web_fetch 工具：获取 URL 的网页文本内容（HTML 转纯文本）"""
+        """web_fetch Araçlar: Al URL Web sayfasının metin içeriği (HTML Düz metne dönüştürün)"""
         import json
         import re
         import subprocess
-        # 接受 dict（直接调用）或 JSON 字符串（call_model 传过来）
+        # kabul etmek dict(doğrudan arama) veya JSON sicim(call_model (geçti)
         if isinstance(args_json, dict):
             args = args_json
         else:
@@ -444,7 +444,7 @@ class BaseAgent(ABC):
                 capture_output=True, timeout=20
             )
             html = result.stdout.decode("utf-8", errors="replace")[:8000]
-            # 简单去除 HTML 标签
+            # Basit kaldırma HTML Etiket
             text = re.sub(r'<[^>]+>', ' ', html)
             text = re.sub(r'\s+', ' ', text).strip()
             return text[:8000]
@@ -452,11 +452,11 @@ class BaseAgent(ABC):
             return f"[web_fetch error] {type(e).__name__}: {e}"
 
     def get_last_output(self) -> Optional[AgentOutput]:
-        """获取最后一次输出"""
+        """Son çıktıyı al"""
         return self._output_history[-1] if self._output_history else None
 
     def get_output_history(self) -> list[AgentOutput]:
-        """获取输出历史"""
+        """Çıkış geçmişini alın"""
         return self._output_history.copy()
 
     async def call_subagent(
@@ -467,39 +467,39 @@ class BaseAgent(ABC):
         max_depth: int = 3,
     ) -> AgentOutput:
         """
-        调用子 Agent（P1-6 Agent 子系统重构 Phase 1）
+        arayan Agent(P1-6 Agent Alt sistemin yeniden yapılandırılması Phase 1)
 
-        允许当前 Agent 将复杂任务分解，委托给其他专业 Agent 处理。
-        通过 orchestrator 实现，支持防递归和超时控制。
+        akıma izin ver Agent Karmaşık görevleri parçalara ayırın ve bunları diğer profesyonellere devredin Agent uğraşmak.
+        geçmek orchestrator Özyinelemeyi önleme ve zaman aşımı kontrolünü desteklemek için uygulanmıştır.
 
-        用法示例（由任意 Agent 在 execute() 中调用）：
+        Kullanım örnekleri (herhangi biri tarafından) Agent var olmak execute() Çağrıldı):
             result = await self.call_subagent(
                 agent_name="analyst",
-                task="分析这段代码的性能瓶颈",
+                task="Bu kodun performans darboğazlarını analiz edin",
                 context=context,
             )
             if result.status == AgentStatus.COMPLETED:
-                self.logger.info(f"Analyst 子任务完成: {result.result}")
+                self.logger.info(f"Analyst Alt görev tamamlandı: {result.result}")
 
         Args:
-            agent_name: 子 Agent 名称（如 "analyst", "planner"）
-            task: 子任务描述
-            context: 当前 Agent 的执行上下文（会被转发）
-            max_depth: 最大调用深度，默认 3
+            agent_name: oğul Agent Ad (örneğin "analyst", "planner")
+            task: Alt görev açıklaması
+            context: akım Agent yürütme bağlamı (iletilecek)
+            max_depth: Maksimum arama derinliği, varsayılan 3
 
         Returns:
-            AgentOutput: 子 Agent 的执行结果
+            AgentOutput: oğul Agent yürütme sonucu
 
         Raises:
-            RuntimeError: 如果 Orchestrator 未注入（不应该发生）
+            RuntimeError: eğer Orchestrator Enjekte edilmedi (olmamalı)
         """
         if self.orchestrator is None:
             raise RuntimeError(
-                f"Agent '{self.name}' 无法调用子 Agent：Orchestrator 未注入。"
-                "请确认是通过 Orchestrator.get_agent() 创建此 Agent 实例。"
+                f"Agent '{self.name}' Alt çağrı yapılamıyor Agent:Orchestrator Enjekte edilmedi."
+                "Lütfen iletildiğini onaylayın Orchestrator.get_agent() bunu yarat Agent Örnek."
             )
 
-        # 将当前 Agent 的 previous_outputs 合并到 context 中供子 Agent 使用
+        # akımı değiştir Agent ile ilgili previous_outputs birleşmek context Zhonggongzi Agent kullanmak
         if not hasattr(context, "previous_outputs"):
             context.previous_outputs = {}  # type: ignore
         if self._output_history:
@@ -522,7 +522,7 @@ class BaseAgent(ABC):
         )
 
     def save_output(self, output_path: Path):
-        """保存输出到文件"""
+        """Çıktıyı dosyaya kaydet"""
         if not self._output_history:
             return
 
@@ -548,27 +548,27 @@ class BaseAgent(ABC):
             )
 
 
-# Agent 注册表（用于动态发现和创建）
+# Agent Kayıt defteri (dinamik keşif ve oluşturma için)
 AGENT_REGISTRY: dict[str, type[BaseAgent]] = {}
 
 
 def register_agent(agent_class: type[BaseAgent]):
-    """注册 Agent"""
+    """kayıt olmak Agent"""
     AGENT_REGISTRY[agent_class.name] = agent_class
     return agent_class
 
 
 def get_agent(name: str) -> Optional[type[BaseAgent]]:
-    """获取已注册的 Agent"""
+    """Kayıt olun Agent"""
     return AGENT_REGISTRY.get(name)
 
 
 def list_all_agents() -> list[dict[str, Any]]:
     """
-    列出所有已注册的 Agent
+    Tüm kayıtlı olanları listele Agent
 
     Returns:
-        Agent 信息列表，每个元素包含 name, description, lane, default_tier 等
+        Agent Bilgi listesi, her öğe içerir name, description, lane, default_tier Beklemek
     """
     result = []
     for name, agent_class in AGENT_REGISTRY.items():
@@ -584,5 +584,5 @@ def list_all_agents() -> list[dict[str, Any]]:
 
 
 def list_agents() -> list[str]:
-    """列出所有已注册的 Agent"""
+    """Tüm kayıtlı olanları listele Agent"""
     return list(AGENT_REGISTRY.keys())

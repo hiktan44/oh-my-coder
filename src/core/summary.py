@@ -3,35 +3,35 @@ from __future__ import annotations
 from typing import Optional
 
 """
-任务总结模块 - 自动化任务完成后生成结构化总结
+gorevtoplammodul - otomatikgorevtamamlasonraolusturyapitoplam
 
-功能：
-- 记录工作流执行全过程
-- 统计 Token 消耗和成本
-- 分析 Agent 执行情况
-- 导出多种格式（JSON/TXT/HTML）
-- 生成下次优化建议
+Islev:
+- kayitis akisiyuruttumsurec
+- istatistik Token tuketveol
+- analiz Agent yurutdurum
+- disa aktarcokturformat (JSON/TXT/HTML) 
+- olusturaltkeziyioneri
 
-使用场景：
-1. 任务完成后自动生成总结报告
-2. 分析 Token 消耗，优化成本
-3. 回顾工作流执行情况
-4. 团队协作时分享执行结果
+kullansenaryo: 
+1. gorevtamamlasonraotomatikolusturtoplamrapor
+2. analiz Token tuket, iyiol
+3. geribakis akisiyurutdurum
+4. takimisbirligiyapzamanpaylasyurutme sonucu
 
-使用示例：
+kullanornek: 
     from src.core.summary import generate_summary, print_summary, save_summary
 
-    # 生成总结
+    # olusturtoplam
     summary = generate_summary(
-        task="实现用户认证模块",
+        task="uygulakullanicikimlik dogrulamamodul",
         workflow="build",
         completed_steps=[...],
     )
 
-    # 打印到终端
+    # yazdirkadarsonuc
     print_summary(summary)
 
-    # 保存到文件
+    # kaydetkadardosya
     save_path = save_summary(summary, format="json")
 """
 
@@ -42,15 +42,15 @@ from pathlib import Path
 
 
 # ============================================================
-# 数据模型
+# sayigoremodel
 # ============================================================
 @dataclass
 class StepRecord:
-    """单个步骤的执行记录"""
+    """tekiladimyurutkayit"""
 
     agent: str
     status: str  # "completed" | "failed" | "skipped"
-    duration: float  # 秒
+    duration: float  # saniye
     tokens: int = 0
     cost: float = 0.0
     result: str = ""
@@ -62,7 +62,7 @@ class StepRecord:
 
 @dataclass
 class ModelUsage:
-    """单个模型的调用统计"""
+    """tekilmodelcagriistatistik"""
 
     provider: str
     model_name: str
@@ -74,22 +74,22 @@ class ModelUsage:
 @dataclass
 class TaskSummary:
     """
-    任务总结数据类
+    gorevtoplamsayigoresinif
 
     Attributes:
-        task: 任务描述
-        workflow: 工作流名称（build/review/debug/test）
-        start_time: 开始时间（ISO 格式）
-        end_time: 结束时间（ISO 格式）
-        duration_seconds: 总耗时（秒）
-        total_tokens: Token 总消耗
-        total_cost: 总成本（元）
-        steps_completed: 已完成步骤列表
-        agent_count: 涉及的 Agent 数量
-        models_used: 使用过的模型列表
-        success: 是否全部成功
-        errors: 错误列表
-        recommendations: 优化建议
+        task: gorev aciklamasi
+        workflow: is akisi adi (build/review/debug/test) 
+        start_time: baslatzamanarasinda (ISO format) 
+        end_time: bitirzamanarasinda (ISO format) 
+        duration_seconds: toplamtuketzaman (saniye) 
+        total_tokens: Token toplamtuket
+        total_cost: toplamol (ogre) 
+        steps_completed: tamamlaadimliste
+        agent_count: ilgilive Agent sayimiktar
+        models_used: kullanmodelliste
+        success: olup olmadigitumkisimbasarili
+        errors: hataliste
+        recommendations: iyioneri
     """
 
     task: str
@@ -115,7 +115,7 @@ class TaskSummary:
 
 
 # ============================================================
-# 总结生成
+# toplamolustur
 # ============================================================
 def generate_summary(
     task: str,
@@ -126,28 +126,28 @@ def generate_summary(
     end_time: Optional[datetime] = None,
 ) -> TaskSummary:
     """
-    根据已完成步骤生成任务总结
+    goretamamlaadimolusturgorevtoplam
 
     Args:
-        task: 任务描述
-        workflow: 工作流名称
-        completed_steps: 步骤列表，每个 dict 包含:
-            - agent: Agent 名称
-            - status: 状态（completed/failed/skipped）
-            - duration: 耗时（秒）
-            - tokens: Token 消耗
-            - result: 执行结果描述
-            - error: 错误信息（如有）
-        project_path: 项目路径
+        task: gorev aciklamasi
+        workflow: is akisi adi
+        completed_steps: adimliste, her dict icerir:
+            - agent: Agent ad
+            - status: durum (completed/failed/skipped) 
+            - duration: tuketzaman (saniye) 
+            - tokens: Token tuket
+            - result: yurutme sonucuaciklama
+            - error: hata mesaji (orneginvar) 
+        project_path: proje yolu
 
     Returns:
-        TaskSummary 对象
+        TaskSummary icinnesne
     """
     now = datetime.now()
     start = start_time or now
     end = end_time or now
 
-    # 转换步骤
+    # donusturadim
     steps = []
     agents_used = set()
     total_tokens = 0
@@ -176,11 +176,11 @@ def generate_summary(
             if step.error:
                 errors.append(f"{step.agent}: {step.error}")
 
-    # 估算成本（按 DeepSeek 价格：¥1/百万 Token）
+    # tahminol (gore DeepSeek deger: ¥1/yuz10 bin Token) 
     if total_cost == 0 and total_tokens > 0:
         total_cost = total_tokens / 1_000_000 * 1.0
 
-    # 生成优化建议
+    # olusturiyioneri
     recommendations = _generate_recommendations(
         steps=steps,
         total_cost=total_cost,
@@ -188,7 +188,7 @@ def generate_summary(
         workflow=workflow,
     )
 
-    # 推断使用的模型（简化版：从 Agent 名推断）
+    # cikarimkullanmodel (basitsurum:  Agent isimcikarim) 
     models_used = _infer_models(workflow, len(agents_used))
 
     return TaskSummary(
@@ -214,37 +214,37 @@ def _generate_recommendations(
     total_tokens: int,
     workflow: str,
 ) -> list[str]:
-    """生成优化建议"""
+    """olusturiyioneri"""
     recs = []
 
-    # 成本建议
+    # oloneri
     if total_cost > 1.0:
-        recs.append("💡 成本较高，考虑使用 DeepSeek-V4（低成本）处理简单任务")
+        recs.append("💡 olkiyasyuksek, dusunkullan DeepSeek-V4 (dusukol) islebasittekilgorev")
     elif total_cost > 0.1:
-        recs.append("💡 当前成本适中，继续保持")
+        recs.append("💡 mevcutoluygunicinde, devamdevamkoru")
 
-    # Token 建议
+    # Token oneri
     if total_tokens > 50000:
-        recs.append("💡 Token 消耗较高，可考虑减少探索深度或分批处理")
+        recs.append("💡 Token tuketkiyasyuksek, olabilirdusunazaltazkesfetderinlikveyapuantoplucaisle")
 
-    # 执行时间建议
+    # yurutzamanarasindaoneri
     total_duration = sum(s.duration for s in steps)
     if total_duration > 60:
-        recs.append("💡 执行时间较长，可考虑并行执行独立步骤")
+        recs.append("💡 yurutzamanarasindakiyasuzunluk, olabilirdusunvesatiryuruttekkuradim")
 
-    # 失败建议
+    # basarisizoneri
     failed_steps = [s for s in steps if s.status == "failed"]
     if failed_steps:
-        recs.append(f"⚠️  {len(failed_steps)} 个步骤失败，建议检查相关 Agent 配置")
+        recs.append(f"⚠️  {len(failed_steps)} adimbasarisiz, onerikontrolilgili Agent yapilandirma")
 
     if not recs:
-        recs.append("✅ 执行效率良好，无需特殊优化")
+        recs.append("✅ yurutetkioraniyiiyi, yokgerekozeliyi")
 
     return recs
 
 
 def _infer_models(workflow: str, agent_count: int) -> list[str]:
-    """推断使用的模型"""
+    """cikarimkullanmodel"""
     if workflow == "build":
         return ["deepseek-chat", "deepseek-chat", "deepseek-chat"]
     if workflow == "review":
@@ -257,22 +257,22 @@ def _infer_models(workflow: str, agent_count: int) -> list[str]:
 
 
 # ============================================================
-# 打印总结
+# yazdirtoplam
 # ============================================================
 def print_summary(summary: TaskSummary) -> None:
-    """在终端打印总结（带格式）"""
+    """icindesonucyazdirtoplam (kemerformat) """
     status_icon = "✅" if summary.success else "❌"
 
-    print(f"\n{status_icon} 任务: {summary.task}")
-    print(f"📋 工作流: {summary.workflow}")
-    print(f"⏱️  耗时: {summary.duration_seconds:.1f}s")
-    print(f"💰 成本: ¥{summary.total_cost:.4f}")
+    print(f"\n{status_icon} gorev: {summary.task}")
+    print(f"📋 is akisi: {summary.workflow}")
+    print(f"⏱️  tuketzaman: {summary.duration_seconds:.1f}s")
+    print(f"💰 ol: ¥{summary.total_cost:.4f}")
     print(f"🔢 Token: {summary.total_tokens:,}")
-    print(f"🤖 Agent 数: {summary.agent_count}")
-    print(f"🔧 模型: {', '.join(summary.models_used)}")
+    print(f"🤖 Agent sayi: {summary.agent_count}")
+    print(f"🔧 model: {', '.join(summary.models_used)}")
 
     if summary.steps_completed:
-        print("\n📊 执行步骤：")
+        print("\n📊 yurutadim: ")
         for i, step in enumerate(summary.steps_completed, 1):
             icon = (
                 "✅"
@@ -286,18 +286,18 @@ def print_summary(summary: TaskSummary) -> None:
             )
 
     if summary.errors:
-        print("\n❌ 错误：")
+        print("\n❌ hata: ")
         for err in summary.errors:
             print(f"  • {err}")
 
     if summary.recommendations:
-        print("\n💡 优化建议：")
+        print("\n💡 iyioneri: ")
         for rec in summary.recommendations:
             print(f"  {rec}")
 
 
 def print_summary_compact(summary: TaskSummary) -> None:
-    """紧凑版总结（单行）"""
+    """kompaktsurumtoplam (tekilsatir) """
     status = "✅" if summary.success else "❌"
     print(
         f"{status} [{summary.workflow}] {summary.task[:40]} | "
@@ -308,7 +308,7 @@ def print_summary_compact(summary: TaskSummary) -> None:
 
 
 # ============================================================
-# 保存与加载
+# kaydetileyukle
 # ============================================================
 def save_summary(
     summary: TaskSummary,
@@ -317,23 +317,23 @@ def save_summary(
     filename: Optional[str] = None,
 ) -> Path:
     """
-    保存总结到文件
+    kaydettoplamkadardosya
 
     Args:
-        summary: 总结对象
-        output_dir: 输出目录（默认 reports/）
-        format: 格式（json/txt/html）
-        filename: 自定义文件名
+        summary: toplamicinnesne
+        output_dir: ciktidizin (varsayilan reports/) 
+        format: format (json/txt/html) 
+        filename: ozeldosyaisim
 
     Returns:
-        保存的文件路径
+        kaydetdosyayol
     """
     if output_dir is None:
         output_dir = Path(__file__).parent.parent.parent / "reports"
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # 生成文件名
+    # olusturdosyaisim
     if filename is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_task = "".join(c if c.isalnum() else "_" for c in summary.task[:30])
@@ -351,39 +351,39 @@ def save_summary(
         with open(filepath, "w", encoding="utf-8") as f:
             _write_html_summary(f, summary)
     else:
-        raise ValueError(f"不支持的格式: {format}")
+        raise ValueError(f"hayirdestekformat: {format}")
 
     return filepath
 
 
 def _write_txt_summary(f, summary: TaskSummary) -> None:
-    """写入 TXT 格式"""
-    f.write("任务总结\n")
+    """yazgiris TXT format"""
+    f.write("gorevtoplam\n")
     f.write(f"{'=' * 50}\n")
-    f.write(f"任务: {summary.task}\n")
-    f.write(f"工作流: {summary.workflow}\n")
-    f.write(f"状态: {'成功' if summary.success else '失败'}\n")
-    f.write(f"耗时: {summary.duration_seconds:.1f}s\n")
+    f.write(f"gorev: {summary.task}\n")
+    f.write(f"is akisi: {summary.workflow}\n")
+    f.write(f"durum: {'basarili' if summary.success else 'basarisiz'}\n")
+    f.write(f"tuketzaman: {summary.duration_seconds:.1f}s\n")
     f.write(f"Token: {summary.total_tokens:,}\n")
-    f.write(f"成本: ¥{summary.total_cost:.4f}\n")
-    f.write("\n执行步骤:\n")
+    f.write(f"ol: ¥{summary.total_cost:.4f}\n")
+    f.write("\nyurutadim:\n")
     for step in summary.steps_completed:
         f.write(f"  - {step['agent']}: {step['result']}\n")
     if summary.recommendations:
-        f.write("\n优化建议:\n")
+        f.write("\niyioneri:\n")
         for rec in summary.recommendations:
             f.write(f"  {rec}\n")
 
 
 def _write_html_summary(f, summary: TaskSummary) -> None:
-    """写入 HTML 格式"""
+    """yazgiris HTML format"""
     status_color = "#4CAF50" if summary.success else "#F44336"
     f.write(
         f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>任务总结 - {summary.task[:30]}</title>
+<title>gorevtoplam - {summary.task[:30]}</title>
 <style>
 body {{ font-family: -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }}
 h1 {{ color: #333; }}
@@ -396,15 +396,15 @@ h1 {{ color: #333; }}
 </head>
 <body>
 <h1>📋 {summary.task}</h1>
-<p>工作流: <strong>{summary.workflow}</strong> |
-   状态: <span style="color:{status_color}">{"✅ 成功" if summary.success else "❌ 失败"}</span></p>
+<p>is akisi: <strong>{summary.workflow}</strong> |
+   durum: <span style="color:{status_color}">{"✅ basarili" if summary.success else "❌ basarisiz"}</span></p>
 
 <div class="stat">⏱️ {summary.duration_seconds:.1f}s</div>
 <div class="stat">💰 ¥{summary.total_cost:.4f}</div>
 <div class="stat">🔢 {summary.total_tokens:,} tokens</div>
 <div class="stat">🤖 {summary.agent_count} agents</div>
 
-<h2>执行步骤</h2>
+<h2>yurutadim</h2>
 """
     )
     for step in summary.steps_completed:
@@ -418,24 +418,24 @@ h1 {{ color: #333; }}
 """
         )
     if summary.recommendations:
-        f.write("<h2>💡 优化建议</h2>\n")
+        f.write("<h2>💡 iyioneri</h2>\n")
         for rec in summary.recommendations:
             f.write(f"<div class='rec'>{rec}</div>\n")
     f.write("</body></html>")
 
 
 def load_summary(filepath: Path) -> TaskSummary:
-    """从文件加载总结"""
+    """dosyayukletoplam"""
     filepath = Path(filepath)
     if filepath.suffix == ".json":
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
         return TaskSummary.from_dict(data)
-    raise ValueError(f"不支持的文件格式: {filepath.suffix}")
+    raise ValueError(f"hayirdestekdosyaformat: {filepath.suffix}")
 
 
 # ============================================================
-# 便捷函数
+# kullanislifonksiyon
 # ============================================================
 def quick_summary(
     task: str,
@@ -445,17 +445,17 @@ def quick_summary(
     steps: list[str],
 ) -> TaskSummary:
     """
-    快速生成简单总结（用于不需要完整信息的场景）
+    hizlihizolusturbasittekiltoplam (kullandehayirgerekistertambilgisenaryo) 
 
     Args:
-        task: 任务描述
-        workflow: 工作流名称
-        duration: 总耗时（秒）
-        tokens: Token 总消耗
-        steps: 步骤描述列表
+        task: gorev aciklamasi
+        workflow: is akisi adi
+        duration: toplamtuketzaman (saniye) 
+        tokens: Token toplamtuket
+        steps: adimaciklamaliste
 
     Returns:
-        TaskSummary 对象
+        TaskSummary icinnesne
     """
     completed = [
         {

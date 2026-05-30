@@ -4,13 +4,13 @@ from __future__ import annotations
 
 
 """
-多 Agent 协作 CLI 命令
+birçokAgentişbirliğiCLIEmir
 
-omc multiagent status      - 查看协作状态
-omc multiagent spawn <role> <name> - 创建子 Agent
-omc multiagent dispatch <task>     - 分发任务
-omc multiagent list                - 列出所有子 Agent
-omc multiagent remove <agent_id>   - 移除 Agent
+omc multiagent status      -İşbirliği durumunu görüntüle
+omc multiagent spawn <role> <name> -Çocuk oluşturAgent
+omc multiagent dispatch <task>     -Görevleri dağıt
+omc multiagent list                -Tüm çocukları listeleAgent
+omc multiagent remove <agent_id>   -KaldırmakAgent
 """
 
 
@@ -26,7 +26,7 @@ from src.multiagent.coordinator import (
 
 app = typer.Typer(
     name="multiagent",
-    help="多 Agent 协作 - 创建、调度、查看子 Agent",
+    help="birçokAgentişbirliği-Alt öğeleri oluşturun, planlayın, görüntüleyinAgent",
     add_completion=False,
 )
 console = Console()
@@ -44,9 +44,9 @@ def _agent_status_color(status: SubAgentStatus) -> str:
 @app.command("status")
 def multiagent_status() -> None:
     """
-    查看多 Agent 协作状态
+Daha fazlasını görüntüleAgentİşbirliği durumu
 
-    示例:
+Örnek:
         omc multiagent status
     """
     coordinator = get_coordinator()
@@ -54,23 +54,23 @@ def multiagent_status() -> None:
 
     console.print(
         Panel(
-            f"[bold]总 Agent 数:[/bold] {status['total_agents']}\n"
-            f"[bold]活跃任务:[/bold] {status['active_tasks']}\n\n"
-            f"🔄 运行中: [cyan]{status['running']}[/cyan]\n"
-            f"✅ 已完成: [green]{status['completed']}[/green]\n"
-            f"❌ 失败: [red]{status['failed']}[/red]\n"
-            f"⏳ 空闲: [dim]{status['idle']}[/dim]",
-            title="🤖 多 Agent 状态",
+            f"[bold]toplamAgentsayı:[/bold] {status['total_agents']}\n"
+            f"[bold]aktif görevler:[/bold] {status['active_tasks']}\n\n"
+            f"🔄Koşma: [cyan]{status['running']}[/cyan]\n"
+            f"✅Tamamlanmış: [green]{status['completed']}[/green]\n"
+            f"❌hata: [red]{status['failed']}[/red]\n"
+            f"⏳boşta: [dim]{status['idle']}[/dim]",
+            title="🤖birçokAgentdurum",
             border_style="cyan",
         )
     )
 
     if status["agents"]:
-        table = Table(title="子 Agent 列表")
+        table = Table(title="oğulAgentliste")
         table.add_column("ID", style="cyan", width=10)
-        table.add_column("名称", style="white")
-        table.add_column("角色", style="yellow")
-        table.add_column("状态", width=10)
+        table.add_column("isim", style="white")
+        table.add_column("Rol", style="yellow")
+        table.add_column("durum", width=10)
 
         for agent in status["agents"]:
             color = _agent_status_color(SubAgentStatus(agent["status"]))
@@ -84,26 +84,26 @@ def multiagent_status() -> None:
 
         console.print(table)
     else:
-        console.print("[dim]暂无子 Agent，使用 `omc multiagent spawn` 创建[/dim]")
+        console.print("[dim]Henüz çocuk yokAgent,kullanmak`omc multiagent spawn`yaratmak[/dim]")
 
 
 @app.command("spawn")
 def multiagent_spawn(
     role: str = typer.Argument(
-        ..., help="Agent 角色 (coder/reviewer/tester/planner/explorer/executor)"
+        ..., help="AgentRol(coder/reviewer/tester/planner/explorer/executor)"
     ),
-    name: str = typer.Argument(..., help="Agent 名称"),
+    name: str = typer.Argument(..., help="Agentisim"),
     metadata: str = typer.Option(
         None,
         "--metadata",
         "-m",
-        help="元数据 JSON 字符串",
+        help="meta veriJSONsicim",
     ),
 ) -> None:
     """
-    创建子 Agent
+Çocuk oluşturAgent
 
-    示例:
+Örnek:
         omc multiagent spawn coder review-agent-1
         omc multiagent spawn reviewer security-checker -m '{"priority": "high"}'
     """
@@ -114,7 +114,7 @@ def multiagent_spawn(
         try:
             meta = json.loads(metadata)
         except json.JSONDecodeError as e:
-            console.print(f"[red]❗ metadata JSON 解析失败: {e}[/red]")
+            console.print(f"[red]❗ metadata JSONAyrıştırma başarısız oldu: {e}[/red]")
             raise typer.Exit(1)
 
     coordinator = get_coordinator()
@@ -122,12 +122,12 @@ def multiagent_spawn(
 
     console.print(
         Panel.fit(
-            f"[green]✓ 子 Agent 已创建[/green]\n\n"
+            f"[green]✓oğulAgentOluşturuldu[/green]\n\n"
             f"ID:   [cyan]{agent.agent_id}[/cyan]\n"
-            f"名称: [cyan]{agent.name}[/cyan]\n"
-            f"角色: {role}\n"
-            f"状态: [dim]idle[/dim]",
-            title="🤖 子 Agent",
+            f"isim: [cyan]{agent.name}[/cyan]\n"
+            f"Rol: {role}\n"
+            f"durum: [dim]idle[/dim]",
+            title="🤖oğulAgent",
             border_style="green",
         )
     )
@@ -136,24 +136,24 @@ def multiagent_spawn(
 @app.command("list")
 def multiagent_list() -> None:
     """
-    列出所有子 Agent
+Tüm çocukları listeleAgent
 
-    示例:
+Örnek:
         omc multiagent list
     """
     coordinator = get_coordinator()
     agents = list(coordinator.agents.values())
 
     if not agents:
-        console.print("[dim]暂无子 Agent[/dim]")
+        console.print("[dim]Henüz çocuk yokAgent[/dim]")
         return
 
-    table = Table(title=f"子 Agent 列表 ({len(agents)})")
+    table = Table(title=f"oğulAgentliste({len(agents)})")
     table.add_column("ID", style="cyan", width=10)
-    table.add_column("名称", style="white")
-    table.add_column("角色", style="yellow")
-    table.add_column("状态", width=10)
-    table.add_column("创建时间", style="dim", width=18)
+    table.add_column("isim", style="white")
+    table.add_column("Rol", style="yellow")
+    table.add_column("durum", width=10)
+    table.add_column("yaratılış zamanı", style="dim", width=18)
 
     for agent in agents:
         color = _agent_status_color(agent.status)
@@ -171,26 +171,26 @@ def multiagent_list() -> None:
 
 @app.command("dispatch")
 def multiagent_dispatch(
-    task: str = typer.Argument(..., help="任务描述"),
+    task: str = typer.Argument(..., help="Görev açıklaması"),
     agent_ids: str = typer.Option(
         None,
         "--agents",
         "-a",
-        help="指定 Agent ID（逗号分隔，默认全部）",
+        help="Belirtilen Agent ID'leri (virgülle ayrılır, varsayılan: tümü)",
     ),
     mode: str = typer.Option(
         "parallel",
         "--mode",
         "-m",
-        help="执行模式: parallel（并行）/ sequential（顺序）",
+        help="yürütme modu: parallel(paralel)/ sequential(emir)",
     ),
 ) -> None:
     """
-    分发任务给子 Agent
+Görevleri çocuklara dağıtınAgent
 
-    示例:
-        omc multiagent dispatch "审查代码变更" -a agent1,agent2
-        omc multiagent dispatch "实现功能X" --mode sequential
+Örnek:
+        omc multiagent dispatch "Kod değişikliklerini inceleyin" -a agent1,agent2
+        omc multiagent dispatch "Uygulama işleviX" --mode sequential
     """
     import asyncio
 
@@ -198,7 +198,7 @@ def multiagent_dispatch(
     all_agents = list(coordinator.agents.values())
 
     if not all_agents:
-        console.print("[red]❗ 暂无子 Agent，先用 `omc multiagent spawn` 创建[/red]")
+        console.print("[red]❗Henüz çocuk yokAgent, ilk önce kullan`omc multiagent spawn`yaratmak[/red]")
         raise typer.Exit(1)
 
     if agent_ids:
@@ -206,12 +206,12 @@ def multiagent_dispatch(
         target_agents = [coordinator.get_agent(aid) for aid in target_ids]
         target_agents = [a for a in target_agents if a is not None]
         if not target_agents:
-            console.print(f"[red]❗ 未找到指定的 Agent: {agent_ids}[/red]")
+            console.print(f"[red]❗BelirtilenAgent: {agent_ids}[/red]")
             raise typer.Exit(1)
     else:
         target_agents = all_agents
 
-    console.print(f"[cyan]分发任务给 {len(target_agents)} 个 Agent（{mode}）[/cyan]")
+    console.print(f"[cyan]Görevleri şuraya dağıt:{len(target_agents)}bireyselAgentModel önerisi{mode})[/cyan]")
     for a in target_agents:
         console.print(f"  - {a.name} [{a.role}]")
 
@@ -223,17 +223,17 @@ def multiagent_dispatch(
 
         console.print(
             Panel.fit(
-                f"[green]✓ 任务完成[/green]\n\n"
-                f"任务ID: [cyan]{result.task_id}[/cyan]\n"
-                f"开始: {result.started_at}\n"
-                f"完成: {result.completed_at}\n\n"
-                f"[bold]汇总:[/bold]\n{result.summary}",
-                title="📊 协作结果",
+                f"[green]✓Görev tamamlandı[/green]\n\n"
+                f"GörevID: [cyan]{result.task_id}[/cyan]\n"
+                f"başlangıç: {result.started_at}\n"
+                f"Sona ermek: {result.completed_at}\n\n"
+                f"[bold]Özet:[/bold]\n{result.summary}",
+                title="📊işbirlikçi sonuçlar",
                 border_style="green",
             )
         )
 
-        # 各 Agent 结果
+        #her biriAgentsonuç
         for r in result.results:
             icon = "✅" if r.success else "❌"
             console.print(f"\n{icon} [{r.role}] {r.agent_id}")
@@ -243,68 +243,68 @@ def multiagent_dispatch(
                     output += "..."
                 console.print(f"   {output}")
             else:
-                console.print(f"   [red]错误: {r.error}[/red]")
+                console.print(f"   [red]hata: {r.error}[/red]")
 
     except Exception as e:
-        console.print(f"[red]❗ 分发失败: {e}[/red]")
+        console.print(f"[red]❗Dağıtım başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("remove")
 def multiagent_remove(
     agent_id: str = typer.Argument(..., help="Agent ID"),
-    force: bool = typer.Option(False, "--force", "-f", help="强制移除"),
+    force: bool = typer.Option(False, "--force", "-f", help="Hunyuan"),
 ) -> None:
     """
-    移除子 Agent
+alt öğeyi kaldırAgent
 
-    示例:
+Örnek:
         omc multiagent remove abc12345
     """
     coordinator = get_coordinator()
     agent = coordinator.get_agent(agent_id)
 
     if agent is None:
-        console.print(f"[red]❗ Agent 不存在: {agent_id}[/red]")
+        console.print(f"[red]❗ Agentçubuk gösterilmiyor: {agent_id}[/red]")
         raise typer.Exit(1)
 
     if not force:
         from rich.prompt import Confirm
 
-        if not Confirm.ask(f"确认移除 Agent [cyan]{agent.name}[/cyan] ({agent_id})？"):
-            console.print("[dim]已取消[/dim]")
+        if not Confirm.ask(f"Kaldırma işlemini onaylayınAgent [cyan]{agent.name}[/cyan] ({agent_id})?"):
+            console.print("[dim]İptal edildi[/dim]")
             return
 
     if coordinator.remove_agent(agent_id):
-        console.print(f"[green]✓ Agent 已移除: {agent_id}[/green]")
+        console.print(f"[green]✓ AgentKaldırıldı: {agent_id}[/green]")
     else:
-        console.print("[red]❗ 移除失败[/red]")
+        console.print("[red]❗Kaldırma başarısız oldu[/red]")
         raise typer.Exit(1)
 
 
 @app.command("clear")
 def multiagent_clear(
-    force: bool = typer.Option(False, "--force", "-f", help="强制清空"),
+    force: bool = typer.Option(False, "--force", "-f", help="Temizlemeye zorla"),
 ) -> None:
     """
-    清空所有子 Agent
+Tüm alt öğeleri temizleAgent
 
-    示例:
+Örnek:
         omc multiagent clear -f
     """
     coordinator = get_coordinator()
     count = len(coordinator.agents)
 
     if count == 0:
-        console.print("[dim]暂无子 Agent[/dim]")
+        console.print("[dim]Henüz çocuk yokAgent[/dim]")
         return
 
     if not force:
         from rich.prompt import Confirm
 
-        if not Confirm.ask(f"确认清空所有 {count} 个子 Agent？"):
-            console.print("[dim]已取消[/dim]")
+        if not Confirm.ask(f"Tümünü temizlemeyi onaylayın{count}UzunAgent?"):
+            console.print("[dim]İptal edildi[/dim]")
             return
 
     coordinator.clear_agents()
-    console.print(f"[green]✓ 已清空 {count} 个子 Agent[/green]")
+    console.print(f"[green]✓Temizlendi{count}UzunAgent[/green]")

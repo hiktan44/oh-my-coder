@@ -1,10 +1,10 @@
 """
-RAG 模块 - 代码库索引和语义搜索
+RAG modul - kodkutuphaneindeksveanlamsalara
 
-提供：
-1. CodebaseIndexer - 索引项目代码
-2. SemanticSearch - 语义搜索代码
-3. 上下文理解 - 让 Agent 理解整个项目
+saglar: 
+1. CodebaseIndexer - indeksprojekod
+2. SemanticSearch - anlamsalarakod
+3. baglamanla - izin ver Agent anlatamproje
 """
 
 from .indexer import CodebaseIndexer, IndexConfig

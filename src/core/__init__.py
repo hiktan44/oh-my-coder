@@ -1,13 +1,13 @@
 """
-Core 模块 - 核心功能
+Core modul - cekirdekislev
 
-提供：
-- Agent 基类和注册机制
-- 模型路由器
-- 任务路由器
-- 编排器
-- 任务历史和回放
-- 上下文管理
+saglar: 
+- Agent temel sinifvekayitmekanizma
+- modelyoltarafindan
+- gorevyoltarafindan
+- orkestrasyon
+- gorevgecmisvegeri oynat
+- baglamyonet
 """
 
 from .dependency_resolver import (

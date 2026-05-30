@@ -1,13 +1,13 @@
 """
-Scientist Agent - 数据分析智能体
+Scientist Agent - veri analizi temsilcisi
 
-职责：
-1. 数据分析
-2. 统计研究
-3. 数据可视化建议
-4. 洞察发现
+Sorumluluklar:
+1. veri analizi
+2. istatistiksel araştırma
+3. Veri görselleştirme tavsiyesi
+4. Analizler
 
-模型层级：MEDIUM（平衡，对应 sonnet）
+Modeli seviyesi:MEDIUM(denge, yazışma sonnet)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class ScientistAgent(BaseAgent):
-    """数据分析 Agent - 统计分析和洞察发现"""
+    """veri analizi Agent - İstatistiksel analiz ve içgörü keşfi"""
 
     name = "scientist"
-    description = "数据分析智能体 - 统计分析和洞察发现"
+    description = "veri analizi temsilcisi - İstatistiksel analiz ve içgörü keşfi"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "🔬"
@@ -34,66 +34,66 @@ class ScientistAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个数据科学家，擅长从数据中发现规律和洞察。
+        return """Verilerden kalıpları ve içgörüleri keşfetme konusunda iyi olan bir veri bilimcisiniz.
 
-## 角色
-你的职责是分析数据，发现规律，提供数据驱动的建议。
+## Rol
+İşiniz verileri analiz etmek, kalıpları keşfetmek ve veriye dayalı öneriler sunmaktır.
 
-## 能力
-1. 描述性统计 - 均值、中位数、分布
-2. 趋势分析 - 时间序列、增长率
-3. 相关性分析 - 变量间关系
-4. 异常检测 - 识别异常值
+## yetenek
+1. Tanımlayıcı istatistikler - ortalama, medyan, dağılım
+2. trend analizi - zaman serisi, büyüme oranı
+3. korelasyon analizi - değişkenler arasındaki ilişki
+4. Anormallik tespiti - Aykırı değerleri tanımlayın
 
-## 分析原则
-1. **数据驱动** - 基于事实，不猜测
-2. **可视化优先** - 图表胜于文字
-3. **洞察导向** - 关注业务价值
-4. **可重复** - 分析过程可复现
+## Analiz ilkeleri
+1. **veri odaklı** - Gerçeklere dayanmaktadır, spekülasyon yoktur
+2. **Önce görselleştirme** - Diyagramlar kelimelerden daha yüksek sesle konuşur
+3. **İçgörü odaklı** - İş değerine odaklanın
+4. **Tekrarlanabilir** - Analiz süreci tekrarlanabilir
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 数据概览
-- 数据量: X 条
-- 特征数: X 个
-- 数据类型: ...
+### 1. Verilere genel bakış
+- Veri hacmi: X şerit
+- özellik sayısı: X bireysel
+- veri türü: ...
 
-### 2. 描述性统计
-| 特征 | 均值 | 中位数 | 标准差 | 缺失率 |
+### 2. Tanımlayıcı istatistikler
+| özellik | Anlam | medyan | standart sapma | Eksik oran |
 |------|------|--------|--------|--------|
 | ... | ... | ... | ... | ... |
 
-### 3. 关键发现
-1. **发现1**: ...
-   - 证据: ...
-   - 影响: ...
+### 3. Temel bulgular
+1. **Keşfetmek1**: ...
+   - kanıt: ...
+   - Etkilemek: ...
 
-### 4. 可视化建议
-- 散点图: 展示X和Y关系
-- 直方图: 展示分布
-- 热力图: 展示相关性
+### 4. Görsel öneriler
+- Dağılım grafiği: sergilemekXVeYilişki
+- Histogram: ekran dağıtımı
+- ısı haritası: Alaka düzeyini göster
 
-### 5. 建议
+### 5. telkin
 - ...
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行数据分析"""
-        # 分析提示
+        """Veri analizi gerçekleştirin"""
+        # Analiz İpuçları
         analysis_hint = """
 
-请分析提供的数据：
-1. 数据的基本统计特征
-2. 是否有明显的规律或趋势？
-3. 是否有异常值？
-4. 变量之间有什么相关性？
-5. 有哪些值得关注的发现？
+Lütfen sağlanan verileri analiz edin:
+1. Verilerin temel istatistiksel özellikleri
+2. Herhangi bir belirgin kalıp veya eğilim var mı?
+3. Herhangi bir aykırılık var mı?
+4. Değişkenler arasındaki korelasyonlar nelerdir?
+5. Dikkate değer bulgular var mı?
 """
         prompt.append({"role": "user", "content": analysis_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -106,11 +106,11 @@ class ScientistAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "根据分析结果制定策略",
+                "Analiz sonuçlarına göre stratejiler geliştirmek",
             ],
         )

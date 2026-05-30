@@ -1,10 +1,10 @@
 """
-omc doc 命令 - 文档生成与管理
+omc docEmir-Belge oluşturma ve yönetimi
 
-提供文档生成、验证、同步等功能：
-- omc doc generate    # 生成 API 文档
-- omc doc check       # 检查文档同步状态
-- omc doc serve       # 启动文档本地服务器
+Belge oluşturma, doğrulama, senkronizasyon ve diğer işlevleri sağlar:
+- omc doc generate    #oluşturmakAPIbelge
+- omc doc check       #Belge senkronizasyon durumunu kontrol edin
+- omc doc serve       #Belge yerel sunucusunu başlatın
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.tree import Tree
 
-app = typer.Typer(name="doc", help="文档管理 - 生成、验证、同步项目文档")
+app = typer.Typer(name="doc", help="Doküman yönetimi-Belirtilenleri yürüt")
 console = Console()
 
 DOCS_DIR = Path("docs")
@@ -26,20 +26,20 @@ README_PATH = Path("README.md")
 
 @app.command("generate")
 def generate_docs(
-    output: Path = typer.Option(Path("docs/api"), "--output", "-o", help="输出目录"),
+    output: Path = typer.Option(Path("docs/api"), "--output", "-o", help="Çıkış dizini"),
     format: str = typer.Option(
-        "markdown", "--format", "-f", help="输出格式: markdown, json"
+        "markdown", "--format", "-f", help="Çıkış formatı: markdown, json"
     ),
 ):
-    """自动生成 API 文档"""
-    console.print("[bold blue]📚 生成 API 文档...[/bold blue]")
+    """Otomatik olarak oluşturulduAPIbelge"""
+    console.print("[bold blue]📚oluşturmakAPIbelge...[/bold blue]")
 
     output.mkdir(parents=True, exist_ok=True)
 
-    # 收集 CLI 命令信息
+    #TOPLAMAKCLIkomut bilgisi
     cli_info = _collect_cli_commands()
 
-    # 收集 Web API 端点
+    #TOPLAMAKWeb APIuç nokta
     api_info = _collect_web_api()
 
     if format == "json":
@@ -47,78 +47,78 @@ def generate_docs(
     else:
         _write_markdown_docs(output, cli_info, api_info)
 
-    console.print(f"[green]✅ 文档已生成到 {output}[/green]")
+    console.print(f"[green]✅Dokümantasyon şu şekilde oluşturuldu:{output}[/green]")
 
 
 @app.command("check")
 def check_docs():
-    """检查文档同步状态"""
-    console.print("[bold blue]🔍 检查文档同步状态...[/bold blue]")
+    """Belge senkronizasyon durumunu kontrol edin"""
+    console.print("[bold blue]🔍Belge senkronizasyon durumunu kontrol edin...[/bold blue]")
 
     issues = []
 
-    # 检查 README 是否存在
+    #incelemekREADMEvar
     if not README_PATH.exists():
-        issues.append("❌ README.md 不存在")
+        issues.append("❌ README.mdçubuk gösterilmiyor")
 
-    # 检查 docs 目录结构
+    #incelemekdocsDizin yapısı
     expected_dirs = ["guide", "api", "features", "agents"]
     for d in expected_dirs:
         if not (DOCS_DIR / d).exists():
-            issues.append(f"❌ docs/{d}/ 目录缺失")
+            issues.append(f"❌ docs/{d}/Dizin eksik")
 
-    # 检查 CLI 命令是否有文档
+    #incelemekCLIKomut belgelenmiş mi?
     cli_commands = _collect_cli_commands()
     for cmd in cli_commands:
         doc_file = DOCS_DIR / "api" / f"{cmd['name']}.md"
         if not doc_file.exists():
-            issues.append(f"⚠️ CLI 命令 '{cmd['name']}' 缺少文档")
+            issues.append(f"⚠️ CLIEmir'{cmd['name']}'eksik belgeler")
 
-    # 检查未引用的文档文件（TODO: 实现完整检查）
+    #Referans verilmeyen dokümantasyon dosyalarını kontrol edin (TODO:Hizmet durumu
 
     if issues:
         console.print(
-            Panel("\n".join(issues[:10]), title="发现的问题", border_style="yellow")
+            Panel("\n".join(issues[:10]), title="Bulunan sorunlar", border_style="yellow")
         )
         if len(issues) > 10:
-            console.print(f"... 还有 {len(issues) - 10} 个问题")
+            console.print(f"...Ayrıca{len(issues) - 10}kaydetmek")
     else:
-        console.print("[green]✅ 文档状态良好[/green]")
+        console.print("[green]✅Belge iyi durumda[/green]")
 
 
 @app.command("serve")
 def serve_docs(
-    port: int = typer.Option(8080, "--port", "-p", help="服务端口"),
+    port: int = typer.Option(8080, "--port", "-p", help="servis portu"),
 ):
-    """启动文档本地预览服务器"""
+    """Belge yerel önizleme sunucusunu başlatın"""
     import http.server
     import socketserver
 
     docs_path = DOCS_DIR.resolve()
     if not docs_path.exists():
-        console.print("[red]❌ docs/ 目录不存在[/red]")
+        console.print("[red]❌ docs/Dizin mevcut değil[/red]")
         raise typer.Exit(1)
 
     class Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=str(docs_path), **kwargs)
 
-    console.print(f"[green]📖 文档服务器启动: http://localhost:{port}[/green]")
-    console.print(f"[dim]   根目录: {docs_path}[/dim]")
+    console.print(f"[green]📖Doküman sunucusu başlıyor: http://localhost:{port}[/green]")
+    console.print(f"[dim]kök dizin: {docs_path}[/dim]")
 
     with socketserver.TCPServer(("", port), Handler) as httpd:
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            console.print("\n[yellow]👋 服务器已停止[/yellow]")
+            console.print("\n[yellow]👋Sunucu durduruldu[/yellow]")
 
 
 @app.command("index")
 def generate_index():
-    """生成文档索引"""
-    console.print("[bold blue]📑 生成文档索引...[/bold blue]")
+    """Belge dizini oluştur"""
+    console.print("[bold blue]📑,...[/bold blue]")
 
-    tree = Tree("📚 文档结构")
+    tree = Tree("📚Belge yapısı")
 
     for item in sorted(DOCS_DIR.iterdir()):
         if item.name.startswith("."):
@@ -134,25 +134,25 @@ def generate_index():
     console.print(tree)
 
 
-# ===== 内部函数 =====
+# =====dahili fonksiyon=====
 
 
 def _collect_cli_commands() -> list[dict]:
-    """收集 CLI 命令信息"""
+    """Yetenek paketi yönetimiCLIkomut bilgisi"""
     commands = []
 
-    # 从 cli.py 提取命令信息（简化版）
+    #itibarencli.pyKomut bilgilerini çıkarın (basitleştirilmiş versiyon)
     cli_dir = Path(__file__).parent
     for py_file in cli_dir.glob("cli_*.py"):
         cmd_name = py_file.stem.replace("cli_", "")
         if cmd_name == "doc":
             continue
 
-        # 读取文件提取 help 文本
+        #Dosya çıkarma işlemini okuyunhelpmetin
         help_text = ""
         try:
             content = py_file.read_text(encoding="utf-8")
-            # 简单提取 docstring
+            #Basit çıkarmadocstring
             if '"""' in content:
                 start = content.find('"""') + 3
                 end = content.find('"""', start)
@@ -165,7 +165,7 @@ def _collect_cli_commands() -> list[dict]:
             {
                 "name": cmd_name,
                 "file": py_file.name,
-                "help": help_text or f"{cmd_name} 命令",
+                "help": help_text or f"{cmd_name}Emir",
             }
         )
 
@@ -173,7 +173,7 @@ def _collect_cli_commands() -> list[dict]:
 
 
 def _collect_web_api() -> list[dict]:
-    """收集 Web API 端点信息"""
+    """Yetenek paketi yönetimiWeb APIuç nokta bilgisi"""
     endpoints = []
 
     web_app = Path("src/web/app.py")
@@ -184,7 +184,7 @@ def _collect_web_api() -> list[dict]:
         content = web_app.read_text(encoding="utf-8")
         import re
 
-        # 匹配 @app.get/post/put/delete 装饰器
+        #kibrit@app.get/post/put/deleteDekoratör
         pattern = r'@app\.(get|post|put|delete)\(["\']([^"\']+)["\']'
         for match in re.finditer(pattern, content):
             method = match.group(1).upper()
@@ -202,33 +202,33 @@ def _collect_web_api() -> list[dict]:
 
 
 def _write_markdown_docs(output: Path, cli_info: list, api_info: list):
-    """写入 Markdown 格式文档"""
-    # CLI 命令文档
+    """yazmakMarkdownbelgeyi biçimlendir"""
+    # CLIkomut belgeleri
     cli_md = output / "cli-commands.md"
     with cli_md.open("w", encoding="utf-8") as f:
-        f.write("# CLI 命令参考\n\n")
-        f.write("自动生成于 `omc doc generate`\n\n")
-        f.write("| 命令 | 说明 | 文件 |\n")
+        f.write("# CLIKomut referansı\n\n")
+        f.write("otomatik olarak oluşturuldu`omc doc generate`\n\n")
+        f.write("|Emir|göstermek|belge|\n")
         f.write("|------|------|------|\n")
         for cmd in cli_info:
             f.write(f"| `{cmd['name']}` | {cmd['help']} | `{cmd['file']}` |\n")
 
-    # Web API 文档
+    # Web APIbelge
     api_md = output / "web-api.md"
     with api_md.open("w", encoding="utf-8") as f:
-        f.write("# Web API 参考\n\n")
-        f.write("自动生成于 `omc doc generate`\n\n")
-        f.write("| 方法 | 路径 |\n")
+        f.write("# Web APIbaşvurmak\n\n")
+        f.write("otomatik olarak oluşturuldu`omc doc generate`\n\n")
+        f.write("|yöntem|yol|\n")
         f.write("|------|------|\n")
         for ep in api_info:
             f.write(f"| `{ep['method']}` | `{ep['path']}` |\n")
 
-    console.print(f"  [dim]写入 {cli_md}[/dim]")
-    console.print(f"  [dim]写入 {api_md}[/dim]")
+    console.print(f"  [dim]yazmak{cli_md}[/dim]")
+    console.print(f"  [dim]yazmak{api_md}[/dim]")
 
 
 def _write_json_docs(output: Path, cli_info: list, api_info: list):
-    """写入 JSON 格式文档"""
+    """yazmakJSONbelgeyi biçimlendir"""
     data = {
         "cli_commands": cli_info,
         "web_api": api_info,
@@ -239,4 +239,4 @@ def _write_json_docs(output: Path, cli_info: list, api_info: list):
     with json_path.open("w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    console.print(f"  [dim]写入 {json_path}[/dim]")
+    console.print(f"  [dim]yazmak{json_path}[/dim]")

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 """
-Gene - 能力元数据结构
+Gene - yetenekogresayigoreyapi
 
-GEP 协议中的基本单元，描述一个能力的身份和属性。
+GEP protokolicindetemeltekilogre, aciklamabiryetenekkimlikveozellik. 
 """
 
 from dataclasses import asdict, dataclass, field
@@ -14,20 +14,20 @@ from uuid import uuid4
 @dataclass
 class Gene:
     """
-    能力元数据（GEP Gene）
+    yetenekogresayigore (GEP Gene) 
 
-    对应 GEP 协议中的能力基因，携带身份、分类和描述信息。
+    karsilik gelen GEP protokolicindeyetenektemelneden, tasikemerkimlik, puansinifveaciklamabilgi. 
     """
 
-    name: str  # 能力名称
+    name: str  # yetenekad
     category: str  # coding / review / debug / docs / test
     tags: list[str] = field(default_factory=list)  # [python, pytest, bug-fix]
-    description: str = ""  # 一句话描述
-    capabilities: list[str] = field(default_factory=list)  # 具体能力列表
-    version: str = "0.2.0"  # 版本号
-    author: str = "anonymous"  # 作者
-    created_at: str = ""  # ISO 格式时间
-    signature: Optional[str] = None  # 未来对接 zCloak
+    description: str = ""  # bircumlekonusmaaciklama
+    capabilities: list[str] = field(default_factory=list)  # araçyetenekliste
+    version: str = "0.2.0"  # surumno
+    author: str = "anonymous"  # yazar
+    created_at: str = ""  # ISO formatzamanarasinda
+    signature: Optional[str] = None  # henuzgelicinbaglan zCloak
     id: str = ""  # UUID
 
     def __post_init__(self) -> None:
@@ -38,7 +38,7 @@ class Gene:
 
             self.created_at = datetime.now().isoformat()
 
-    # --- 序列化 ---
+    # --- sira ---
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -50,7 +50,7 @@ class Gene:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Gene:
-        # 只取 Gene 自身字段，忽略多余 key
+        # sadeceal Gene kendikendialan, yoksaycokkalan key
         valid = {
             k: v
             for k, v in data.items()
@@ -58,15 +58,15 @@ class Gene:
         }
         return cls(**valid)
 
-    # --- 校验 ---
+    # --- kontroldogrula ---
 
     def validate(self) -> list[str]:
         errors: list[str] = []
         valid_categories = {"coding", "review", "debug", "docs", "test"}
         if self.category and self.category not in valid_categories:
             errors.append(
-                f"无效 category '{self.category}'，应为 {sorted(valid_categories)}"
+                f"yoketki category '{self.category}', olmaliicin {sorted(valid_categories)}"
             )
         if not self.name:
-            errors.append("name 不能为空")
+            errors.append("name hayiredebiliricinbos")
         return errors

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 
 """
-智能测试增强模块 - Smart Test Enhancement
+Akıllı test geliştirme modülü - Smart Test Enhancement
 
-功能：
-1. git diff 感知：读取最近 commit 的改动，分析影响范围
-2. 定向测试生成：针对改动的模块生成测试用例
-3. 回归测试：运行已有测试，确保不破坏旧功能
-4. 测试报告：生成详细的测试结果报告
+İşlev:
+1. git diff Algı: En yenileri okuyun commit Değişiklikler ve etki kapsamının analiz edilmesi
+2. Yönlendirilmiş test oluşturma: değiştirilmiş modüller için test senaryoları oluşturma
+3. Regresyon testi: eski işlevleri bozmadığınızdan emin olmak için mevcut testleri çalıştırın
+4. Test Raporu: Ayrıntılı test sonuçları raporu oluşturun
 """
 
 
@@ -23,20 +23,20 @@ from typing import Any, Optional
 
 @dataclass
 class GitDiff:
-    """Git 改动信息"""
+    """Git Bilgileri değiştir"""
 
     commit_hash: str = ""
     commit_message: str = ""
     author: str = ""
     timestamp: str = ""
 
-    # 改动文件列表
+    # Dosya listesini değiştir
     changed_files: list[str] = field(default_factory=list)
 
-    # 改动详情：file -> [(行号, 行内容, + / -)]
+    # Ayrıntıları değiştir:file -> [(Satır numarası, satır içeriği, + / -)]
     diff_details: dict[str, list[dict]] = field(default_factory=dict)
 
-    # 统计
+    # istatistikler
     files_added: int = 0
     files_modified: int = 0
     files_deleted: int = 0
@@ -46,54 +46,54 @@ class GitDiff:
 
 @dataclass
 class TestCase:
-    """测试用例"""
+    """test senaryosu"""
 
     name: str = ""
     file_path: str = ""
     description: str = ""
     test_type: str = "unit"  # unit/integration/e2e
-    target_function: str = ""  # 针对的函数/类
+    target_function: str = ""  # Hedef işlevi/tür
     priority: str = "medium"  # high/medium/low
 
-    # 测试内容
+    # İçeriği test edin
     test_code: str = ""
 
 
 @dataclass
 class TestReport:
-    """测试报告"""
+    """test raporu"""
 
     timestamp: str = ""
     project_path: str = ""
 
-    # 改动范围
+    # Kapsamı değiştir
     diff: Optional[GitDiff] = None
 
-    # 新增测试
+    # Test ekle
     new_tests: list[TestCase] = field(default_factory=list)
     new_tests_passed: int = 0
 
-    # 回归测试
+    # Regresyon testi
     regression_tests_run: int = 0
     regression_tests_passed: int = 0
     regression_tests_failed: int = 0
 
-    # 覆盖率
+    # Kapsam
     coverage_before: Optional[float] = None
     coverage_after: Optional[float] = None
 
-    # 失败信息
+    # Arıza mesajı
     failures: list[str] = field(default_factory=list)
 
 
 class SmartTestEnhancer:
-    """智能测试增强器
+    """Akıllı Test Geliştirici
 
-    核心功能：
-    1. 分析 git diff，确定改动范围
-    2. 生成针对改动模块的测试用例
-    3. 运行回归测试
-    4. 生成测试报告
+    Temel işlevler:
+    1. analiz etmek git diff, değişikliklerin kapsamını belirlemek
+    2. Değiştirilen modüller için test senaryoları oluşturun
+    3. Regresyon testlerini çalıştırın
+    4. Test raporu oluştur
     """
 
     def __init__(self, project_path: Path):
@@ -101,16 +101,16 @@ class SmartTestEnhancer:
 
     def get_git_diff(self, count: int = 1) -> Optional[GitDiff]:
         """
-        获取最近 N 次 commit 的 git diff
+        En son bilgileri alın N İkinci sınıf commit ile ilgili git diff
 
         Args:
-            count: 获取最近几次 commit
+            count: En son saatleri alın commit
 
         Returns:
-            GitDiff 对象，包含所有改动信息
+            GitDiff Tüm değişiklik bilgilerini içeren nesne
         """
         try:
-            # 获取最近 commit 的基本信息
+            # En son bilgileri alın commit temel bilgiler
             log_result = subprocess.run(
                 [
                     "git",
@@ -132,7 +132,7 @@ class SmartTestEnhancer:
             if not lines:
                 return None
 
-            # 取最近的 commit
+            # en yakındakini al commit
             latest = lines[0].split("|")
             diff = GitDiff(
                 commit_hash=latest[0],
@@ -141,7 +141,7 @@ class SmartTestEnhancer:
                 timestamp=latest[3],
             )
 
-            # 获取文件改动
+            # Dosya değişikliklerini alın
             diff_result = subprocess.run(
                 ["git", "diff", "--stat", f"{latest[0]}~1", latest[0]],
                 cwd=self.project_path,
@@ -157,7 +157,7 @@ class SmartTestEnhancer:
                         if file_part:
                             diff.changed_files.append(file_part)
 
-            # 详细 diff
+            # ayrıntılı diff
             diff_detail_result = subprocess.run(
                 ["git", "diff", f"{latest[0]}~1", latest[0]],
                 cwd=self.project_path,
@@ -175,24 +175,24 @@ class SmartTestEnhancer:
             return None
 
     def _parse_diff_details(self, diff: GitDiff, diff_output: str):
-        """解析 git diff 输出"""
+        """ayrıştırmak git diff çıktı"""
         current_file = ""
         current_changes = []
 
         for line in diff_output.split("\n"):
-            # 新文件
+            # yeni dosya
             if line.startswith("diff --git"):
                 if current_file and current_changes:
                     diff.diff_details[current_file] = current_changes
 
-                # 提取文件名
+                # Dosya adını çıkar
                 parts = line.split()
                 if len(parts) >= 4:
                     current_file = parts[2].replace("b/", "")
 
                 current_changes = []
 
-            # 行级别改动
+            # Satır düzeyindeki değişiklikler
             elif line.startswith("+") and not line.startswith("+++"):
                 diff.lines_added += 1
                 current_changes.append(
@@ -210,36 +210,36 @@ class SmartTestEnhancer:
                     }
                 )
 
-        # 保存最后一个文件
+        # son dosyayı kaydet
         if current_file and current_changes:
             diff.diff_details[current_file] = current_changes
 
     def analyze_impact(self, diff: GitDiff) -> dict[str, Any]:
         """
-        分析改动影响范围
+        Değişikliklerin etkisini analiz edin
 
         Returns:
-            影响分析结果，包含：
-            - impacted_modules: 受影响的模块
-            - risk_level: 风险等级 (low/medium/high)
-            - test_priority: 测试优先级
+            Etki analizi sonuçları şunları içerir:
+            - impacted_modules: Etkilenen modüller
+            - risk_level: risk seviyesi (low/medium/high)
+            - test_priority: Test önceliği
         """
         impacted = set()
 
-        # 收集所有受影响的模块
+        # Etkilenen tüm modülleri toplayın
         for file_path in diff.changed_files:
-            # Python 文件
+            # Python belge
             if file_path.endswith(".py"):
-                # 提取模块名
+                # Modül adını çıkart
                 module = file_path.replace("/", ".").replace(".py", "")
                 impacted.add(module)
 
-                # 如果是 __init__.py，父模块也受影响
+                # bu durumuda __init__.pyana modül de etkilenir
                 if "__init__.py" in file_path:
                     parent = ".".join(module.split(".")[:-1])
                     impacted.add(parent)
 
-        # 风险评估
+        # risk değerlendirmesi
         risk_factors = {
             "high": ["main", "app", "server", "api"],
             "medium": ["service", "handler", "controller"],
@@ -269,40 +269,40 @@ class SmartTestEnhancer:
         test_framework: str = "pytest",
     ) -> list[TestCase]:
         """
-        针对改动模块生成测试用例
+        Değiştirilen modüller için test senaryoları oluşturun
 
         Args:
-            diff: git diff 信息
-            test_framework: 测试框架 (pytest/unittest)
+            diff: git diff bilgi
+            test_framework: test çerçevesi (pytest/unittest)
 
         Returns:
-            生成的测试用例列表
+            Oluşturulan test senaryosu listesi
         """
         test_cases = []
 
-        # 分析改动影响
+        # Değişikliklerin etkisini analiz edin
         impact = self.analyze_impact(diff)
 
-        # 为每个改动的 Python 文件生成测试
+        # her biri için değiştirildi Python Dosya oluşturma testi
         for file_path in diff.changed_files:
             if not file_path.endswith(".py"):
                 continue
 
             if "/test_" in file_path or file_path.startswith("test_"):
-                continue  # 跳过测试文件本身
+                continue  # Test dosyasının kendisini atlayın
 
-            # 提取模块名和函数
+            # Modül adlarını ve işlevlerini çıkarın
             module_name = file_path.replace("/", ".").replace(".py", "")
             target_class = self._extract_target_class(
                 diff.diff_details.get(file_path, [])
             )
 
-            # 生成测试用例
+            # Test senaryoları oluşturun
             if target_class:
                 test_case = TestCase(
                     name=f"test_{target_class}_functionality",
                     file_path=f"tests/test_{module_name.split('.')[-1]}.py",
-                    description=f"测试 {target_class} 的核心功能",
+                    description=f"test {target_class} temel işlevler",
                     test_type="unit",
                     target_function=target_class,
                     priority="high" if impact["risk_level"] == "high" else "medium",
@@ -315,17 +315,17 @@ class SmartTestEnhancer:
         return test_cases
 
     def _extract_target_class(self, changes: list[dict]) -> Optional[str]:
-        """从改动中提取目标类/函数"""
+        """Hedef sınıfı değişikliklerden çıkarın/işlev"""
         for change in changes:
             line = change.get("line", "")
 
-            # 查找类定义
+            # Sınıf tanımını bulun
             if "class " in line:
                 match = __import__("re").search(r"class\s+(\w+)", line)
                 if match:
                     return match.group(1)
 
-            # 查找函数定义
+            # Fonksiyon tanımını bulun
             if "def " in line:
                 match = __import__("re").search(r"def\s+(\w+)", line)
                 if match:
@@ -339,38 +339,38 @@ class SmartTestEnhancer:
         module_name: str,
         framework: str,
     ) -> str:
-        """生成测试代码"""
+        """Test kodu oluştur"""
         if framework == "pytest":
-            return f'''"""测试 {target}"""
+            return f'''"""test {target}"""
 
 import pytest
 from {module_name} import {target}
 
 
 class Test{target}:
-    """测试 {target} 类的功能"""
+    """test {target} sınıf işlevi"""
 
     def test_basic_functionality(self):
-        """测试基本功能"""
+        """Temel işlevselliği test edin"""
         # Arrange
-        # 当前模板仅生成骨架，实际测试需根据具体类和方法填充
+        # Mevcut şablon yalnızca iskeletler oluşturur ve gerçek testlerin belirli sınıflara ve yöntemlere göre doldurulması gerekir.
         instance = {target}()
 
         # Act
-        # {{ 调用实际方法 }}
+        # {{ Gerçek yöntemi çağırın }}
 
         # Assert
-        # {{ 验证结果 }}
+        # {{ Doğrulama sonuçları }}
         pass
 
     def test_edge_cases(self):
-        """测试边界情况 - 模板占位，实际使用时需填充。"""
+        """Uç vakaları test edin - Şablon yer tutucusunun fiili kullanım sırasında doldurulması gerekir."""
         pass
 '''
         return ""
 
     def run_regression_tests(self) -> dict[str, Any]:
-        """运行回归测试"""
+        """Regresyon testlerini çalıştırın"""
         result = {
             "tests_run": 0,
             "tests_passed": 0,
@@ -379,7 +379,7 @@ class Test{target}:
         }
 
         try:
-            # 运行 pytest
+            # koşmak pytest
             proc = subprocess.run(
                 [
                     "python3",
@@ -396,13 +396,13 @@ class Test{target}:
                 timeout=120,
             )
 
-            # 解析输出
+            # ayrıştırma çıktısı
             output = proc.stdout + proc.stderr
 
-            # 提取统计
+            # İstatistikleri çıkar
             import re
 
-            # 匹配 "X passed" 或 "X passed, Y failed"
+            # kibrit "X passed" veya "X passed, Y failed"
             match = re.search(r"(\d+)\s+passed", output)
             if match:
                 result["tests_passed"] = int(match.group(1))
@@ -413,15 +413,15 @@ class Test{target}:
 
             result["tests_run"] = result["tests_passed"] + result["tests_failed"]
 
-            # 提取失败信息
+            # Çıkarma hatası bilgisi
             failure_match = re.findall(r"FAILED (.*?) - (.*?)(?:\n|$)", output)
-            for test_name, error in failure_match[:5]:  # 最多5个
+            for test_name, error in failure_match[:5]:  # en5bireysel
                 result["failures"].append(f"{test_name}: {error[:100]}")
 
         except subprocess.TimeoutExpired:
-            result["failures"].append("测试超时")
+            result["failures"].append("test zaman aşımı")
         except FileNotFoundError:
-            result["failures"].append("pytest 未安装")
+            result["failures"].append("pytest Kurulu değil")
 
         return result
 
@@ -431,13 +431,13 @@ class Test{target}:
         new_tests: list[TestCase],
         regression_result: dict[str, Any],
     ) -> TestReport:
-        """生成测试报告"""
+        """Test raporu oluştur"""
         return TestReport(
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             project_path=str(self.project_path),
             diff=diff,
             new_tests=new_tests,
-            new_tests_passed=len(new_tests),  # 假设新增测试通过
+            new_tests_passed=len(new_tests),  # Yeni testin geçtiğini varsayalım
             regression_tests_run=regression_result.get("tests_run", 0),
             regression_tests_passed=regression_result.get("tests_passed", 0),
             regression_tests_failed=regression_result.get("tests_failed", 0),
@@ -445,44 +445,44 @@ class Test{target}:
         )
 
     def generate_report_md(self, report: TestReport) -> str:
-        """生成 Markdown 格式的测试报告"""
+        """oluşturmak Markdown format test raporu"""
         lines = [
-            "# 测试报告",
+            "# test raporu",
             "",
-            f"**时间**: {report.timestamp}",
-            f"**项目**: {report.project_path}",
+            f"**zaman**: {report.timestamp}",
+            f"**proje**: {report.project_path}",
             "",
             "---",
             "",
         ]
 
-        # 改动范围
+        # Kapsamı değiştir
         if report.diff:
             lines.extend(
                 [
-                    "## 改动范围",
+                    "## Kapsamı değiştir",
                     "",
                     f"- **Commit**: `{report.diff.commit_hash[:8]}`",
-                    f"- **信息**: {report.diff.commit_message}",
-                    f"- **作者**: {report.diff.author}",
-                    f"- **文件数**: {len(report.diff.changed_files)}",
-                    f"- **新增行**: +{report.diff.lines_added}",
-                    f"- **删除行**: -{report.diff.lines_deleted}",
+                    f"- **bilgi**: {report.diff.commit_message}",
+                    f"- **yazar**: {report.diff.author}",
+                    f"- **Dosya sayısı**: {len(report.diff.changed_files)}",
+                    f"- **Yeni satır ekle**: +{report.diff.lines_added}",
+                    f"- **Satırı sil**: -{report.diff.lines_deleted}",
                     "",
-                    "### 改动文件",
+                    "### Dosyaları değiştir",
                     "",
                 ]
             )
             lines.extend([f"- {f}" for f in report.diff.changed_files[:20]])
             if len(report.diff.changed_files) > 20:
-                lines.append(f"- ... 还有 {len(report.diff.changed_files) - 20} 个")
+                lines.append(f"- ... Ayrıca {len(report.diff.changed_files) - 20} bireysel")
             lines.append("")
 
-        # 新增测试
+        # Test ekle
         if report.new_tests:
             lines.extend(
                 [
-                    "## 新增测试",
+                    "## Test ekle",
                     "",
                 ]
             )
@@ -490,9 +490,9 @@ class Test{target}:
                 lines.extend(
                     [
                         f"### {tc.name}",
-                        f"- 文件: `{tc.file_path}`",
-                        f"- 类型: {tc.test_type}",
-                        f"- 优先级: {tc.priority}",
+                        f"- belge: `{tc.file_path}`",
+                        f"- tip: {tc.test_type}",
+                        f"- öncelik: {tc.priority}",
                         "",
                         "```python",
                         tc.test_code,
@@ -501,21 +501,21 @@ class Test{target}:
                     ]
                 )
 
-        # 回归测试
+        # Regresyon testi
         lines.extend(
             [
-                "## 回归测试",
+                "## Regresyon testi",
                 "",
-                f"- **运行**: {report.regression_tests_run}",
-                f"- **通过**: {report.regression_tests_passed}",
-                f"- **失败**: {report.regression_tests_failed}",
+                f"- **koşmak**: {report.regression_tests_run}",
+                f"- **geçmek**: {report.regression_tests_passed}",
+                f"- **hata**: {report.regression_tests_failed}",
                 "",
             ]
         )
 
-        # 失败详情
+        # Arıza ayrıntıları
         if report.failures:
-            lines.extend(["### 失败详情", ""])
+            lines.extend(["### Arıza ayrıntıları", ""])
             lines.extend([f"- {failure}" for failure in report.failures])
             lines.append("")
 
@@ -523,19 +523,19 @@ class Test{target}:
 
 
 # ------------------------------------------------------------------
-# CLI 入口
+# CLI Giriş
 # ------------------------------------------------------------------
 
 
 def main():
-    """CLI 入口"""
+    """CLI Giriş"""
     import argparse
 
-    parser = argparse.ArgumentParser(description="智能测试增强工具")
-    parser.add_argument("path", nargs="?", default=".", help="项目路径")
-    parser.add_argument("--generate", "-g", action="store_true", help="生成测试用例")
-    parser.add_argument("--regression", "-r", action="store_true", help="运行回归测试")
-    parser.add_argument("--report", "-o", help="报告输出文件")
+    parser = argparse.ArgumentParser(description="Akıllı test geliştirme araçları")
+    parser.add_argument("path", nargs="?", default=".", help="Proje yolu")
+    parser.add_argument("--generate", "-g", action="store_true", help="Test senaryoları oluşturun")
+    parser.add_argument("--regression", "-r", action="store_true", help="Regresyon testlerini çalıştırın")
+    parser.add_argument("--report", "-o", help="rapor çıktı dosyası")
 
     args = parser.parse_args()
 
@@ -543,28 +543,28 @@ def main():
     enhancer = SmartTestEnhancer(project_path)
 
     if args.generate or args.regression:
-        # 获取 diff
+        # Elde etmek diff
         diff = enhancer.get_git_diff()
         if not diff:
-            print("无法获取 git diff")
+            print("Alınamıyor git diff")
             return
 
         print(f"Commit: {diff.commit_hash[:8]}")
-        print(f"改动文件: {len(diff.changed_files)}")
-        print(f"新增行: +{diff.lines_added}, 删除行: -{diff.lines_deleted}")
+        print(f"Dosyaları değiştir: {len(diff.changed_files)}")
+        print(f"Yeni satır ekle: +{diff.lines_added}, Satırı sil: -{diff.lines_deleted}")
 
         if args.generate:
             tests = enhancer.generate_targeted_tests(diff)
-            print(f"\n生成了 {len(tests)} 个测试用例:")
+            print(f"\nOluşturuldu {len(tests)} test senaryoları:")
             for tc in tests:
                 print(f"  - {tc.name} -> {tc.file_path}")
 
         if args.regression:
             result = enhancer.run_regression_tests()
-            print("\n回归测试结果:")
-            print(f"  通过: {result['tests_passed']}/{result['tests_run']}")
+            print("\nRegresyon testi sonuçları:")
+            print(f"  geçmek: {result['tests_passed']}/{result['tests_run']}")
             if result["failures"]:
-                print(f"  失败: {result['failures'][:3]}")
+                print(f"  hata: {result['failures'][:3]}")
 
 
 if __name__ == "__main__":

@@ -4,16 +4,16 @@ from __future__ import annotations
 
 
 """
-主动学习模块 - Self-Improving Agent
+Aktif öğrenme modülü - Self-Improving Agent
 
-收集执行反馈，分析失败模式，自动优化策略。
-支持自进化：自动总结经验、优化 prompt、存储进化历史。
+Yürütme geri bildirimlerini toplayın, hata modlarını analiz edin ve stratejileri otomatik olarak optimize edin.
+Kişisel gelişimi destekleyin: deneyimi otomatik olarak özetleyin ve optimize edin prompt,Depolamanın evrimsel tarihi.
 
-主要功能：
-1. 任务完成后自动分析执行日志
-2. 提取成功/失败模式
-3. 生成优化建议并更新 Agent 的 system prompt
-4. 存储进化历史到 .omc/state/agents/{agent_name}/
+Ana işlevler:
+1. Görev tamamlandıktan sonra yürütme günlüklerini otomatik olarak analiz edin
+2. Çıkarma başarılı/arıza modu
+3. Optimizasyon önerileri oluşturma ve güncelleme Agent ile ilgili system prompt
+4. Evrimsel geçmişi şuraya saklayın: .omc/state/agents/{agent_name}/
 """
 
 import sqlite3
@@ -41,38 +41,38 @@ from .evolution import (
 
 @dataclass
 class ExecutionFeedback:
-    """执行反馈记录"""
+    """Yürütme geri bildirim kaydı"""
 
     id: Optional[int] = None
     timestamp: str = ""
     agent_type: str = ""  # executor, planner, debugger, etc.
     task_description: str = ""
-    context_hash: str = ""  # 任务上下文的简单哈希
+    context_hash: str = ""  # Görev bağlamının basit bir karması
     success: bool = False
     execution_time: float = 0.0
     error_type: Optional[str] = None  # syntax_error, logic_error, timeout, etc.
     error_message: Optional[str] = None
-    user_correction: Optional[str] = None  # 用户提供的修正
+    user_correction: Optional[str] = None  # Kullanıcı tarafından sağlanan düzeltmeler
     retry_count: int = 0
-    final_success: bool = False  # 重试后是否成功
+    final_success: bool = False  # Tekrar denedikten sonra başarılı oluyor mu?
 
 
 @dataclass
 class StrategyAdjustment:
-    """策略调整记录"""
+    """Strateji ayarlama kaydı"""
 
     id: Optional[int] = None
     timestamp: str = ""
     agent_type: str = ""
-    pattern_detected: str = ""  # 检测到的模式
+    pattern_detected: str = ""  # Algılanan desen
     adjustment_type: str = ""  # prompt_update, parameter_tune, workflow_change
-    adjustment_content: str = ""  # 具体的调整内容
-    effectiveness_score: float = 0.0  # 1.0 = 完全有效
-    applied_count: int = 0  # 应用次数
+    adjustment_content: str = ""  # Özel ayarlamalar
+    effectiveness_score: float = 0.0  # 1.0 = tamamen geçerli
+    applied_count: int = 0  # Başvuru sayısı
 
 
 class LearningStore:
-    """学习数据存储（SQLite）"""
+    """Veri depolamayı öğrenme (SQLite)"""
 
     def __init__(self, db_path: Path):
         self.db_path = Path(db_path)
@@ -80,7 +80,7 @@ class LearningStore:
         self._init_db()
 
     def _init_db(self):
-        """初始化数据库表"""
+        """Veritabanı tablosunu başlat"""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
@@ -128,7 +128,7 @@ class LearningStore:
             )
 
     def record_feedback(self, feedback: ExecutionFeedback) -> Optional[int]:
-        """记录执行反馈"""
+        """Yürütme geri bildirimini kaydedin"""
         feedback.timestamp = datetime.now().isoformat()
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
@@ -156,7 +156,7 @@ class LearningStore:
             return cursor.lastrowid
 
     def record_adjustment(self, adjustment: StrategyAdjustment) -> Optional[int]:
-        """记录策略调整"""
+        """Politika düzenlemelerini kaydedin"""
         adjustment.timestamp = datetime.now().isoformat()
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
@@ -181,7 +181,7 @@ class LearningStore:
     def get_recent_failures(
         self, agent_type: str, limit: int = 10
     ) -> list[ExecutionFeedback]:
-        """获取最近的失败记录"""
+        """En son arıza kaydını alın"""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(
@@ -196,7 +196,7 @@ class LearningStore:
             return [ExecutionFeedback(**dict(row)) for row in rows]
 
     def get_error_patterns(self, agent_type: str, min_count: int = 3) -> list[dict]:
-        """分析错误模式"""
+        """Hata modellerini analiz edin"""
         with sqlite3.connect(self.db_path) as conn:
             rows = conn.execute(
                 """
@@ -222,7 +222,7 @@ class LearningStore:
             ]
 
     def get_success_rate(self, agent_type: str, days: int = 7) -> float:
-        """计算成功率"""
+        """Başarı oranını hesaplayın"""
         with sqlite3.connect(self.db_path) as conn:
             # Use integer days directly in query (int, not user input)
             days_int = int(days)
@@ -239,7 +239,7 @@ class LearningStore:
             return row[0] if row and row[0] else 0.0
 
     def get_adjustments(self, agent_type: str) -> list[StrategyAdjustment]:
-        """获取策略调整记录"""
+        """Politika düzenleme kayıtlarını alın"""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(
@@ -256,17 +256,17 @@ class LearningStore:
 @register_agent
 class SelfImprovingAgent(BaseAgent):
     """
-    主动学习 Agent
+    Aktif öğrenme Agent
 
-    功能：
-    1. 收集执行反馈
-    2. 分析失败模式
-    3. 生成策略调整建议
-    4. 跟踪调整效果
+    İşlev:
+    1. Yürütme geribildirimini toplayın
+    2. Arıza modlarını analiz edin
+    3. Politika düzenleme önerileri oluşturma
+    4. Ayar efektlerini izle
     """
 
     name = "self-improving"
-    description = "主动学习智能体 - 收集反馈、分析模式、优化策略"
+    description = "Aktif öğrenme aracısı - Geri bildirim toplayın, kalıpları analiz edin, stratejileri optimize edin"
     lane = AgentLane.COORDINATION
     default_tier = "low"
     icon = "🧠"
@@ -283,23 +283,23 @@ class SelfImprovingAgent(BaseAgent):
         super().__init__(model_router, config)
         db_path = Path.home() / ".omc" / "learning.db"
         self.store = store or LearningStore(str(db_path))
-        # LearningsMemory 用于 best-practice → Skill 升级（懒导入避免循环）
+        # LearningsMemory için kullanılır best-practice → Skill Yükseltme (tembel içe aktarma döngüleri önler)
         from ..memory.learnings import LearningsMemory
 
         self._memory = LearningsMemory(Path.home() / ".omc")
-        # SkillManager 可选注入（测试时注入临时目录）
+        # SkillManager İsteğe bağlı enjeksiyon (test sırasında geçici dizini enjekte edin)
         self._skill_manager: Optional[Any] = skill_manager
-        # 进化系统
+        # evrim sistemi
         state_dir = Path.home() / ".omc" / "state"
         self._evolution_store = EvolutionStore(state_dir)
-        self._decision_memory = DecisionMemory(state_dir)  # 版本迭代记忆
+        self._decision_memory = DecisionMemory(state_dir)  # Sürüm yineleme belleği
         self._evolution_config = evolution_config or EvolutionConfig()
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个主动学习的优化助手。
-分析执行反馈，识别失败模式，生成策略调整建议。
-关注：错误类型分布、成功率趋势、重试效果、prompt 优化方向。"""
+        return """Aktif bir öğrenme optimizasyonu asistanısınız.
+Yürütme geri bildirimlerini analiz edin, hata modlarını belirleyin ve politika ayarlama önerileri oluşturun.
+Şunlara dikkat edin: hata türü dağılımı, başarı oranı eğilimi, yeniden deneme etkisi,prompt Optimizasyon yönü."""
 
     def record_execution(
         self,
@@ -311,13 +311,13 @@ class SelfImprovingAgent(BaseAgent):
         user_correction: Optional[str] = None,
         retry_count: int = 0,
     ) -> Optional[int]:
-        """记录执行结果"""
+        """Yürütme sonuçlarını kaydedin"""
         error_type = None
         error_message = None
 
         if error:
             error_type = self._classify_error(error)
-            error_message = str(error)[:500]  # 限制长度
+            error_message = str(error)[:500]  # Sınır uzunluğu
 
         feedback = ExecutionFeedback(
             agent_type=agent_type,
@@ -334,7 +334,7 @@ class SelfImprovingAgent(BaseAgent):
         return self.store.record_feedback(feedback)
 
     def analyze_and_improve(self, agent_type: str) -> list[StrategyAdjustment]:
-        """分析并生成改进建议"""
+        """İyileştirme önerilerini analiz edin ve oluşturun"""
         patterns = self.store.get_error_patterns(agent_type, min_count=2)
         adjustments = []
 
@@ -348,10 +348,10 @@ class SelfImprovingAgent(BaseAgent):
         return adjustments
 
     def get_improved_prompt(self, agent_type: str, base_prompt: str) -> str:
-        """获取改进后的提示词"""
+        """Geliştirilmiş istem sözcükleri alın"""
         adjustments = self.store.get_adjustments(agent_type)
 
-        # 筛选高效果的 prompt 调整
+        # En etkili olanı filtreleyin prompt Ayarlama
         prompt_adjustments = [
             a
             for a in adjustments
@@ -361,17 +361,17 @@ class SelfImprovingAgent(BaseAgent):
         if not prompt_adjustments:
             return base_prompt
 
-        # 应用最有效的调整
+        # En etkili ayarlamaları uygulayın
         improved = base_prompt
-        for adj in prompt_adjustments[:3]:  # 最多应用前3个
+        for adj in prompt_adjustments[:3]:  # Daha önce en çok uygulanan3bireysel
             improved += (
-                f"\n\n[学习优化] {adj.pattern_detected}:\n{adj.adjustment_content}"
+                f"\n\n[Optimize etmeyi öğrenme] {adj.pattern_detected}:\n{adj.adjustment_content}"
             )
 
         return improved
 
     def _classify_error(self, error: Exception) -> str:
-        """分类错误类型"""
+        """Sınıflandırma hatası türü"""
         error_msg = str(error).lower()
         error_type = type(error).__name__.lower()
 
@@ -390,7 +390,7 @@ class SelfImprovingAgent(BaseAgent):
         return f"{error_type}_error"
 
     def _hash_context(self, context: str) -> str:
-        """简单的上下文哈希（用于缓存，非密码用途）"""
+        """Basit bağlamsal karma (önbelleğe alma, kriptografik olmayan amaçlar için)"""
         import hashlib
 
         return hashlib.sha256(context.encode()).hexdigest()[:16]
@@ -398,30 +398,30 @@ class SelfImprovingAgent(BaseAgent):
     def _generate_adjustment(
         self, agent_type: str, pattern: dict
     ) -> Optional[StrategyAdjustment]:
-        """根据错误模式生成调整建议"""
+        """Hata kalıplarına dayalı ayarlama önerileri oluşturun"""
         error_type = pattern["error_type"]
 
-        # 预定义的调整策略
+        # Önceden tanımlanmış ayarlama stratejileri
         adjustments_map = {
             "syntax_error": (
                 "prompt_update",
-                "在生成代码前，先验证语法正确性。使用 ast.parse 检查 Python 代码。",
+                "Kod oluşturmadan önce sözdiziminin doğruluğunu doğrulayın. kullanmak ast.parse incelemek Python kod.",
             ),
             "timeout": (
                 "parameter_tune",
-                "增加超时时间限制，或拆分任务为更小的步骤。",
+                "Zaman aşımı sınırını artırın veya görevi daha küçük adımlara bölün.",
             ),
             "memory_error": (
                 "parameter_tune",
-                "限制单次处理的数据量，使用流式处理或分批处理。",
+                "Akış veya toplu işlemeyi kullanarak aynı anda işlenen veri miktarını sınırlayın.",
             ),
             "api_error": (
                 "workflow_change",
-                "添加指数退避重试机制，处理 API 限流。",
+                "İşleme için üstel geri çekilme yeniden deneme mekanizması ekleyin API Akım sınırlaması.",
             ),
             "network_error": (
                 "workflow_change",
-                "添加网络连接检查和自动重试逻辑。",
+                "Ağ bağlantısı kontrolü ve otomatik yeniden deneme mantığı ekleyin.",
             ),
         }
 
@@ -432,20 +432,20 @@ class SelfImprovingAgent(BaseAgent):
 
         return StrategyAdjustment(
             agent_type=agent_type,
-            pattern_detected=f"{error_type} (出现 {pattern['count']} 次)",
+            pattern_detected=f"{error_type} (Belli olmak {pattern['count']} İkinci sınıf)",
             adjustment_type=adj_type,
             adjustment_content=adj_content,
-            effectiveness_score=0.5,  # 初始分数，后续根据效果调整
+            effectiveness_score=0.5,  # Başlangıç ​​puanı, performansa dayalı sonraki ayarlamalar
         )
 
     def report(self, agent_type: Optional[str] = None) -> dict[str, Any]:
-        """生成学习报告"""
+        """Öğrenim raporu oluştur"""
         report = {
             "generated_at": datetime.now().isoformat(),
             "agents": {},
         }
 
-        # 如果没有指定 agent_type，分析所有
+        # belirtilmemişse agent_type, hepsini analiz et
         agent_types = [agent_type] if agent_type else self._get_all_agent_types()
 
         for at in agent_types:
@@ -459,7 +459,7 @@ class SelfImprovingAgent(BaseAgent):
         return report
 
     def _get_all_agent_types(self) -> list[str]:
-        """获取所有记录的 agent 类型"""
+        """Tüm kayıtları al agent tip"""
         with sqlite3.connect(self.store.db_path) as conn:
             rows = conn.execute(
                 "SELECT DISTINCT agent_type FROM execution_feedback"
@@ -467,24 +467,24 @@ class SelfImprovingAgent(BaseAgent):
             return [row[0] for row in rows]
 
     async def _run(self, task: str) -> AgentOutput:
-        """执行自我改进任务"""
+        """Kişisel gelişim görevlerini gerçekleştirin"""
         import json
 
         parts = task.lower().split()
-        if "report" in parts or "报告" in parts:
+        if "report" in parts or "Rapor" in parts:
             data = self.report()
-        elif "analyze" in parts or "分析" in parts:
+        elif "analyze" in parts or "analiz etmek" in parts:
             agent_type = parts[-1] if len(parts) > 1 else None
             if agent_type:
                 data = self.analyze_task_logs(agent_type)
             else:
                 adjustments = self.analyze_and_improve(agent_type) if agent_type else []
                 data = {"adjustments": [str(a) for a in adjustments]}
-        elif "promote" in parts or "升级" in parts or "skill" in parts:
-            # 将 best-practice 条目升级为 Skill 文件
+        elif "promote" in parts or "güncelleme" in parts or "skill" in parts:
+            # İrade best-practice Giriş şuna yükseltildi: Skill belge
             data = self.promote_best_practices_to_skills()
-        elif "evolve" in parts or "进化" in parts:
-            # 执行自进化
+        elif "evolve" in parts or "evrim" in parts:
+            # Kişisel gelişimi gerçekleştirin
             agent_type = parts[-1] if len(parts) > 1 else "executor"
             record = self.evolve(agent_type, trigger="manual")
             if record:
@@ -496,9 +496,9 @@ class SelfImprovingAgent(BaseAgent):
                     "after": record.after_state,
                 }
             else:
-                data = {"message": "未触发进化（样本不足或无需优化）"}
-        elif "stats" in parts or "统计" in parts:
-            # 获取进化统计
+                data = {"message": "Evrim tetiklenmiyor (yetersiz örnek veya optimizasyona gerek yok)"}
+        elif "stats" in parts or "istatistikler" in parts:
+            # Evrimsel istatistikleri alın
             agent_type = parts[-1] if len(parts) > 1 else "executor"
             data = self.get_evolution_stats(agent_type)
         else:
@@ -514,38 +514,38 @@ class SelfImprovingAgent(BaseAgent):
         task_context: dict[str, Any],
     ) -> Optional[dict[str, Any]]:
         """
-        自动生成 Skill 文件。
+        Otomatik olarak oluşturuldu Skill belge.
 
-        从 task_context 提取：
-        - 任务类型（category）
-        - 关键步骤（key_steps）
-        - 重要判断（judgments）
-        - 潜在陷阱（gotchas）
+        itibaren task_context çıkarmak:
+        - görev türü (category)
+        - Temel adımlar (key_steps)
+        - önemli karar (judgments)
+        - potansiyel tuzaklar (gotchas)
 
-        满足以下任一条件才创建：
-        1. 工具调用 ≥5 次且成功
-        2. 错误 → 解决
-        3. 用户纠正
-        4. 非平凡工作流（多步骤）
+        Yalnızca aşağıdaki koşullardan herhangi biri karşılanırsa oluşturun:
+        1. Araç çağrısı ≥5 zamanlar ve başarı
+        2. hata → çözmek
+        3. Kullanıcı düzeltmesi
+        4. Önemsiz olmayan iş akışı (çok adımlı)
 
         Args:
-            task_context: 包含以下键的字典：
+            task_context: Aşağıdaki anahtarları içeren bir sözlük:
                 - agent_name: str
-                - task: str（任务描述）
-                - workflow: str（工作流名）
-                - result: str（最终结果摘要）
-                - steps: List[str]（步骤列表）
-                - error: Optional[str]（错误信息）
-                - had_fix: bool（是否从错误中恢复）
+                - task: str(Görev açıklaması)
+                - workflow: str(iş akışı adı)
+                - result: str(Nihai sonuçların özeti)
+                - steps: List[str](adımların listesi)
+                - error: Optional[str](hata mesajı)
+                - had_fix: bool(hatalardan kurtarılıp kurtarılmayacağı)
                 - had_user_correction: bool
-                - tool_call_count: int（工具调用次数）
+                - tool_call_count: int(araç çağrılarının sayısı)
 
         Returns:
-            Skill 信息 dict；不满足条件返回 None
+            Skill bilgi dict;Koşullar karşılanmazsa geri dön None
         """
         from ..memory.skill_manager import SkillManager
 
-        # ---- 评估是否值得沉淀 ----
+        # ---- Yerleşmeye değer olup olmadığını değerlendirin ----
         tool_call_count = task_context.get("tool_call_count", 0)
         had_error = bool(task_context.get("error"))
         had_fix = task_context.get("had_fix", False)
@@ -561,7 +561,7 @@ class SelfImprovingAgent(BaseAgent):
         ):
             return None
 
-        # ---- 生成 Skill 内容 ----
+        # ---- oluşturmak Skill içerik ----
         agent_name = task_context.get("agent_name", "unknown")
         task = task_context.get("task", "")
         workflow = task_context.get("workflow", "general")
@@ -571,7 +571,7 @@ class SelfImprovingAgent(BaseAgent):
         judgments = task_context.get("judgments", [])
         gotchas = task_context.get("gotchas", [])
 
-        # 判断 category
+        # yargıç category
         if error_msg:
             category = "debugging"
         elif had_user_correction:
@@ -581,12 +581,12 @@ class SelfImprovingAgent(BaseAgent):
         else:
             category = "best-practices"
 
-        # 生成 skill_id（避免重复）
+        # oluşturmak skill_id(kopyalamayı önleyin)
         skill_id = SkillManager._slugify(f"{workflow}-{agent_name}-{task[:20]}")
         if len(skill_id) > 40:
             skill_id = skill_id[:40]
 
-        # 提取 triggers
+        # çıkarmak triggers
         triggers = []
         skip_words = {
             "the",
@@ -618,60 +618,60 @@ class SelfImprovingAgent(BaseAgent):
             if len(w) >= 3 and w not in skip_words:
                 triggers.append(w)
 
-        # 生成 tags
+        # oluşturmak tags
         tags = list({workflow, agent_name})
         tags.extend(triggers[:3])
 
-        # ---- 构建 body ----
+        # ---- inşa etmek body ----
         body_lines = [
             f"# {workflow.title()} with {agent_name.title()}",
             "",
-            f"**任务**: {task}",
-            f"**工作流**: {workflow}",
+            f"**Görev**: {task}",
+            f"**İş akışı**: {workflow}",
             f"**Agent**: {agent_name}",
             "",
         ]
 
-        # 关键步骤
+        # Anahtar adımlar
         if steps:
-            body_lines.append("## 关键步骤")
+            body_lines.append("## Anahtar adımlar")
             for i, step in enumerate(steps, 1):
                 body_lines.append(f"{i}. {step}")
             body_lines.append("")
 
-        # 重要判断
+        # önemli karar
         if judgments:
-            body_lines.append("## 重要判断")
+            body_lines.append("## önemli karar")
             body_lines.extend([f"- {j}" for j in judgments])
             body_lines.append("")
 
-        # 执行结果
-        body_lines.append("## 执行结果")
-        body_lines.append(result_summary if result_summary else "（无）")
+        # Yürütme sonucu
+        body_lines.append("## Yürütme sonucu")
+        body_lines.append(result_summary if result_summary else "(hiçbiri)")
         body_lines.append("")
 
-        # 错误处理
+        # Hata işleme
         if error_msg:
-            body_lines.append("## 错误处理")
+            body_lines.append("## Hata işleme")
             body_lines.append(error_msg[:200])
             body_lines.append("")
 
-        # 潜在陷阱
+        # Potansiyel tuzaklar
         if gotchas:
-            body_lines.append("## 潜在陷阱")
+            body_lines.append("## Potansiyel tuzaklar")
             body_lines.extend([f"- ⚠️ {g}" for g in gotchas])
             body_lines.append("")
 
-        # 适用条件
-        body_lines.append("## 适用条件")
-        body_lines.append(f"- 任务类型: {workflow}")
+        # Geçerli koşullar
+        body_lines.append("## Geçerli koşullar")
+        body_lines.append(f"- Görev türü: {workflow}")
         if triggers:
-            body_lines.append(f"- 触发词: {', '.join(triggers[:5])}")
+            body_lines.append(f"- kelimeleri tetiklemek: {', '.join(triggers[:5])}")
 
         body = "\n".join(body_lines)
         description = task[:120].strip()
 
-        # ---- 写入 Skill 文件（patch 优先）----
+        # ---- yazmak Skill belge(patch öncelik)----
         sm = self._skill_manager or SkillManager()
         try:
             skill_info = sm.patch(
@@ -695,7 +695,7 @@ class SelfImprovingAgent(BaseAgent):
             except Exception:
                 return None
 
-        # ---- 同时记录到 LearningsMemory ----
+        # ---- aynı anda kaydedildi LearningsMemory ----
         try:
             self._memory.add(
                 title=f"[Auto] {workflow}: {task[:40]}",
@@ -705,7 +705,7 @@ class SelfImprovingAgent(BaseAgent):
                 context=", ".join(triggers[:3]),
             )
         except Exception:
-            pass  # 不影响主流程
+            pass  # Ana süreci etkilemez
 
         return skill_info
 
@@ -714,16 +714,16 @@ class SelfImprovingAgent(BaseAgent):
         dry_run: bool = False,
     ) -> dict[str, Any]:
         """
-        将 LearningsMemory 中标记为 best-practice 的条目
-        自动升级为 .omc/skills/best-practices/*.md Skill 文件。
+        İrade LearningsMemory İşaret şu: best-practice giriş
+        otomatik olarak yükseltildi .omc/skills/best-practices/*.md Skill belge.
 
-        用于：LearningsMemory.best_practices → SkillManager → .omc/skills/
+        Şunun için kullanılır:LearningsMemory.best_practices → SkillManager → .omc/skills/
 
         Args:
-            dry_run: True = 只报告，不实际创建
+            dry_run: True = Yalnızca raporlar, gerçekte oluşturmaz
 
         Returns:
-            操作结果摘要
+            Operasyon sonuçlarının özeti
         """
         from ..memory.skill_manager import SkillManager
 
@@ -756,7 +756,7 @@ class SelfImprovingAgent(BaseAgent):
         return results
 
     # ------------------------------------------------------------------
-    # 自进化方法（P0 增强）
+    # kendini geliştirme yöntemi (P0 Geliştirilmiş)
     # ------------------------------------------------------------------
 
     def analyze_task_logs(
@@ -765,17 +765,17 @@ class SelfImprovingAgent(BaseAgent):
         recent_count: int = 10,
     ) -> dict[str, Any]:
         """
-        分析任务执行日志，提取经验教训
+        Görev yürütme günlüklerini analiz edin ve öğrenilen dersleri çıkarın
 
-        在任务完成后自动调用，分析最近的执行记录，
-        识别成功/失败模式，为进化提供依据。
+        Son yürütme kayıtlarını analiz etmek için görev tamamlandıktan sonra otomatik olarak çağrılır.
+        Tanıma başarılı/Başarısızlık modları evrimin temelini oluşturur.
 
         Args:
-            agent_type: Agent 类型
-            recent_count: 分析最近 N 条记录
+            agent_type: Agent tip
+            recent_count: Son zamanları analiz et N kayıtlar
 
         Returns:
-            分析结果，包含 success_patterns, failure_patterns, recommendations
+            Analiz sonuçları şunları içerir: success_patterns, failure_patterns, recommendations
         """
         analysis = {
             "agent_type": agent_type,
@@ -787,7 +787,7 @@ class SelfImprovingAgent(BaseAgent):
             "sample_size": 0,
         }
 
-        # 获取最近的执行记录
+        # En son yürütme kaydını alın
         with sqlite3.connect(self.store.db_path) as conn:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(
@@ -806,14 +806,14 @@ class SelfImprovingAgent(BaseAgent):
             records = [dict(row) for row in rows]
             analysis["sample_size"] = len(records)
 
-            # 计算成功率
+            # Başarı oranını hesaplayın
             success_count = sum(1 for r in records if r.get("success"))
             analysis["success_rate"] = success_count / len(records) if records else 0.0
 
-            # 提取成功模式
+            # Başarı modelini çıkarın
             successful = [r for r in records if r.get("success")]
             if successful:
-                # 分析成功记录的共同特征
+                # Başarılı kayıtların ortak özelliklerini analiz edin
                 avg_time = sum(r.get("execution_time", 0) for r in successful) / len(
                     successful
                 )
@@ -828,10 +828,10 @@ class SelfImprovingAgent(BaseAgent):
                     }
                 )
 
-            # 提取失败模式
+            # Arıza modunu çıkart
             failed = [r for r in records if not r.get("success")]
             if failed:
-                # 按错误类型分组
+                # Hata türüne göre gruplandır
                 error_groups: dict[str, list[dict]] = {}
                 for r in failed:
                     et = r.get("error_type") or "unknown"
@@ -850,14 +850,14 @@ class SelfImprovingAgent(BaseAgent):
                         }
                     )
 
-            # 生成建议
+            # Öneriler oluştur
             threshold = self._evolution_config.improvement_threshold
             if analysis["success_rate"] < threshold:
                 rate = analysis["success_rate"]
                 analysis["recommendations"].append(
                     {
                         "type": "trigger_evolution",
-                        "reason": f"成功率 {rate:.1%} 低于阈值 {threshold:.1%}",
+                        "reason": f"başarı oranı {rate:.1%} eşiğin altında {threshold:.1%}",
                         "priority": "high",
                     }
                 )
@@ -866,7 +866,7 @@ class SelfImprovingAgent(BaseAgent):
                 analysis["recommendations"].append(
                     {
                         "type": "analyze_failures",
-                        "reason": f"发现 {len(failed)} 条失败记录，建议分析根本原因",
+                        "reason": f"Keşfetmek {len(failed)} Arıza kayıtları, kök nedenin analiz edilmesi önerilir",
                         "priority": "medium",
                     }
                 )
@@ -876,10 +876,10 @@ class SelfImprovingAgent(BaseAgent):
     def _extract_success_characteristics(
         self, successful_records: list[dict]
     ) -> list[str]:
-        """从成功记录中提取共同特征"""
+        """Başarılı kayıtlardan ortak özellikleri çıkarın"""
         characteristics = []
 
-        # 分析执行时间
+        # analiz etmekYürütme süresi
         times = [
             r.get("execution_time", 0)
             for r in successful_records
@@ -887,15 +887,15 @@ class SelfImprovingAgent(BaseAgent):
         ]
         if times:
             avg = sum(times) / len(times)
-            characteristics.append(f"平均执行时间: {avg:.1f}s")
+            characteristics.append(f"ortalama yürütme süresi: {avg:.1f}s")
 
-        # 分析重试次数
+        # Yeniden denemeleri analiz edin
         retries = [r.get("retry_count", 0) for r in successful_records]
         if retries and sum(retries) == 0:
-            characteristics.append("无需重试即成功")
+            characteristics.append("Tekrar denemeden başarı")
         elif retries:
             avg_retry = sum(retries) / len(retries)
-            characteristics.append(f"平均重试次数: {avg_retry:.1f}")
+            characteristics.append(f"Ortalama yeniden deneme sayısı: {avg_retry:.1f}")
 
         return characteristics
 
@@ -905,23 +905,23 @@ class SelfImprovingAgent(BaseAgent):
         pattern_type: str = "all",
     ) -> list[SuccessPattern]:
         """
-        提取成功/失败模式并存储到模式库
+        Çıkarma başarılı/Arıza modelleri ve model kitaplığında saklanan
 
-        从执行历史中提取可复用的模式，包括：
-        - 策略模式（成功的工作流程）
-        - Prompt 技巧（有效的提示词技巧）
-        - 错误恢复模式（从错误中恢复的方法）
+        Aşağıdakiler de dahil olmak üzere yürütme geçmişinden yeniden kullanılabilir kalıpları çıkarın:
+        - Strateji Kalıbı (Başarılı İş Akışı)
+        - Prompt Teknikler (Etkili İpucu Kelime Teknikleri)
+        - Hata kurtarma kalıpları (hatalardan kurtulma yöntemleri)
 
         Args:
-            agent_type: Agent 类型
-            pattern_type: 模式类型（all/strategy/prompt/recovery）
+            agent_type: Agent tip
+            pattern_type: desen türü (all/strategy/prompt/recovery)
 
         Returns:
-            提取的模式列表
+            Çıkarılan desen listesi
         """
         patterns = []
 
-        # 获取调整记录（策略模式）
+        # Düzenleme kayıtlarını alın (strateji modu)
         if pattern_type in ("all", "strategy"):
             adjustments = self.store.get_adjustments(agent_type)
             for adj in adjustments:
@@ -941,7 +941,7 @@ class SelfImprovingAgent(BaseAgent):
                     )
                     patterns.append(pattern)
 
-                    # 存储到进化系统
+                    # Evrim sistemine kaydet
                     self._evolution_store.add_success_pattern(
                         agent_name=agent_type,
                         pattern_type="strategy",
@@ -949,7 +949,7 @@ class SelfImprovingAgent(BaseAgent):
                         context=pattern.context,
                     )
 
-        # 获取成功执行的共同特征（workflow 模式）
+        # Başarılı yürütmenin ortak özelliklerini edinin (workflow modeli)
         if pattern_type in ("all", "workflow"):
             analysis = self.analyze_task_logs(agent_type, recent_count=20)
             for sp in analysis.get("success_patterns", []):
@@ -972,30 +972,30 @@ class SelfImprovingAgent(BaseAgent):
         analysis: Optional[dict[str, Any]] = None,
     ) -> str:
         """
-        根据进化分析更新 system prompt
+        Evrimsel analize dayalı olarak güncellendi system prompt
 
-        将提取的成功模式、策略调整、学习到的经验
-        注入到 Agent 的 system prompt 中。
+        Çıkarılan başarılı modeller, stratejik ayarlamalar ve öğrenilen dersler
+        İçine enjekte et Agent ile ilgili system prompt orta.
 
         Args:
-            agent_type: Agent 类型
-            base_prompt: 原始 system prompt
-            analysis: 可选的分析结果（如未提供则自动分析）
+            agent_type: Agent tip
+            base_prompt: orijinal system prompt
+            analysis: İsteğe bağlı analiz sonuçları (sağlanmadıysa otomatik olarak analiz edilir)
 
         Returns:
-            更新后的 system prompt
+            güncellendi system prompt
         """
         if not self._evolution_config.enabled:
             return base_prompt
 
-        # 如果没有提供分析结果，先进行分析
+        # Hiçbir analiz sonucu sağlanmadıysa, önce analizi gerçekleştirin
         if analysis is None:
             analysis = self.analyze_task_logs(agent_type)
 
-        # 获取版本信息
+        # Sürüm bilgisini al
         prompt_version = self._evolution_store.get_prompt_version(agent_type)
 
-        # 获取策略调整
+        # Politika düzenlemelerini alın
         adjustments = self.store.get_adjustments(agent_type)
         prompt_adjustments = [
             a
@@ -1003,41 +1003,41 @@ class SelfImprovingAgent(BaseAgent):
             if a.adjustment_type == "prompt_update" and a.effectiveness_score > 0.5
         ]
 
-        # 获取成功模式
+        # Başarı modelini edinin
         success_patterns = self._evolution_store.load_success_patterns(agent_type)
 
-        # 构建优化内容
+        # Optimize edilmiş içerik oluşturun
         optimization_parts = []
 
-        # 添加策略调整
+        # Politika düzenlemeleri ekleyin
         if prompt_adjustments:
-            optimization_parts.append("## 学习到的策略")
+            optimization_parts.append("## öğrenilen stratejiler")
             for adj in prompt_adjustments[:3]:
                 optimization_parts.append(
                     f"- {adj.pattern_detected}: {adj.adjustment_content[:80]}"
                 )
 
-        # 添加成功模式
+        # Başarı modeli ekle
         if success_patterns:
-            optimization_parts.append("\n## 成功经验")
+            optimization_parts.append("\n## Başarılı deneyim")
             for pattern in success_patterns[:5]:
                 optimization_parts.append(f"- {pattern.description[:100]}")
 
-        # 如果有优化内容，生成新 prompt
+        # Optimizasyon içeriği varsa yeni oluştur prompt
         if optimization_parts:
             new_prompt = f"""{base_prompt}
 
 ---
-## 🧠 自进化优化（版本 {prompt_version + 1}）
+## 🧠 Kendi kendini geliştirme optimizasyonu (versiyon {prompt_version + 1})
 
 {chr(10).join(optimization_parts)}
 
-> 以上内容由自进化系统自动生成，基于历史执行经验。
+> Yukarıdaki içerik, kendi kendini geliştiren sistem tarafından otomatik olarak oluşturulmuştur ve geçmiş uygulama deneyimine dayanmaktadır.
 """
         else:
             new_prompt = base_prompt
 
-        # 保存优化后的 prompt
+        # Optimize edilmiş olanı kaydet prompt
         if new_prompt != base_prompt:
             self._evolution_store.save_optimized_prompt(agent_type, new_prompt)
 
@@ -1049,26 +1049,26 @@ class SelfImprovingAgent(BaseAgent):
         trigger: str = "manual",
     ) -> Optional[EvolutionRecord]:
         """
-        执行一次自进化
+        Kişisel gelişimi gerçekleştirin
 
-        完整的自进化流程：
-        1. 分析执行日志
-        2. 提取成功/失败模式
-        3. 生成策略调整
-        4. 更新 system prompt
-        5. 记录进化历史
+        Kişisel gelişim sürecini tamamlayın:
+        1. Yürütme günlüklerini analiz edin
+        2. Çıkarma başarılı/arıza modu
+        3. İlke ayarlamaları oluştur
+        4. yenilemek system prompt
+        5. Evrimsel tarihi kaydedin
 
         Args:
-            agent_type: Agent 类型
-            trigger: 触发原因（manual/success_rate_low/user_correction/error_pattern）
+            agent_type: Agent tip
+            trigger: Tetikleme nedeni (manual/success_rate_low/user_correction/error_pattern)
 
         Returns:
-            进化记录，如果未触发进化则返回 None
+            Evrim kaydı, eğer evrim tetiklenmezse döndürülür None
         """
         if not self._evolution_config.enabled:
             return None
 
-        # 检查样本数是否足够
+        # Örnek sayısının yeterli olup olmadığını kontrol edin
         with sqlite3.connect(self.store.db_path) as conn:
             count = conn.execute(
                 "SELECT COUNT(*) FROM execution_feedback WHERE agent_type = ?",
@@ -1078,30 +1078,30 @@ class SelfImprovingAgent(BaseAgent):
         if count < self._evolution_config.min_samples:
             return None
 
-        # 记录进化前状态
+        # Evrim öncesi durumu kaydedin
         before_state = {
             "success_rate": self.store.get_success_rate(agent_type, days=7),
             "total_executions": count,
             "active_adjustments": len(self.store.get_adjustments(agent_type)),
         }
 
-        # 执行分析
+        # Analiz gerçekleştirin
         analysis = self.analyze_task_logs(agent_type, recent_count=20)
 
-        # 提取模式
+        # Çıkarma modu
         patterns = self.extract_patterns(agent_type)
 
-        # 生成策略调整
+        # İlke ayarlamaları oluştur
         adjustments = self.analyze_and_improve(agent_type)
 
-        # 更新 system prompt（如果需要）
+        # yenilemek system prompt(gerekirse)
         base_prompt = self._evolution_store.load_optimized_prompt(agent_type) or ""
         if not base_prompt:
-            base_prompt = f"你是一个专业的 {agent_type} Agent。"
+            base_prompt = f"sen bir profesyonelsin {agent_type} Agent."
 
         new_prompt = self.update_system_prompt(agent_type, base_prompt, analysis)
 
-        # 记录进化后状态
+        # Evrimleşmiş durumu kaydedin
         after_state = {
             "success_rate": analysis["success_rate"],
             "patterns_extracted": len(patterns),
@@ -1109,22 +1109,22 @@ class SelfImprovingAgent(BaseAgent):
             "prompt_updated": new_prompt != base_prompt,
         }
 
-        # 构建变更列表
+        # Değişiklik listesi oluştur
         changes = []
         if adjustments:
-            changes.append(f"生成 {len(adjustments)} 个策略调整")
+            changes.append(f"oluşturmak {len(adjustments)} strateji ayarlaması")
         if patterns:
-            changes.append(f"提取 {len(patterns)} 个成功模式")
+            changes.append(f"çıkarmak {len(patterns)} başarılı bir model")
         if new_prompt != base_prompt:
-            changes.append("更新 system prompt")
+            changes.append("yenilemek system prompt")
 
         if not changes:
-            return None  # 没有实际变更
+            return None  # gerçek değişiklik yok
 
-        # 获取当前代数
+        # Geçerli cebiri edinin
         generation = self._evolution_store.get_current_generation(agent_type)
 
-        # 创建进化记录
+        # Bir evrim kaydı oluşturun
         record = EvolutionRecord(
             id=f"evo-{agent_type}-{int(time.time())}",
             timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -1136,13 +1136,13 @@ class SelfImprovingAgent(BaseAgent):
             changes=changes,
         )
 
-        # 保存进化记录
+        # Evrim kaydını kaydet
         self._evolution_store.save_evolution_record(record)
 
         return record
 
     # ------------------------------------------------------------------
-    # 版本迭代记忆 - 解决鬼打墙问题
+    # Sürüm yineleme belleği - Hayaletlerin duvara çarpması problemini çözme
     # ------------------------------------------------------------------
 
     def retrieve_past_decisions(
@@ -1151,17 +1151,17 @@ class SelfImprovingAgent(BaseAgent):
         limit: int = 3,
     ) -> list[dict[str, Any]]:
         """
-        检索历史决策，避免重复踩坑
+        Tekrarlanan hatalardan kaçınmak için geçmiş kararları alın
 
-        当 Agent 遇到问题时，调用此方法检索类似问题的历史决策，
-        获取"这个问题上次是怎么解决的"的经验。
+        Ne zaman Agent Bir sorunla karşılaştığınızda benzer sorunlara ilişkin geçmiş kararları almak için bu yöntemi çağırın.
+        Elde etmek"Geçen sefer bu sorun nasıl çözüldü?"deneyim.
 
         Args:
-            problem_description: 问题描述
-            limit: 返回数量上限
+            problem_description: Sorun açıklaması
+            limit: Maksimum miktarı iade edin
 
         Returns:
-            决策列表，每项包含 title, problem, chosen_solution, reusable_for 等
+            Karar listesi, her öğe içerir title, problem, chosen_solution, reusable_for Beklemek
         """
         decisions = self._decision_memory.retrieve(problem_description, limit=limit)
 
@@ -1193,24 +1193,24 @@ class SelfImprovingAgent(BaseAgent):
         related_files: Optional[list[str]] = None,
     ) -> str:
         """
-        记录重要决策
+        Önemli kararları kaydedin
 
         Args:
-            title: 决策标题
-            problem: 遇到的问题
-            chosen_solution: 选择的方案
-            agent_type: Agent 类型
-            category: 决策类别 (bug_fix/solution_choice/rejection/architecture)
-            rejected_alternatives: 放弃的方案
-            result: 结果 (success/failure)
-            outcome: 效果描述
-            reusable_for: 适用场景
-            related_files: 相关文件
+            title: Karar başlığı
+            problem: Karşılaşılan sorunlar
+            chosen_solution: Seçilen plan
+            agent_type: Agent tip
+            category: Karar Kategorisi (bug_fix/solution_choice/rejection/architecture)
+            rejected_alternatives: Terk edilmiş plan
+            result: sonuç (success/failure)
+            outcome: Efekt açıklaması
+            reusable_for: Uygulanabilir senaryolar
+            related_files: İlgili belgeler
 
         Returns:
             decision_id
         """
-        # 自动提取关键词
+        # Anahtar kelimeleri otomatik olarak çıkar
         keywords = self._decision_memory._extract_keywords(problem, chosen_solution)
 
         return self._decision_memory.record_decision(
@@ -1232,7 +1232,7 @@ class SelfImprovingAgent(BaseAgent):
         category: Optional[str] = None,
         limit: int = 10,
     ) -> list[dict[str, Any]]:
-        """列出决策记录"""
+        """Karar kayıtlarını listeleyin"""
         decisions = self._decision_memory.list_decisions(category=category, limit=limit)
         return [
             {
@@ -1248,11 +1248,11 @@ class SelfImprovingAgent(BaseAgent):
         ]
 
     def get_decision_stats(self) -> dict[str, Any]:
-        """获取决策记忆统计"""
+        """Karar hafızası istatistiklerini alın"""
         return self._decision_memory.get_stats()
 
     def get_evolution_stats(self, agent_type: str) -> dict[str, Any]:
-        """获取 Agent 的进化统计信息"""
+        """Elde etmek Agent Evrim istatistikleri"""
         stats = self._evolution_store.get_evolution_stats(agent_type)
         stats["config"] = {
             "enabled": self._evolution_config.enabled,

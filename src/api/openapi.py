@@ -1,25 +1,25 @@
 """
-OpenAPI 规范
+OpenAPI norm
 
-提供标准的 API 文档和 Swagger UI。
+saglarstandart API dokumantasyonve Swagger UI. 
 """
 
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-# API 版本
+# API surum
 API_VERSION = "0.2.0"
 
 
 def custom_openapi(app: FastAPI) -> dict:
     """
-    自定义 OpenAPI 规范
+    ozel OpenAPI norm
 
     Args:
-        app: FastAPI 应用实例
+        app: FastAPI uygulamaornek
 
     Returns:
-        OpenAPI 规范字典
+        OpenAPI normsozluk
     """
 
     def generate() -> dict:
@@ -30,35 +30,35 @@ def custom_openapi(app: FastAPI) -> dict:
             title="Oh My Coder API",
             version=API_VERSION,
             description="""
-## 多智能体 AI 编程助手
+## cokajan AI duzenlesurecyardimci
 
-Oh My Coder 是一个强大的多智能体 AI 编程系统，支持：
-- 🤖 **31 个专业 Agent** - 规划、架构、编码、测试、审查等
-- 🌐 **12 个国产大模型** - DeepSeek、通义千问、文心一言等
-- 🔄 **智能工作流** - 预定义模板 + 自定义流程
-- 📊 **任务历史追踪** - 完整的执行记录和回放
+Oh My Coder dirbirguclubuyukcokajan AI duzenlesurecsistem, destek: 
+- 🤖 **31 ozelendustri Agent** - planla, mimari, duzenlekod, test, incelemevb.
+- 🌐 **12 ulkeuretbuyukmodel** - DeepSeek, Tongyi, Wenxinvb.
+- 🔄 **akilliedebiliris akisi** - ontanimsablon + ozelakis
+- 📊 **gorevgecmisizleizle** - tamyurutkayitvegeri oynat
 
-### 认证方式
+### kimlik dogrulamayontem
 
-所有 API 请求需要通过以下方式认证：
+var API istekgerekisteraraciligiylaasagidakiyontemkimlik dogrulama: 
 
-1. **API Key**: 在请求头添加 `X-API-Key`
-2. **Bearer Token**: 在请求头添加 `Authorization: Bearer <token>`
+1. **API Key**: icindeistekbasekle `X-API-Key`
+2. **Bearer Token**: icindeistekbasekle `Authorization: Bearer <token>`
 
-### 速率限制
+### hizoransinir
 
-- 默认: 100 请求/分钟
-- 执行任务: 10 并发
+- varsayilan: 100 istek/puandakika
+- yurutgorev: 10 vegonder
 
-### 错误处理
+### hata isleme
 
-所有错误返回标准格式：
+varhatadonusstandartformat: 
 
 ```json
 {
   "error": {
     "code": "ERROR_CODE",
-    "message": "错误描述",
+    "message": "hataaciklama",
     "details": {}
   }
 }
@@ -68,32 +68,32 @@ Oh My Coder 是一个强大的多智能体 AI 编程系统，支持：
             tags=[
                 {
                     "name": "execute",
-                    "description": "任务执行相关 API",
+                    "description": "gorevyurutilgili API",
                 },
                 {
                     "name": "history",
-                    "description": "历史记录管理",
+                    "description": "gecmiskayityonet",
                 },
                 {
                     "name": "agents",
-                    "description": "Agent 状态管理",
+                    "description": "Agent durumyonet",
                 },
                 {
                     "name": "templates",
-                    "description": "工作流模板管理",
+                    "description": "is akisisablonyonet",
                 },
                 {
                     "name": "plugins",
-                    "description": "插件系统管理",
+                    "description": "eklentisistemyonet",
                 },
             ],
         )
 
-        # 确保 components 存在
+        # saglar components kaydeticinde
         if "components" not in openapi_schema:
             openapi_schema["components"] = {}
 
-        # 添加安全定义
+        # ekleguvenliktanim
         openapi_schema["components"]["securitySchemes"] = {
             "ApiKeyAuth": {
                 "type": "apiKey",
@@ -107,25 +107,25 @@ Oh My Coder 是一个强大的多智能体 AI 编程系统，支持：
             },
         }
 
-        # 全局安全要求
+        # globalguvenlikisteriste
         openapi_schema["security"] = [{"ApiKeyAuth": []}, {"BearerAuth": []}]
 
-        # 添加服务器信息
+        # ekleservisbilgi
         openapi_schema["servers"] = [
             {
                 "url": "http://localhost:8000",
-                "description": "本地开发服务器",
+                "description": "yerelacgonderservis",
             },
             {
                 "url": "https://api.ohmycoder.com",
-                "description": "生产服务器",
+                "description": "yaraturetservis",
             },
         ]
 
-        # 添加外部文档
+        # ekledisindakisimdokumantasyon
         openapi_schema["externalDocs"] = {
             "url": "https://github.com/VOBC/oh-my-coder/blob/main/docs/API.md",
-            "description": "完整 API 文档",
+            "description": "tam API dokumantasyon",
         }
 
         app.openapi_schema = openapi_schema
@@ -134,16 +134,16 @@ Oh My Coder 是一个强大的多智能体 AI 编程系统，支持：
     return generate
 
 
-# API 响应模型
+# API yanitmodel
 OPENAPI_RESPONSES = {
     "400": {
-        "description": "请求参数错误",
+        "description": "istekparametrehata",
         "content": {
             "application/json": {
                 "example": {
                     "error": {
                         "code": "BAD_REQUEST",
-                        "message": "缺少必要参数",
+                        "message": "eksikazgerekliisterparametre",
                         "details": {"field": "task"},
                     }
                 }
@@ -151,26 +151,26 @@ OPENAPI_RESPONSES = {
         },
     },
     "401": {
-        "description": "认证失败",
+        "description": "kimlik dogrulamabasarisiz",
         "content": {
             "application/json": {
                 "example": {
                     "error": {
                         "code": "UNAUTHORIZED",
-                        "message": "API Key 无效",
+                        "message": "API Key yoketki",
                     }
                 }
             }
         },
     },
     "429": {
-        "description": "请求过于频繁",
+        "description": "istekdesik",
         "content": {
             "application/json": {
                 "example": {
                     "error": {
                         "code": "RATE_LIMIT",
-                        "message": "请求超过速率限制",
+                        "message": "istekasirihizoransinir",
                         "details": {"retry_after": 60},
                     }
                 }
@@ -178,13 +178,13 @@ OPENAPI_RESPONSES = {
         },
     },
     "500": {
-        "description": "服务器内部错误",
+        "description": "servisicindekisimhata",
         "content": {
             "application/json": {
                 "example": {
                     "error": {
                         "code": "INTERNAL_ERROR",
-                        "message": "服务器内部错误",
+                        "message": "servisicindekisimhata",
                     }
                 }
             }
@@ -193,33 +193,33 @@ OPENAPI_RESPONSES = {
 }
 
 
-# API 示例
+# API ornek
 OPENAPI_EXAMPLES = {
     "execute_request": {
-        "summary": "执行开发任务",
+        "summary": "yurutacgondergorev",
         "value": {
-            "task": "实现用户登录功能，包括表单验证和错误处理",
+            "task": "uygulakullanicigirisislev, paketparanteztablotekildogrulamavehata isleme",
             "project_path": "/Users/user/projects/myapp",
             "model": "deepseek",
             "workflow": "build",
         },
     },
     "execute_response": {
-        "summary": "任务启动响应",
+        "summary": "gorevbaslatyanit",
         "value": {
             "status": "started",
             "task_id": "task-abc123",
-            "message": "任务已启动，请通过 SSE 连接获取进度",
+            "message": "gorevbaslat, lutfenaraciligiyla SSE baglabaglanalilerlederece",
             "sse_url": "/sse/execute/task-abc123",
         },
     },
     "history_list": {
-        "summary": "历史记录列表",
+        "summary": "gecmiskayitliste",
         "value": {
             "records": [
                 {
                     "task_id": "task-abc123",
-                    "task": "实现用户登录功能",
+                    "task": "uygulakullanicigirisislev",
                     "workflow": "build",
                     "status": "completed",
                     "started_at": "2024-01-15T10:30:00",
@@ -234,7 +234,7 @@ OPENAPI_EXAMPLES = {
         },
     },
     "agent_status": {
-        "summary": "Agent 状态",
+        "summary": "Agent durum",
         "value": {
             "agents": [
                 {
@@ -242,12 +242,12 @@ OPENAPI_EXAMPLES = {
                     "status": "idle",
                     "channel": "BUILD",
                     "level": "MEDIUM",
-                    "description": "规划开发计划",
+                    "description": "planlaacgonderplan",
                 },
                 {
                     "name": "Executor",
                     "status": "running",
-                    "current_task": "生成登录表单代码",
+                    "current_task": "olusturgiristablotekilkod",
                     "progress": 75,
                     "channel": "BUILD",
                     "level": "LOW",

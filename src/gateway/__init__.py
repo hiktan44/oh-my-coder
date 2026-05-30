@@ -1,11 +1,11 @@
 """
-Gateway - 多平台消息网关
+Gateway - cokplatformmesajag gecidi
 
-子模块：
-- base: 基础类型（Platform, IncomingMessage, OutgoingMessage, PlatformHandler）
-- platforms.telegram: Telegram Bot 处理器
-- platforms.discord: Discord Bot 处理器
-- gateway: 主 Gateway 类
+altmodul: 
+- base: temeltemeltip (Platform, IncomingMessage, OutgoingMessage, PlatformHandler) 
+- platforms.telegram: Telegram Bot isleyici
+- platforms.discord: Discord Bot isleyici
+- gateway: ana Gateway sinif
 """
 
 from .base import (

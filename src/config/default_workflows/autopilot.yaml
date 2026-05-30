@@ -1,8 +1,8 @@
 name: autopilot
-description: 全自动路由：根据任务描述自动识别类型并路由到最合适的工作流
+description: tumotomatikyoltarafindan: goregorev aciklamasiotomatiktanitipveyoltarafindankadarenbirlestiruygunis akisi
 steps:
   - id: analyst
     agent: analyst
-    description: 任务类型识别 + 选择最合适工作流
+    description: gorevtiptani + secsecenbirlestiruygunis akisi
     timeout: 300
     retry: 1

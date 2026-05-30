@@ -1,13 +1,13 @@
 """
-DevOps Agent - CI/CD 与运维自动化智能体
+DevOps Agent - CI/CD ve işletme ve bakım otomasyon acenteleri
 
-职责：
-1. CI/CD 流水线配置（GitHub Actions / GitLab CI）
-2. Dockerfile 与容器化
-3. 部署脚本编写
-4. 监控与告警配置
+Sorumluluklar:
+1. CI/CD Boru hattı yapılandırması (GitHub Actions / GitLab CI)
+2. Dockerfile ve konteynerleştirme
+3. Dağıtım komut dosyası oluşturma
+4. İzleme ve alarm yapılandırması
 
-模型层级：MEDIUM（平衡）
+Modeli seviyesi:MEDIUM(denge)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class DevOpsAgent(BaseAgent):
-    """DevOps 与 CI/CD 自动化智能体"""
+    """DevOps Ve CI/CD Otomatik aracı"""
 
     name = "devops"
-    description = "CI/CD 与 DevOps 智能体 - 流水线配置、容器化、部署"
+    description = "CI/CD Ve DevOps ajan - montaj hattıYapılandırma,Konteynerizasyon,dağıt"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "🚀"
@@ -34,20 +34,20 @@ class DevOpsAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个资深的 DevOps 工程师。
+        return """sen son sınıftasın DevOps mühendis.
 
-## 角色
-你擅长 CI/CD 流水线设计、容器化、自动化部署和运维脚本编写。
+## Rol
+sen iyisin CI/CD İşlem hattı tasarımı, kapsayıcıya alma, otomatik dağıtım ve işletme ve bakım komut dosyası oluşturma.
 
-## 能力
-1. **CI/CD 配置** - GitHub Actions, GitLab CI, Jenkins
-2. **容器化** - Dockerfile, docker-compose
-3. **部署脚本** - Shell, Ansible, Terraform
-4. **监控告警** - Prometheus, Grafana, ELK
+## yetenek
+1. **CI/CD Yapılandırma** - GitHub Actions, GitLab CI, Jenkins
+2. **Konteynerizasyon** - Dockerfile, docker-compose
+3. **Dağıtım betiği** - Shell, Ansible, Terraform
+4. **Alarmları izleyin** - Prometheus, Grafana, ELK
 
-## CI/CD 最佳实践
+## CI/CD en iyi uygulamalar
 
-### GitHub Actions 流水线
+### GitHub Actions montaj hattı
 ```yaml
 name: CI Pipeline
 on:
@@ -71,11 +71,11 @@ jobs:
         run: pytest --junitxml=report.xml
 ```
 
-### Dockerfile 最佳实践
-- 使用多阶段构建减少镜像体积
-- 合并 RUN 指令减少层数
-- 使用 .dockerignore 排除不必要文件
-- 以非 root 用户运行容器
+### Dockerfile en iyi uygulamalar
+- Görüntü boyutunu küçültmek için çok aşamalı yapıları kullanın
+- birleştirme RUN Katman sayısını azaltma talimatları
+- kullanmak .dockerignore Gereksiz dosyaları hariç tutun
+- olmayanlarla root Kullanıcı kapsayıcıyı çalıştırır
 
 ```dockerfile
 FROM python:3.11-slim AS builder
@@ -91,43 +91,43 @@ ENV PATH=/root/.local/bin:$PATH
 CMD ["python", "main.py"]
 ```
 
-## 输出格式
+## Çıkış formatı
 
-### 1. CI/CD 流水线
-完整的 YAML 配置文件
+### 1. CI/CD montaj hattı
+tamamlamak YAML Yapılandırma dosyası
 
 ### 2. Dockerfile
-优化的多阶段构建
+Optimize edilmiş çok aşamalı yapı
 
-### 3. 部署检查清单
-- 环境变量配置
-- 健康检查端点
-- 日志收集
-- 告警规则
+### 3. Dağıtım kontrol listesi
+- Ortam değişkeni yapılandırması
+- durum denetimi uç noktası
+- Günlük koleksiyonu
+- Uyarı kuralları
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行 DevOps 配置"""
+        """uygulamak DevOps Yapılandırma"""
         if context.previous_outputs.get("architect"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 架构设计\n{context.previous_outputs['architect'].result}",
+                    "content": f"## Mimari tasarım\n{context.previous_outputs['architect'].result}",
                 }
             )
 
         devops_hint = """
 
-请设计 DevOps 方案：
-1. 根据项目语言和框架选择 CI/CD 工具
-2. 设计流水线阶段：lint → test → build → deploy
-3. 提供完整的 CI/CD 配置文件
-4. 如需要，提供 Dockerfile
-5. 提供部署脚本或配置
+Lütfen tasarlayın DevOps planı:
+1. Proje diline ve çerçevesine göre seçim yapın CI/CD alet
+2. tasarımmontaj hattısahne:lint → test → build → deploy
+3. Eksiksiz sağlayın CI/CD Yapılandırma dosyası
+4. Gerekirse sağlayın Dockerfile
+5. Dağıtım komut dosyaları veya yapılandırmaları sağlayın
 
-推荐：Python 项目使用 GitHub Actions + Docker
+tavsiye etmek:Python Proje kullanımı GitHub Actions + Docker
 """
         prompt.append({"role": "user", "content": devops_hint})
 
@@ -143,14 +143,14 @@ CMD ["python", "main.py"]
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "将 CI/CD 配置保存到 .github/workflows/",
-                "测试 Docker 镜像构建",
-                "配置 Secrets 环境变量",
+                "İrade CI/CD Yapılandırmayı şuraya kaydet: .github/workflows/",
+                "test Docker Görüntü oluşturma",
+                "Yapılandırma Secrets ortam değişkenleri",
             ],
             next_agent="executor",
         )

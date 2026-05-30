@@ -4,10 +4,10 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Quest 持久化存储
+Quest kalicidepolama
 
-使用 JSON 文件存储 Quest 列表，每个 Quest 单独一个 JSON 文件。
-存储在 <project_path>/.omc/quests/ 目录下。
+kullan JSON dosyadepolama Quest liste, her Quest tekiltekbir JSON dosya. 
+depolamaicinde <project_path>/.omc/quests/ dizinalt. 
 """
 
 import builtins
@@ -20,7 +20,7 @@ from .models import Quest, QuestSpec, QuestStatus
 
 
 class QuestStore:
-    """Quest 持久化存储"""
+    """Quest kalicidepolama"""
 
     def __init__(self, project_path: Path | str):
         project_path = Path(project_path)
@@ -29,19 +29,19 @@ class QuestStore:
         self._quests_cache: dict[str, Quest] = {}
 
     def _ensure_dir(self) -> None:
-        """确保存储目录存在"""
+        """kesinkaydetdepoladizinkaydeticinde"""
         self.quests_dir.mkdir(parents=True, exist_ok=True)
 
     def _quest_file(self, quest_id: str) -> Path:
-        """获取 Quest 文件路径"""
+        """al Quest dosyayol"""
         return self.quests_dir / f"{quest_id}.json"
 
     # ============================================================
-    # CRUD 操作
+    # CRUD islem
     # ============================================================
 
     def create(self, title: str, description: str, project_path: str) -> Quest:
-        """创建新 Quest"""
+        """olusturyeni Quest"""
         self._ensure_dir()
         quest = Quest(
             id=str(uuid.uuid4()),
@@ -53,7 +53,7 @@ class QuestStore:
         return quest
 
     def get(self, quest_id: str) -> Optional[Quest]:
-        """获取 Quest"""
+        """al Quest"""
         if quest_id in self._quests_cache:
             return self._quests_cache[quest_id]
 
@@ -65,7 +65,7 @@ class QuestStore:
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
         except (OSError, json.JSONDecodeError):
-            # 文件损坏，返回 None
+            # dosyazararkotu, donus None
             return None
 
         try:
@@ -76,13 +76,13 @@ class QuestStore:
             return None
 
     def save(self, quest: Quest) -> None:
-        """保存 Quest"""
+        """kaydet Quest"""
         quest.updated_at = datetime.now()
         self._save(quest)
         self._quests_cache[quest.id] = quest
 
     def delete(self, quest_id: str) -> bool:
-        """删除 Quest"""
+        """sil Quest"""
         path = self._quest_file(quest_id)
         if path.exists():
             path.unlink()
@@ -90,7 +90,7 @@ class QuestStore:
         return True
 
     def list(self, status_filter: Optional[QuestStatus] = None) -> list[Quest]:
-        """列出所有 Quest"""
+        """tumunu listelevar Quest"""
         self._ensure_dir()
 
         if not self.quests_dir.exists():
@@ -107,20 +107,20 @@ class QuestStore:
             except Exception:
                 continue
 
-        # 按创建时间倒序
+        # goreolusturzamanarasindaters sira
         quests.sort(key=lambda q: q.created_at, reverse=True)
         return quests
 
     def get_active(self) -> builtins.list[Quest]:
-        """获取活跃的 Quest（未完成且未取消）"""
+        """alaktif Quest (henuztamamlavehenuziptal) """
         return self.list(status_filter=None)
 
     # ============================================================
-    # 便捷操作
+    # kullanisliislem
     # ============================================================
 
     def update_status(self, quest_id: str, status: QuestStatus) -> Optional[Quest]:
-        """更新 Quest 状态"""
+        """guncelle Quest durum"""
         quest = self.get(quest_id)
         if quest is None:
             return None
@@ -135,13 +135,13 @@ class QuestStore:
         return quest
 
     def set_spec(self, quest_id: str, spec: QuestSpec) -> Optional[Quest]:
-        """设置 SPEC"""
+        """ayarlaayar SPEC"""
         quest = self.get(quest_id)
         if quest is None:
             return None
 
         quest.spec = spec
-        # 保存到文件
+        # kaydetkadardosya
         spec_path = self.quests_dir / f"{quest_id}_SPEC.md"
         spec_path.write_text(spec.to_markdown(), encoding="utf-8")
         quest.spec_path = str(spec_path)
@@ -149,7 +149,7 @@ class QuestStore:
         return quest
 
     def _save(self, quest: Quest) -> None:
-        """内部保存方法"""
+        """icindekisimkaydetyontem"""
         self._ensure_dir()
         path = self._quest_file(quest.id)
         with open(path, "w", encoding="utf-8") as f:

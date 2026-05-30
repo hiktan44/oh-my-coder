@@ -4,10 +4,10 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Quest 执行引擎
+Quest yurutmotor
 
-负责任务的后台执行，支持真正的暂停/恢复。
-使用 asyncio 在后台运行 omc 工作流，实时跟踪进度。
+sorumlugorevsonraplatformyurut, destekgercekduraklat/kurtar. 
+kullan asyncio icindesonraplatformsatir omc is akisi, zamanizleizleilerlederece. 
 """
 
 import asyncio
@@ -22,7 +22,7 @@ from .store import QuestStore
 
 
 class QuestExecutor:
-    """Quest 后台执行引擎"""
+    """Quest sonraplatformyurutmotor"""
 
     def __init__(
         self,
@@ -35,19 +35,19 @@ class QuestExecutor:
         self.project_path = Path(project_path)
         self.store = store
         self.notify_callback = notify_callback
-        # 失败时触发重规划回调（传入 quest_id, failed_step_id）
+        # basarisizzamantetikgondertekrarplanlageri arama (iletgiris quest_id, failed_step_id) 
         self.replan_callback = replan_callback
-        # 验收回调：传入 quest_id, step_id, result_preview，返回 "pass"/"retry"/"skip"
+        # dogrulaalgeri arama: iletgiris quest_id, step_id, result_preview, donus "pass"/"retry"/"skip"
         self.review_callback = review_callback
-        # 运行时状态（内存中）：存储当前正在等待输入的步骤
+        # satirzamandurum (icindekaydeticinde) : depolamamevcutvb.beklegirdiadim
         self._running_quests: dict[str, asyncio.Task] = {}
-        # 断点记录：quest_id -> 当前步骤索引
+        # kesnoktakayit: quest_id -> mevcutadimindeks
         self._breakpoint: dict[str, int] = {}
 
     def _notify(
         self, quest: Optional[Quest], event: str, message: str, details=None
     ) -> None:
-        """发送通知"""
+        """gondergonderbildirim"""
         if self.notify_callback:
             notification = QuestNotification(
                 quest_id=quest.id if quest else "unknown",
@@ -59,31 +59,31 @@ class QuestExecutor:
             self.notify_callback(notification)
 
     # ============================================================
-    # 启动执行
+    # baslatyurut
     # ============================================================
 
     def start(self, quest: Quest) -> None:
-        """启动后台执行（仅启动，不会阻塞）"""
+        """baslatsonraplatformyurut (sadecebaslat, hayiryapacakblokla) """
         if quest.id in self._running_quests:
-            return  # 已经在运行
+            return  # zatenicindesatir
 
         task = asyncio.create_task(self._execute_quest(quest))
         self._running_quests[quest.id] = task
 
     async def _execute_quest(self, quest: Quest) -> None:
-        """异步执行 Quest 主循环（支持断点续跑）"""
+        """asenkronyurut Quest anadongu (destekkesnoktadevamkos) """
         try:
             self.store.update_status(quest.id, QuestStatus.EXECUTING)
             fresh = self.store.get(quest.id)
             if fresh is None:
                 return
 
-            self._notify(fresh, "started", f"🧙 Quest 已开始: {fresh.title}")
+            self._notify(fresh, "started", f"🧙 Quest baslat: {fresh.title}")
 
-            # 确定起始步骤（断点续跑）
+            # kesinkalkbaslangicadim (kesnoktadevamkos) 
             start_index = self._breakpoint.pop(quest.id, 0)
 
-            # 从 SPEC 生成步骤（仅首次生成，后续从 store 恢复）
+            #  SPEC olusturadim (sadeceilkkezolustur, sonradevam store kurtar) 
             if not fresh.steps:
                 steps = self._generate_steps(fresh)
                 fresh.steps = steps
@@ -91,107 +91,107 @@ class QuestExecutor:
             else:
                 steps = fresh.steps
 
-            # 执行每个步骤（跳过已完成/失败）
+            # yurutheradim (atlatamamla/basarisiz) 
             for i, step in enumerate(steps):
-                # 跳过已完成的步骤
+                # atlatamamlaadim
                 if i < start_index:
                     continue
 
-                # 每次迭代都重新读取最新状态
+                # herkeziterasyontumtekraryeniokuenyenidurum
                 fresh = self.store.get(quest.id)
                 if fresh is None:
                     return
 
-                # 检查取消/暂停
+                # kontroliptal/duraklat
                 if fresh.status == QuestStatus.CANCELLED:
-                    self._notify(fresh, "cancelled", "⏹️ Quest 已取消")
+                    self._notify(fresh, "cancelled", "⏹️ Quest iptal edildi")
                     return
                 if fresh.status == QuestStatus.PAUSED:
-                    # 保存断点位置
+                    # kaydetkesnoktakonum
                     self._breakpoint[quest.id] = i
                     self._notify(
                         fresh,
                         "paused",
-                        f"⏸️ Quest 已暂停（将在步骤 {step.step_id} 恢复）",
+                        f"⏸️ Quest duraklat (icindeadim {step.step_id} kurtar) ",
                     )
                     return
 
-                # 更新当前步骤状态
+                # guncellemevcutadimdurum
                 step.status = QuestStatus.EXECUTING
                 self.store.save(fresh)
 
                 try:
                     result = await self._execute_step(step, fresh)
                     step.result = result
-                    # 进入验收状态，等待用户确认
+                    # ilerlegirisdogrulaaldurum, vb.beklekullanicionayla
                     step.status = QuestStatus.PENDING_REVIEW
                     fresh.status = QuestStatus.PENDING_REVIEW
                     self.store.save(fresh)
                     self._notify(
                         fresh,
                         "pending_review",
-                        f"⏳ 步骤 [{step.step_id}] {step.title} 执行完成，等待验收",
+                        f"⏳ adim [{step.step_id}] {step.title} yuruttamamla, vb.bekledogrulaal",
                         details={
                             "step_id": step.step_id,
                             "result_preview": result[:200] if result else "",
                         },
                     )
-                    # 等待用户验收（阻塞）
+                    # vb.beklekullanicidogrulaal (blokla) 
                     review_result = await self._wait_for_review(fresh.id, step.step_id)
                     if review_result == "retry":
-                        # 重试当前步骤
+                        # yeniden denemevcutadim
                         step.status = QuestStatus.PENDING
                         step.result = None
                         self.store.save(fresh)
-                        i -= 1  # 回退索引重试
+                        i -= 1  # gerigeriindeksyeniden dene
                         continue
                     if review_result == "skip":
-                        # 跳过（标记为警告）
+                        # atla (isareticinuyari) 
                         step.status = QuestStatus.COMPLETED
                         step.completed_at = datetime.now()
-                        step.notes = "用户跳过验收"
+                        step.notes = "kullaniciatladogrulaal"
                         self.store.save(fresh)
                         self._notify(
-                            fresh, "step_skipped", f"⏭️ 步骤 [{step.step_id}] 已跳过"
+                            fresh, "step_skipped", f"⏭️ adim [{step.step_id}] atla"
                         )
                     else:
-                        # 通过
+                        # araciligiyla
                         step.status = QuestStatus.COMPLETED
                         step.completed_at = datetime.now()
                         self.store.save(fresh)
                         self._notify(
                             fresh,
                             "step_completed",
-                            f"✅ 步骤 [{step.step_id}] {step.title} 已验收通过",
+                            f"✅ adim [{step.step_id}] {step.title} dogrulaalaraciligiyla",
                         )
                 except asyncio.CancelledError:
-                    # 被暂停/取消打断
+                    # duraklat/iptalvurkes
                     self.store.save(fresh)
                     self._breakpoint[quest.id] = i
                     return
                 except Exception as e:
                     step.status = QuestStatus.FAILED
                     step.error = type(e).__name__
-                    fresh.error_message = f"步骤 {step.step_id} 失败"
+                    fresh.error_message = f"adim {step.step_id} basarisiz"
                     self.store.save(fresh)
                     self._notify(
                         fresh,
                         "failed",
-                        f"⚠️ 步骤 [{step.step_id}] {step.title} 失败",
+                        f"⚠️ adim [{step.step_id}] {step.title} basarisiz",
                         details={"step_id": step.step_id, "error": type(e).__name__},
                     )
-                    # 触发重规划回调
+                    # tetikgondertekrarplanlageri arama
                     if self.replan_callback:
                         try:
                             self.replan_callback(fresh.id, step.step_id)
                         except Exception as cb_err:
                             self._notify(
-                                fresh, "replan_error", f"重规划回调失败: {cb_err}"
+                                fresh, "replan_error", f"tekrarplanlageri aramabasarisiz: {cb_err}"
                             )
-                    # 继续执行后续步骤
+                    # devamdevamyurutsonradevamadim
                     continue
 
-            # 所有步骤完成
+            # varadimtamamla
             fresh = self.store.get(quest.id)
             if fresh and fresh.status == QuestStatus.EXECUTING:
                 failed_count = sum(
@@ -199,23 +199,23 @@ class QuestExecutor:
                 )
                 if failed_count == 0:
                     self.store.update_status(fresh.id, QuestStatus.COMPLETED)
-                    fresh.result_summary = f"✅ 全部 {len(fresh.steps)} 个步骤成功完成"
+                    fresh.result_summary = f"✅ tumkisim {len(fresh.steps)} adimbasarilitamamla"
                     self.store.save(fresh)
                     self._notify(
                         fresh,
                         "completed",
-                        f"🎉 Quest 已完成: {fresh.title}",
+                        f"🎉 Quest tamamla: {fresh.title}",
                     )
                 else:
                     self.store.update_status(fresh.id, QuestStatus.FAILED)
                     fresh.result_summary = (
-                        f"{len(fresh.steps) - failed_count}/{len(fresh.steps)} 步骤成功"
+                        f"{len(fresh.steps) - failed_count}/{len(fresh.steps)} adimbasarili"
                     )
                     self.store.save(fresh)
                     self._notify(
                         fresh,
                         "failed",
-                        f"⚠️ Quest 完成但有 {failed_count} 个步骤失败",
+                        f"⚠️ Quest tamamlaancakvar {failed_count} adimbasarisiz",
                     )
 
         except Exception as e:
@@ -227,19 +227,19 @@ class QuestExecutor:
             self._notify(
                 fresh,
                 "failed",
-                "❌ Quest 执行失败",
+                "❌ Quest yurutbasarisiz",
             )
         finally:
             self._running_quests.pop(quest.id, None)
             self._breakpoint.pop(quest.id, None)
 
     async def _wait_for_review(self, quest_id: str, step_id: str) -> str:
-        """等待用户验收步骤结果
+        """vb.beklekullanicidogrulaaladimsonuc
 
         Returns:
-            "pass" - 验收通过
-            "retry" - 重试该步骤
-            "skip" - 跳过该步骤
+            "pass" - dogrulaalaraciligiyla
+            "retry" - yeniden denebuadim
+            "skip" - atlabuadim
         """
         if self.review_callback:
             quest = self.store.get(quest_id)
@@ -252,44 +252,44 @@ class QuestExecutor:
             try:
                 return await self.review_callback(quest_id, step_id, preview)
             except Exception as e:
-                self._notify(quest, "review_error", f"验收回调失败: {e}")
-                return "pass"  # 默认通过
-        # 没有回调时默认通过
+                self._notify(quest, "review_error", f"dogrulaalgeri aramabasarisiz: {e}")
+                return "pass"  # varsayilanaraciligiyla
+        # yokvargeri aramazamanvarsayilanaraciligiyla
         return "pass"
 
     def _generate_steps(self, quest: Quest) -> list[QuestStep]:
-        """从 SPEC 生成执行步骤"""
+        """ SPEC olusturyurutadim"""
         steps: list[QuestStep] = []
 
         if not quest.spec or not quest.spec.acceptance_criteria:
             return [
                 QuestStep(
                     step_id="S1",
-                    title="分析需求",
-                    description=f"分析并理解: {quest.description}",
+                    title="analizgerekiste",
+                    description=f"analizveanla: {quest.description}",
                     agent="analyst",
                 ),
                 QuestStep(
                     step_id="S2",
-                    title="规划实现",
-                    description="制定实现计划",
+                    title="planlauygula",
+                    description="olusturuygulaplan",
                     agent="planner",
                 ),
                 QuestStep(
                     step_id="S3",
-                    title="执行编码",
-                    description="按照计划执行编码",
+                    title="yurutduzenlekod",
+                    description="goregoreplanyurutduzenlekod",
                     agent="executor",
                 ),
                 QuestStep(
                     step_id="S4",
-                    title="验证结果",
-                    description="运行测试验证",
+                    title="dogrulama sonucu",
+                    description="test dogrulama calistir",
                     agent="verifier",
                 ),
             ]
 
-        # 基于 acceptance_criteria 生成步骤
+        # temelde acceptance_criteria olusturadim
         ac_chunks = [
             quest.spec.acceptance_criteria[i : i + 3]
             for i in range(0, len(quest.spec.acceptance_criteria), 3)
@@ -300,8 +300,8 @@ class QuestExecutor:
             steps.append(
                 QuestStep(
                     step_id=f"S{i}",
-                    title=f"实现: {criteria_text[:30]}...",
-                    description=f"验收标准: {criteria_text}",
+                    title=f"uygula: {criteria_text[:30]}...",
+                    description=f"kabul kriterleri: {criteria_text}",
                     agent="executor",
                 )
             )
@@ -309,8 +309,8 @@ class QuestExecutor:
         steps.append(
             QuestStep(
                 step_id=f"S{len(steps) + 1}",
-                title="代码审查",
-                description="进行代码审查和质量检查",
+                title="kodinceleme",
+                description="ilerlesatirkodincelemevekalitemiktarkontrol",
                 agent="code-reviewer",
             )
         )
@@ -318,7 +318,7 @@ class QuestExecutor:
         return steps
 
     async def _execute_step(self, step: QuestStep, quest: Quest) -> str:
-        """执行单个步骤"""
+        """yuruttekiladim"""
         project_path = quest.project_path
 
         cmd = [
@@ -346,16 +346,16 @@ class QuestExecutor:
 
         if proc.returncode != 0:
             error = stderr.decode("utf-8", errors="replace")
-            raise RuntimeError(f"命令失败 (code={proc.returncode}): {error[:500]}")
+            raise RuntimeError(f"komutbasarisiz (code={proc.returncode}): {error[:500]}")
 
         return output[:2000]
 
     # ============================================================
-    # 控制操作
+    # kontrolislem
     # ============================================================
 
     def stop(self, quest_id: str) -> bool:
-        """立即停止（不等完成，直接取消任务）"""
+        """kuryanidurdur (hayirvb.tamamla, dogrubaglaniptalgorev) """
         task = self._running_quests.pop(quest_id, None)
         if task:
             task.cancel()
@@ -363,21 +363,21 @@ class QuestExecutor:
         return False
 
     def cancel(self, quest_id: str) -> bool:
-        """取消 Quest"""
+        """iptal Quest"""
         self.stop(quest_id)
         self._breakpoint.pop(quest_id, None)
         return bool(self.store.update_status(quest_id, QuestStatus.CANCELLED))
 
     def pause(self, quest_id: str) -> bool:
-        """暂停 Quest（在当前步骤完成后暂停）"""
+        """duraklat Quest (icindemevcutadimtamamlasonraduraklat) """
         quest = self.store.get(quest_id)
         if quest is None:
             return False
 
-        # 如果正在运行，停止任务，下次启动时会从断点继续
+        # egersatir, durdurgorev, altkezbaslatzamanyapacakkesnoktadevamdevam
         self.stop(quest_id)
 
-        # 找到当前正在执行的步骤索引
+        # bulkadarmevcutyurutadimindeks
         running_idx = 0
         for i, step in enumerate(quest.steps):
             if step.status == QuestStatus.EXECUTING:
@@ -391,12 +391,12 @@ class QuestExecutor:
         return bool(self.store.update_status(quest_id, QuestStatus.PAUSED))
 
     def resume(self, quest_id: str) -> Optional[Quest]:
-        """恢复暂停的 Quest，从断点继续"""
+        """kurtarduraklat Quest, kesnoktadevamdevam"""
         quest = self.store.get(quest_id)
         if quest is None or quest.status != QuestStatus.PAUSED:
             return None
 
-        # 清除之前的断点（会从已保存的步骤继续）
+        # temizlehariconcekesnokta (yapacakkaydetadimdevamdevam) 
         self._breakpoint.pop(quest_id, None)
         self.store.update_status(quest_id, QuestStatus.EXECUTING)
         quest = self.store.get(quest_id)
@@ -405,9 +405,9 @@ class QuestExecutor:
         return quest
 
     def is_running(self, quest_id: str) -> bool:
-        """检查 Quest 是否在运行"""
+        """kontrol Quest olup olmadigiicindesatir"""
         return quest_id in self._running_quests
 
     def get_breakpoint(self, quest_id: str) -> Optional[int]:
-        """获取暂停时的断点位置"""
+        """alduraklatzamankesnoktakonum"""
         return self._breakpoint.get(quest_id)

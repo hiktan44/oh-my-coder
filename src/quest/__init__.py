@@ -1,7 +1,7 @@
 """
-Quest Mode - 异步自主编程
+Quest Mode - asenkronkendianaduzenlesurec
 
-将需求交给 AI → 自动生成 SPEC → 后台编码 → 完成通知 → 用户验收
+gerekistealisverisver AI → otomatikolustur SPEC → sonraplatformduzenlekod → tamamlabildirim → kullanicidogrulaal
 """
 
 from .executor import QuestExecutor

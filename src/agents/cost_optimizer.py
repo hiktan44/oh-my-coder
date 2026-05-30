@@ -4,19 +4,19 @@ from __future__ import annotations
 
 
 """
-成本优化建议模块 - Cost Optimization
+Maliyet optimizasyonu öneri modülü - Cost Optimization
 
-根据任务复杂度推荐最优模型，节省成本。
+Maliyetlerden tasarruf etmek için görev karmaşıklığına dayalı en uygun modeli önerin.
 
-模型分类：
-- 本地 Ollama 模型 (ollama/)
-- 国产云端模型 (deepseek/, qwen/, glm/, moonshot/)
-- 顶级模型 (openai/, anthropic/)
+Model sınıflandırması:
+- yerel Ollama Modeli (ollama/)
+- Yurtiçi bulut modeli (deepseek/, qwen/, glm/, moonshot/)
+- üst model (openai/, anthropic/)
 
-复杂度评估：
-- 低：<3 文件简单修改
-- 中：3-10 文件改动
-- 高：>10 文件 / 新架构 / 重构
+Karmaşıklık değerlendirmesi:
+- Düşük:<3 Basit dosya değişikliği
+- orta:3-10 Dosya değişiklikleri
+- yüksek:>10 belge / yeni mimari / Yeniden düzenleme
 """
 
 
@@ -26,153 +26,153 @@ from typing import Any, Optional
 
 
 class Complexity(Enum):
-    """任务复杂度"""
+    """görev karmaşıklığı"""
 
-    LOW = "low"  # 简单任务，本地模型足够
-    MEDIUM = "medium"  # 中等复杂度，国产性价比模型
-    HIGH = "high"  # 复杂任务，需要顶级模型
+    LOW = "low"  # Basit görevler için yerel modeller yeterlidir
+    MEDIUM = "medium"  # Orta karmaşıklıkta, yerli maliyetli model
+    HIGH = "high"  # Karmaşık görevler en iyi modelleri gerektirir
 
 
 @dataclass
 class ModelRecommendation:
-    """模型推荐结果"""
+    """Model öneri sonuçları"""
 
     model: str
     provider: str  # ollama/deepseek/openai/anthropic
     complexity: Complexity
 
-    # 理由
+    # sebep
     reason: str
 
-    # 估算成本（相对值）
-    estimated_cost: float  # 1-10, 10 最贵
+    # Tahmini maliyet (göreceli değer)
+    estimated_cost: float  # 1-10, 10 En pahalı
 
-    # 备选模型
+    # alternatif model
     alternatives: list[dict[str, str]]
 
 
 class CostOptimizer:
-    """成本优化器
+    """maliyet optimize edici
 
-    根据任务特征评估复杂度，推荐最优模型。
+    Görev özelliklerine göre karmaşıklığı değerlendirin ve en uygun modeli önerin.
     """
 
-    # 模型定义
+    # Model tanımı
     MODELS = {
-        # 本地模型
+        # yerel model
         "ollama/qwen2.5:7b": {
             "provider": "ollama",
             "cost": 1,
-            "strengths": ["简单修改", "代码补全", "轻量任务"],
+            "strengths": ["Basit değişiklik", "kod tamamlama", "Hafif görevler"],
         },
         "ollama/qwen2.5:14b": {
             "provider": "ollama",
             "cost": 2,
-            "strengths": ["中等复杂度", "代码理解", "本地优先"],
+            "strengths": ["orta karmaşıklık", "kod anlayışı", "yerel öncelik"],
         },
         "ollama/llama3:8b": {
             "provider": "ollama",
             "cost": 2,
-            "strengths": ["英文为主", "通用任务"],
+            "strengths": ["Ağırlıklı olarak İngilizce", "Ortak görevler"],
         },
-        # 国产云端模型
+        # Yurtiçi bulut modeli
         "deepseek-chat": {
             "provider": "deepseek",
             "cost": 4,
-            "strengths": ["代码能力强", "性价比高", "中文优化"],
+            "strengths": ["Güçlü kodlama yeteneği", "Yüksek maliyet performansı", "Çin optimizasyonu"],
         },
         "qwen-turbo": {
             "provider": "qwen",
             "cost": 3,
-            "strengths": ["阿里系", "中文好", "速度快"],
+            "strengths": ["Ali sistemi", "İyi Çince", "hızlı"],
         },
         "glm-4": {
             "provider": "glm",
             "cost": 4,
-            "strengths": ["智谱清言", "中文优化"],
+            "strengths": ["Bilgeliğin açık sözleri", "Çin optimizasyonu"],
         },
         "moonshot-v1": {
             "provider": "moonshot",
             "cost": 4,
-            "strengths": [" Kimi ", "长文本处理"],
+            "strengths": [" Kimi ", "Uzun metin işleme"],
         },
-        # 顶级模型
+        # üst model
         "gpt-4o": {
             "provider": "openai",
             "cost": 10,
-            "strengths": ["顶级能力", "复杂推理", "架构设计"],
+            "strengths": ["üst düzey yetenek", "karmaşık akıl yürütme", "Mimari tasarım"],
         },
         "gpt-4o-mini": {
             "provider": "openai",
             "cost": 6,
-            "strengths": ["性价比", "快速任务"],
+            "strengths": ["Maliyet etkinliği", "Hızlı görevler"],
         },
         "claude-3-opus": {
             "provider": "anthropic",
             "cost": 10,
-            "strengths": ["最强推理", "长文本", "分析"],
+            "strengths": ["En güçlü muhakeme", "uzun metin", "analiz etmek"],
         },
         "claude-3-sonnet": {
             "provider": "anthropic",
             "cost": 7,
-            "strengths": ["平衡", "写作能力强"],
+            "strengths": ["denge", "Güçlü yazma becerileri"],
         },
     }
 
-    # 复杂度关键词
+    # karmaşıklık anahtar kelimesi
     COMPLEXITY_KEYWORDS = {
         Complexity.HIGH: [
-            "重构",
+            "Yeniden düzenleme",
             "refactor",
-            "架构",
+            "Mimarlık",
             "architecture",
-            "设计",
+            "tasarım",
             "design",
-            "新项目",
+            "yeni proje",
             "new project",
-            "迁移",
+            "göç etmek",
             "migrate",
-            "拆分",
+            "Bölmek",
             "split",
-            "重写",
+            "yeniden yazmak",
             "rewrite",
-            "复杂",
+            "karmaşık",
             "complex",
-            "系统",
+            "sistem",
             "system",
-            "微服务",
+            "mikro hizmetler",
             "microservice",
-            "分布式",
+            "dağıtılmış",
             "distributed",
         ],
         Complexity.MEDIUM: [
             "api",
-            "接口",
-            "数据库",
+            "arayüz",
+            "veritabanı",
             "database",
-            "认证",
+            "Sertifikasyon",
             "auth",
-            "登录",
+            "Giriş yapmak",
             "login",
-            "支付",
+            "ödemek",
             "payment",
-            "订单",
+            "Emir",
             "order",
-            "用户",
+            "kullanıcı",
             "user",
-            "管理",
+            "üstesinden gelmek",
             "admin",
             "CRUD",
-            "多个文件",
+            "birden fazla dosya",
             "multiple files",
-            "多模块",
+            "Çoklu modüller",
         ],
     }
 
     def __init__(self, prefer_local: bool = True):
         """
         Args:
-            prefer_local: 是否优先推荐本地模型
+            prefer_local: Yerel modellerin tavsiye edilmesine öncelik verilip verilmeyeceği
         """
         self.prefer_local = prefer_local
 
@@ -183,26 +183,26 @@ class CostOptimizer:
         new_files: Optional[list[str]] = None,
     ) -> dict[str, Any]:
         """
-        分析任务特征
+        Görev özelliklerini analiz edin
 
         Args:
-            task_description: 任务描述
-            file_count: 涉及文件数量
-            new_files: 新增文件列表
+            task_description: Görev açıklaması
+            file_count: İlgili dosya sayısı
+            new_files: Dosya listesi ekle
 
         Returns:
-            任务分析结果
+            Görev analizi sonuçları
         """
         task_lower = task_description.lower()
 
-        # 1. 基于关键词评估
+        # 1. Anahtar kelimelere dayalı değerlendirme
         high_keywords = self.COMPLEXITY_KEYWORDS[Complexity.HIGH]
         medium_keywords = self.COMPLEXITY_KEYWORDS[Complexity.MEDIUM]
 
         high_score = sum(1 for kw in high_keywords if kw in task_lower)
         medium_score = sum(1 for kw in medium_keywords if kw in task_lower)
 
-        # 2. 基于文件数量
+        # 2. Dosya sayısına göre
         if file_count is not None:
             if file_count > 10:
                 high_score += 3
@@ -211,7 +211,7 @@ class CostOptimizer:
             elif file_count > 2:
                 medium_score += 1
 
-        # 3. 基于新增文件
+        # 3. Yeni dosyalara dayalı
         if new_files:
             for f in new_files:
                 if any(x in f.lower() for x in ["api", "service", "model"]):
@@ -219,7 +219,7 @@ class CostOptimizer:
                 if any(x in f.lower() for x in ["app", "main", "server"]):
                     high_score += 1
 
-        # 4. 确定复杂度
+        # 4. Karmaşıklığı belirleyin
         if high_score >= 2:
             complexity = Complexity.HIGH
         elif medium_score >= 2:
@@ -242,21 +242,21 @@ class CostOptimizer:
         new_files: Optional[list[str]] = None,
     ) -> ModelRecommendation:
         """
-        推荐最优模型
+        En iyi modeli önerin
 
         Args:
-            task_description: 任务描述
-            file_count: 涉及文件数量
-            new_files: 新增文件列表
+            task_description: Görev açıklaması
+            file_count: İlgili dosya sayısı
+            new_files: Dosya listesi ekle
 
         Returns:
-            模型推荐结果
+            Model öneri sonuçları
         """
-        # 分析任务
+        # Analiz görevleri
         analysis = self.analyze_task(task_description, file_count, new_files)
         complexity = analysis["complexity"]
 
-        # 根据复杂度和偏好推荐
+        # Karmaşıklık ve tercihe göre önerilir
         if complexity == Complexity.LOW:
             return self._recommend_low(analysis)
         if complexity == Complexity.MEDIUM:
@@ -264,13 +264,13 @@ class CostOptimizer:
         return self._recommend_high(analysis)
 
     def _recommend_low(self, analysis: dict[str, Any]) -> ModelRecommendation:
-        """推荐低复杂度任务的模型"""
+        """Düşük karmaşıklıktaki görevler için modeller önerin"""
         if self.prefer_local:
             model = "ollama/qwen2.5:7b"
-            reason = "简单修改任务，本地 7B 模型足够，速度快且免费"
+            reason = "Basit değişiklik görevi, yerel 7B Modeller yeterli, hızlı ve ücretsizdir"
         else:
             model = "qwen-turbo"
-            reason = "简单任务，国产模型性价比高"
+            reason = "Basit görevler, yerli modeller uygun maliyetlidir"
 
         return ModelRecommendation(
             model=model,
@@ -279,19 +279,19 @@ class CostOptimizer:
             reason=reason,
             estimated_cost=self.MODELS[model]["cost"],
             alternatives=[
-                {"model": "ollama/qwen2.5:14b", "reason": "更强能力"},
-                {"model": "gpt-4o-mini", "reason": "云端备选"},
+                {"model": "ollama/qwen2.5:14b", "reason": "daha güçlü yetenek"},
+                {"model": "gpt-4o-mini", "reason": "Bulutalternatif"},
             ],
         )
 
     def _recommend_medium(self, analysis: dict[str, Any]) -> ModelRecommendation:
-        """推荐中等复杂度任务的模型"""
+        """tavsiye etmekorta karmaşıklıkGörevile ilgiliModeli"""
         if self.prefer_local:
             model = "ollama/qwen2.5:14b"
-            reason = "中等复杂度任务，本地 14B 模型能力足够"
+            reason = "Orta karmaşıklıktaki görevler, yerel 14B Model yeteneği yeterlidir"
         else:
             model = "deepseek-chat"
-            reason = "DeepSeek 代码能力强，国产性价比首选"
+            reason = "DeepSeek Güçlü kodlama yeteneği, yerli maliyet etkinliği ilk tercihtir"
 
         return ModelRecommendation(
             model=model,
@@ -300,20 +300,20 @@ class CostOptimizer:
             reason=reason,
             estimated_cost=self.MODELS[model]["cost"],
             alternatives=[
-                {"model": "qwen-turbo", "reason": "阿里系备选"},
-                {"model": "gpt-4o-mini", "reason": "OpenAI 备选"},
+                {"model": "qwen-turbo", "reason": "Ali sistemi alternatifi"},
+                {"model": "gpt-4o-mini", "reason": "OpenAI alternatif"},
             ],
         )
 
     def _recommend_high(self, analysis: dict[str, Any]) -> ModelRecommendation:
-        """推荐高复杂度任务的模型"""
+        """Son derece karmaşık görevler için modeller önerin"""
         if self.prefer_local:
             model = "ollama/qwen2.5:14b"
-            reason = "复杂任务，建议先用本地模型快速验证思路，如遇瓶颈再切换顶级模型"
+            reason = "Karmaşık görevlerde, fikri hızlı bir şekilde doğrulamak için yerel modelin kullanılması ve ardından darboğazlarla karşılaşırsanız üst düzey modele geçiş yapılması önerilir."
             cost = 2
         else:
             model = "gpt-4o"
-            reason = "复杂架构设计/重构任务，需要顶级模型能力"
+            reason = "Karmaşık mimari tasarım/Yeniden inşa görevleri üst düzey model yetenekleri gerektirir"
             cost = 10
 
         return ModelRecommendation(
@@ -323,14 +323,14 @@ class CostOptimizer:
             reason=reason,
             estimated_cost=cost,
             alternatives=[
-                {"model": "gpt-4o", "reason": "OpenAI 顶级"},
-                {"model": "claude-3-opus", "reason": "Claude 最强"},
-                {"model": "deepseek-chat", "reason": "国产性价比"},
+                {"model": "gpt-4o", "reason": "OpenAI Tepe"},
+                {"model": "claude-3-opus", "reason": "Claude en güçlü"},
+                {"model": "deepseek-chat", "reason": "Yurtiçi maliyet etkinliği"},
             ],
         )
 
     def get_all_models(self) -> list[dict[str, Any]]:
-        """获取所有可用模型"""
+        """Mevcut tüm modelleri edinin"""
         result = []
         for model, info in self.MODELS.items():
             result.append(
@@ -345,12 +345,12 @@ class CostOptimizer:
 
 
 # ------------------------------------------------------------------
-# Token 费用计算
+# Token Maliyet hesaplaması
 # ------------------------------------------------------------------
 
 
-# 模型定价表（美元 / 1M tokens）
-# 数据来源：各模型官方定价页（2025-01）
+# Model Fiyatlandırma Tablosu (USD / 1M tokens)
+# Veri kaynağı: Her modelin resmi fiyatlandırma sayfası (2025-01)
 MODEL_PRICING = {
     # OpenAI
     "gpt-4o": {"input": 2.50, "output": 10.00},
@@ -372,7 +372,7 @@ MODEL_PRICING = {
     # Moonshot
     "moonshot-v1-8k": {"input": 0.50, "output": 0.50},
     "moonshot-v1-32k": {"input": 0.50, "output": 0.50},
-    # Ollama (本地免费)
+    # Ollama (Yerel olarak ücretsiz)
     "ollama/qwen2.5:7b": {"input": 0.0, "output": 0.0},
     "ollama/qwen2.5:14b": {"input": 0.0, "output": 0.0},
     "ollama/llama3:8b": {"input": 0.0, "output": 0.0},
@@ -381,14 +381,14 @@ MODEL_PRICING = {
 
 @dataclass
 class CostEstimate:
-    """费用估算结果"""
+    """Maliyet tahmini sonuçları"""
 
     model: str
     input_tokens: int
     output_tokens: int
-    input_cost: float  # 美元
-    output_cost: float  # 美元
-    total_cost: float  # 美元
+    input_cost: float  # Dolar
+    output_cost: float  # Dolar
+    total_cost: float  # Dolar
 
 
 def calculate_cost(
@@ -396,22 +396,22 @@ def calculate_cost(
     input_tokens: int,
     output_tokens: int,
 ) -> CostEstimate:
-    """计算指定模型的 token 费用
+    """Belirtilen modeli hesapla token maliyet
 
     Args:
-        model: 模型名称（如 "gpt-4o-mini", "claude-3.5-opus"）
-        input_tokens: 输入 token 数
-        output_tokens: 输出 token 数
+        model: Model adı (ör. "gpt-4o-mini", "claude-3.5-opus")
+        input_tokens: girmek token sayı
+        output_tokens: çıktı token sayı
 
     Returns:
-        CostEstimate: 费用估算结果
+        CostEstimate: Maliyet tahmini sonuçları
 
     Raises:
-        ValueError: 模型不在定价表中
+        ValueError: Model fiyatlandırma tablosunda yok
     """
     if model not in MODEL_PRICING:
         raise ValueError(
-            f"模型 {model} 不在定价表中，可用模型: {list(MODEL_PRICING.keys())}"
+            f"Modeli {model} Fiyat tablosunda yok, mevcut modeller: {list(MODEL_PRICING.keys())}"
         )
 
     pricing = MODEL_PRICING[model]
@@ -432,13 +432,13 @@ def calculate_cost(
 def calculate_multi_model_cost(
     model_usages: list[dict[str, int]],
 ) -> list[CostEstimate]:
-    """计算多模型组合费用
+    """Çoklu model portföy maliyetlerini hesaplayın
 
     Args:
-        model_usages: 模型使用列表，每项包含 {"model": str, "input_tokens": int, "output_tokens": int}
+        model_usages: Model kullanım listesi, her öğe şunları içerir {"model": str, "input_tokens": int, "output_tokens": int}
 
     Returns:
-        各模型的费用估算列表
+        Her model için maliyet tahminlerinin listesi
     """
     results = []
     for usage in model_usages:
@@ -452,18 +452,18 @@ def calculate_multi_model_cost(
 
 
 # ------------------------------------------------------------------
-# CLI 入口
+# CLI Giriş
 # ------------------------------------------------------------------
 
 
 def main():
-    """CLI 入口"""
+    """CLI Giriş"""
     import argparse
 
-    parser = argparse.ArgumentParser(description="成本优化建议工具")
-    parser.add_argument("task", nargs="?", help="任务描述")
-    parser.add_argument("--files", "-f", type=int, help="涉及文件数量")
-    parser.add_argument("--list", "-l", action="store_true", help="列出所有模型")
+    parser = argparse.ArgumentParser(description="Maliyet Optimizasyonu Tavsiye Aracı")
+    parser.add_argument("task", nargs="?", help="Görev açıklaması")
+    parser.add_argument("--files", "-f", type=int, help="İlgili dosya sayısı")
+    parser.add_argument("--list", "-l", action="store_true", help="tüm modelleri listele")
     parser.add_argument("--prefer-local", action="store_true", default=True)
 
     args = parser.parse_args()
@@ -471,12 +471,12 @@ def main():
     optimizer = CostOptimizer(prefer_local=args.prefer_local)
 
     if args.list:
-        print("可用模型：")
+        print("Mevcut modeller:")
         print("-" * 60)
         for m in optimizer.get_all_models():
             cost_bars = "💰" * m["cost"]
             print(f"{m['model']:30s} [{m['provider']:10s}] {cost_bars}")
-            print(f"    优势: {', '.join(m['strengths'])}")
+            print(f"    Avantajları: {', '.join(m['strengths'])}")
             print()
         return
 
@@ -484,25 +484,25 @@ def main():
         parser.print_help()
         return
 
-    # 推荐模型
+    # Önerilen model
     recommendation = optimizer.recommend(args.task, file_count=args.files)
 
     print("=" * 60)
-    print(f"任务: {args.task}")
+    print(f"Görev: {args.task}")
     if args.files:
-        print(f"文件数: {args.files}")
+        print(f"Dosya sayısı: {args.files}")
     print("=" * 60)
     print()
-    print(f"🎯 推荐模型: {recommendation.model}")
-    print(f"📦 提供商: {recommendation.provider}")
-    print(f"📊 复杂度: {recommendation.complexity.value}")
-    print(f"💵 估算成本: {'$' * recommendation.estimated_cost}")
+    print(f"🎯 Önerilen model: {recommendation.model}")
+    print(f"📦 sağlayıcı: {recommendation.provider}")
+    print(f"📊 karmaşıklık: {recommendation.complexity.value}")
+    print(f"💵 Maliyeti tahmin edin: {'$' * recommendation.estimated_cost}")
     print()
-    print("💡 推荐理由:")
+    print("💡 Tavsiye nedenleri:")
     print(f"   {recommendation.reason}")
     print()
     if recommendation.alternatives:
-        print("🔄 备选方案:")
+        print("🔄 Alternatifler:")
         for alt in recommendation.alternatives:
             print(f"   - {alt['model']}: {alt['reason']}")
 

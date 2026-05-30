@@ -1,32 +1,32 @@
 name: sequential
-description: 通用顺序执行流程（自定义任务推荐模板）
+description: kullansirayurutakis (ozelgorevonersablon) 
 steps:
   - id: explore
     agent: explore
-    description: 探索代码库结构
+    description: kod tabani yapisini kesfet
     timeout: 300
     retry: 0
   - id: analyst
     agent: analyst
-    description: 深度分析需求与现状
+    description: derinlikanalizgerekisteilemevcut durum
     dependencies: [explore]
     timeout: 300
     retry: 0
   - id: planner
     agent: planner
-    description: 制定详细执行计划
+    description: olusturdetayliyurutplan
     dependencies: [analyst]
     timeout: 300
     retry: 0
   - id: executor
     agent: executor
-    description: 执行实现
+    description: yurutuygula
     dependencies: [planner]
     timeout: 600
     retry: 1
   - id: verifier
     agent: verifier
-    description: 验证结果正确性
+    description: dogrulama sonucudogru
     dependencies: [executor]
     timeout: 300
     retry: 0

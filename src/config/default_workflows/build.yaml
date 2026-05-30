@@ -1,38 +1,38 @@
 name: build
-description: 完整构建流程：探索 → 分析 → 计划 → 架构 → 实现 → 验证
+description: tamolusturakis: kesfet → analiz → plan → mimari → uygula → dogrulama
 steps:
   - id: explore
     agent: explore
-    description: 探索代码库结构
+    description: kod tabani yapisini kesfet
     timeout: 300
     retry: 0
   - id: analyst
     agent: analyst
-    description: 分析需求与现状
+    description: analizgerekisteilemevcut durum
     dependencies: [explore]
     timeout: 300
     retry: 1
   - id: planner
     agent: planner
-    description: 制定详细执行计划
+    description: olusturdetayliyurutplan
     dependencies: [analyst]
     timeout: 300
     retry: 0
   - id: architect
     agent: architect
-    description: 设计系统架构
+    description: tasarimsistemmimari
     dependencies: [planner]
     timeout: 300
     retry: 0
   - id: executor
     agent: executor
-    description: 实现代码
+    description: uygulakod
     dependencies: [architect]
     timeout: 600
     retry: 1
   - id: verifier
     agent: verifier
-    description: 验证实现正确性
+    description: dogrulamauyguladogru
     dependencies: [executor]
     timeout: 300
     retry: 0

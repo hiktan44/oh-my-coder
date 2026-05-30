@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Skill CLI - omc skill 命令
+Skill CLI - omc skillEmir
 
-用法：
-    omc skill list                      # 列出所有可用 Skill
-    omc skill run <name> [--code <path>]  # 执行指定 Skill
-    omc skill info <name>               # 查看 Skill 详情
+kullanım:
+    omc skill list                      #Mevcut olanların hepsini listeleSkill
+    omc skill run <name> [--code <path>]  #Belirtilenleri yürütSkill
+    omc skill info <name>               #Kontrol etmekSkillDetaylar
 """
 
 
@@ -21,16 +21,16 @@ from rich.syntax import Syntax
 
 from src.skills import get_registry
 
-app = typer.Typer(help="Skill 管理 - 列出和执行 Skill")
+app = typer.Typer(help="Skillüstesinden gelmek-listele ve çalıştırSkill")
 console = Console()
 
 
 @app.command("list")
 def list_skills(
-    builtin_only: bool = typer.Option(False, "--builtin", help="仅显示内置 Skill"),
-    custom_only: bool = typer.Option(False, "--custom", help="仅显示自定义 Skill"),
+    builtin_only: bool = typer.Option(False, "--builtin", help="Yalnızca yerleşikleri gösterSkill"),
+    custom_only: bool = typer.Option(False, "--custom", help="Yalnızca özel gösterSkill"),
 ) -> None:
-    """列出所有可用 Skill"""
+    """Mevcut olanların hepsini listeleSkill"""
     registry = get_registry()
 
     if builtin_only:
@@ -49,7 +49,7 @@ def list_skills(
 
 @app.command("info")
 def skill_info(name: str) -> None:
-    """查看 Skill 详细信息"""
+    """Kontrol etmekSkillDetaylar"""
     registry = get_registry()
     skill = registry.get(name)
 
@@ -74,18 +74,18 @@ def skill_info(name: str) -> None:
 
 @app.command("run")
 def run_skill(
-    name: str = typer.Argument(..., help="Skill 名称（不含 /）"),
+    name: str = typer.Argument(..., help="SkillAd (hariç/)"),
     code: Optional[Path] = typer.Option(
-        None, "--code", "-c", help="代码文件路径（留空则从 stdin 读取）"
+        None, "--code", "-c", help="Kod dosyası yolu (başlamak için boş bırakın)stdinOkumak)"
     ),
     output_file: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="输出结果到文件"
+        None, "--output", "-o", help="Sonuçları dosyaya aktar"
     ),
 ) -> None:
-    """执行指定 Skill"""
+    """Belirtilenleri yürütSkill"""
     registry = get_registry()
 
-    # 读取代码
+    #kodu oku
     if code is not None:
         if not code.is_file():
             console.print(f"[red]File not found: {code}[/red]")
@@ -93,7 +93,7 @@ def run_skill(
         code_content = code.read_text()
         ctx = {"file_path": str(code), "module_name": code.stem}
     else:
-        # 从 stdin 读取
+        #itibarenstdinOkumak
         console.print("[dim]Paste or pipe your code (Ctrl+D to finish):[/dim]")
         code_content = ""
         try:
@@ -117,7 +117,7 @@ def run_skill(
     console.print(f"[green]✓ Skill executed in {result.duration_ms:.1f}ms[/green]")
     console.print()
 
-    # 输出结果
+    #Çıktı sonuçları
     if output_file:
         output_file.write_text(result.output)
         console.print(f"[dim]Output written to {output_file}[/dim]")
@@ -126,27 +126,27 @@ def run_skill(
             syntax = Syntax(result.output, "python", theme="monokai", line_numbers=True)
             console.print(syntax)
 
-    # 元数据
+    #meta veri
     if result.metadata:
         console.print(f"\n[dim]Metadata:[/dim] {result.metadata}")
 
 
 @app.command("init")
 def init_custom_skills() -> None:
-    """初始化自定义 Skill 目录"""
+    """(kod parçacığı)Skillİçindekiler"""
     skill_dir = Path.home() / ".omc" / "skills"
     skill_dir.mkdir(parents=True, exist_ok=True)
 
     example_file = skill_dir / "example_skill.py"
     if not example_file.exists():
         example_file.write_text(
-            '''"""示例自定义 Skill"""
+            '''"""Örnek özelleştirmeSkill"""
 
 from src.skills import Skill, SkillResult
 
 
 def skill_custom_analysis(code: str, context: dict) -> SkillResult:
-    """自定义代码分析 Skill"""
+    """Özel kod analiziSkill"""
     lines = code.splitlines()
     return SkillResult(
         success=True,
@@ -155,10 +155,10 @@ def skill_custom_analysis(code: str, context: dict) -> SkillResult:
     )
 
 
-# 注册
+#kayıt olmak
 SKILL = Skill(
     name="custom_analysis",
-    description="自定义代码分析 - 分析代码行数和结构",
+    description="Özel kod analizi-Kod ve yapı satırlarını analiz edin",
     func=skill_custom_analysis,
     source="custom",
 )
@@ -172,18 +172,18 @@ SKILL = Skill(
         console.print(f"[dim]Custom skills dir already exists:[/dim] {skill_dir}")
 
 
-# ===== Skill 沉淀闭环 =====
+# ===== SkillYağış kapalı döngüsü=====
 
 
 @app.command("propose")
 def propose_skill(
-    task: str = typer.Argument(..., help="任务描述"),
-    steps: str = typer.Option("", "--steps", "-s", help="执行步骤（逗号分隔）"),
+    task: str = typer.Argument(..., help="Görev açıklaması"),
+    steps: str = typer.Option("", "--steps", "-s", help="Yürütme adımları (virgülle ayrılmış)"),
     reflections: str = typer.Option(
-        "", "--reflections", "-r", help="反思记录（逗号分隔）"
+        "", "--reflections", "-r", help="Yansıma notları (virgülle ayrılmış)"
     ),
 ):
-    """从任务中提取 Skill 提议"""
+    """Görevden çıkarSkillteklif"""
     from src.core.skill_extractor import (
         extract_skill_from_task,
         save_proposal,
@@ -195,76 +195,76 @@ def propose_skill(
     proposal = extract_skill_from_task(task, steps_list, reflections_list)
 
     if not proposal:
-        console.print("[yellow]⚠️ 不值得提取（步骤太少或不够通用）[/yellow]")
+        console.print("[yellow]⚠️Çıkarmaya değmez (çok az adım veya yeterince genel değil)[/yellow]")
         raise typer.Exit(0)
 
     filepath = save_proposal(proposal)
 
-    console.print("[green]✅ Skill 提议已生成[/green]")
+    console.print("[green]✅ SkillTeklif oluşturuldu[/green]")
     console.print(f"[dim]ID: {proposal.id}[/dim]")
     console.print(f"[bold]{proposal.title}[/bold]")
-    console.print(f"触发: {proposal.trigger}")
-    console.print("\n步骤:")
+    console.print(f"tetiklemek: {proposal.trigger}")
+    console.print("\nadım:")
     for i, step in enumerate(proposal.steps, 1):
         console.print(f"  {i}. {step}")
-    console.print(f"\n[dim]保存到: {filepath}[/dim]")
-    console.print("[dim]运行 'omc skill review' 查看待处理提议[/dim]")
+    console.print(f"\n[dim]kaydet: {filepath}[/dim]")
+    console.print("[dim]koşmak'omc skill review'Bekleyen teklifleri görüntüle[/dim]")
 
 
 @app.command("review")
 def review_proposals():
-    """查看待处理的 Skill 提议"""
+    """Bekleyenleri görüntüleSkillteklif"""
     from src.core.skill_extractor import list_proposals
 
     proposals = list_proposals()
     pending = [p for p in proposals if p.status == "pending"]
 
     if not pending:
-        console.print("[dim]没有待处理的 Skill 提议[/dim]")
+        console.print("[dim]bekleyen hiçbir şey yokSkillteklif[/dim]")
         return
 
-    console.print(f"[bold]📋 待处理的 Skill 提议 ({len(pending)})\n[/bold]")
+    console.print(f"[bold]📋Askıda olmasıSkillteklif({len(pending)})\n[/bold]")
 
     for i, p in enumerate(pending, 1):
         console.print(
             Panel(
                 f"[bold]{i}. {p.title}[/bold]\n"
                 f"[dim]ID: {p.id}[/dim]\n"
-                f"触发: {p.trigger}\n"
-                f"步骤数: {len(p.steps)}\n"
-                f"来源: {p.source_task[:60]}...",
+                f"tetiklemek: {p.trigger}\n"
+                f"adım sayısı: {len(p.steps)}\n"
+                f"kaynak: {p.source_task[:60]}...",
                 expand=False,
             )
         )
 
-    console.print("\n[dim]使用以下命令处理:[/dim]")
-    console.print("  omc skill accept <id>  # 接受并生成 SKILL.md")
-    console.print("  omc skill reject <id>  # 拒绝")
+    console.print("\n[dim]İşlemek için aşağıdaki komutu kullanın:[/dim]")
+    console.print("  omc skill accept <id>  #kabul et ve oluşturSKILL.md")
+    console.print("  omc skill reject <id>  #reddetmek")
 
 
 @app.command("accept")
 def accept_skill_proposal(proposal_id: str):
-    """接受 Skill 提议"""
+    """kabul etmekSkillteklif"""
     from src.core.skill_extractor import accept_proposal
 
     skill_path = accept_proposal(proposal_id)
     if skill_path:
-        console.print("[green]✅ Skill 已接受[/green]")
-        console.print(f"[dim]生成文件: {skill_path}[/dim]")
+        console.print("[green]✅ SkillKabul edildi[/green]")
+        console.print(f"[dim]Dosya oluştur: {skill_path}[/dim]")
     else:
-        console.print(f"[red]❌ 未找到提议: {proposal_id}[/red]")
+        console.print(f"[red]❌Teklif bulunamadı: {proposal_id}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("reject")
 def reject_skill_proposal(proposal_id: str):
-    """拒绝 Skill 提议"""
+    """reddetmekSkillteklif"""
     from src.core.skill_extractor import reject_proposal
 
     if reject_proposal(proposal_id):
-        console.print(f"[green]✅ 已拒绝提议: {proposal_id}[/green]")
+        console.print(f"[green]✅Teklif reddedildi: {proposal_id}[/green]")
     else:
-        console.print(f"[red]❌ 未找到提议: {proposal_id}[/red]")
+        console.print(f"[red]❌Teklif bulunamadı: {proposal_id}[/red]")
         raise typer.Exit(1)
 
 

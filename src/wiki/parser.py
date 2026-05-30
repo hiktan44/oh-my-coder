@@ -4,13 +4,13 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Wiki Parser - Python AST 解析器
+Wiki Parser - Python AST ayristir
 
-使用 Python ast 模块解析代码结构，提取：
-- 模块文档字符串
-- 导入语句
-- 类定义（名称、文档、方法）
-- 函数定义（名称、文档、参数）
+kullan Python ast modulayristirkodyapi, cikar: 
+- moduldokumantasyonkarakter dizisi
+- iceri aktardilcumle
+- siniftanim (ad, dokumantasyon, yontem) 
+- fonksiyontanim (ad, dokumantasyon, parametre) 
 """
 
 import ast
@@ -20,7 +20,7 @@ from pathlib import Path
 
 @dataclass
 class FunctionInfo:
-    """函数信息"""
+    """fonksiyonbilgi"""
 
     name: str
     docstring: Optional[str] = None
@@ -31,14 +31,14 @@ class FunctionInfo:
 
     @property
     def signature(self) -> str:
-        """生成函数签名"""
+        """olusturfonksiyonimzaisim"""
         params = ", ".join(self.args)
         return f"{self.name}({params})"
 
 
 @dataclass
 class ClassInfo:
-    """类信息"""
+    """sinifbilgi"""
 
     name: str
     docstring: Optional[str] = None
@@ -49,18 +49,18 @@ class ClassInfo:
 
     @property
     def public_methods(self) -> list[FunctionInfo]:
-        """获取公开方法（不以 _ 开头）"""
+        """alortakacyontem (hayirile _ acbas) """
         return [m for m in self.methods if not m.name.startswith("_")]
 
     @property
     def private_methods(self) -> list[FunctionInfo]:
-        """获取私有方法（以 _ 开头）"""
+        """alozelvaryontem (ile _ acbas) """
         return [m for m in self.methods if m.name.startswith("_")]
 
 
 @dataclass
 class ImportInfo:
-    """导入信息"""
+    """iceri aktarbilgi"""
 
     module: str
     names: list[str] = field(default_factory=list)
@@ -69,7 +69,7 @@ class ImportInfo:
 
 @dataclass
 class ModuleInfo:
-    """模块信息"""
+    """modulbilgi"""
 
     path: Path
     relative_path: Path
@@ -80,28 +80,28 @@ class ModuleInfo:
 
 
 class ASTVisitorWithParent(ast.NodeVisitor):
-    """带父节点引用的 AST 访问器"""
+    """kemerustdugumcekkullan AST erisim"""
 
     def __init__(self):
         self.parent_stack: list[ast.AST] = []
 
     def visit(self, node: ast.AST) -> None:
-        # 先将当前节点作为父节点压栈
+        # oncemevcutdugumyapicinustdugumbasyigin
         self.parent_stack.append(node)
         super().visit(node)
         self.parent_stack.pop()
 
     def get_parent(self, node: ast.AST) -> Optional[ast.AST]:
-        """获取父节点"""
+        """alustdugum"""
         if len(self.parent_stack) > 1:
             return self.parent_stack[-2]
         return None
 
 
 class PythonParser:
-    """Python 代码解析器"""
+    """Python kodayristir"""
 
-    # 需要忽略的目录
+    # gerekisteryoksaydizin
     IGNORE_DIRS = {
         "__pycache__",
         ".git",
@@ -119,7 +119,7 @@ class PythonParser:
         "dist",
     }
 
-    # 需要忽略的文件
+    # gerekisteryoksaydosya
     IGNORE_FILES = {
         "__init__.py",
         "__main__.py",
@@ -129,15 +129,15 @@ class PythonParser:
 
     def __init__(self, root_path: Path | str):
         """
-        初始化解析器
+        baslatayristir
 
         Args:
-            root_path: 项目根目录
+            root_path: projekokdizin
         """
         self.root_path = Path(root_path)
 
     def _add_parent_refs(self, tree: ast.AST) -> None:
-        """为所有节点添加父节点引用"""
+        """icinvardugumekleustdugumcekkullan"""
 
         class ParentAdder(ast.NodeVisitor):
             def __init__(self):
@@ -153,13 +153,13 @@ class PythonParser:
 
     def parse_file(self, file_path: Path | str) -> Optional[ModuleInfo]:
         """
-        解析单个 Python 文件
+        ayristirtekil Python dosya
 
         Args:
-            file_path: Python 文件路径
+            file_path: Python dosyayol
 
         Returns:
-            ModuleInfo 或 None（如果解析失败）
+            ModuleInfo veya None (egerayristirma basarisiz) 
         """
         file_path = Path(file_path)
 
@@ -169,10 +169,10 @@ class PythonParser:
 
             tree = ast.parse(source, filename=str(file_path))
 
-            # 为所有节点添加父节点引用
+            # icinvardugumekleustdugumcekkullan
             self._add_parent_refs(tree)
 
-            # 计算相对路径
+            # hesaplaicinyol
             try:
                 rel_path = file_path.relative_to(self.root_path)
             except ValueError:
@@ -184,7 +184,7 @@ class PythonParser:
                 docstring=ast.get_docstring(tree),
             )
 
-            # 遍历顶层节点
+            # dolasustkatmandugum
             for node in tree.body:
                 if isinstance(node, (ast.Import, ast.ImportFrom)):
                     self._visit_import(module, node)
@@ -200,11 +200,11 @@ class PythonParser:
             return module
 
         except (SyntaxError, UnicodeDecodeError) as e:
-            print(f"  ⚠️ 解析失败 {file_path}: {e}")
+            print(f"  ⚠️ ayristirma basarisiz {file_path}: {e}")
             return None
 
     def _visit_import(self, module: ModuleInfo, node: ast.Import | ast.ImportFrom):
-        """访问导入语句"""
+        """erisimiceri aktardilcumle"""
         if isinstance(node, ast.Import):
             for alias in node.names:
                 module.imports.append(
@@ -224,8 +224,8 @@ class PythonParser:
             )
 
     def _visit_class(self, node: ast.ClassDef) -> Optional[ClassInfo]:
-        """访问类定义"""
-        # 获取基类
+        """erisimsiniftanim"""
+        # altemel sinif
         base_classes = []
         for base in node.bases:
             if isinstance(base, ast.Name):
@@ -233,7 +233,7 @@ class PythonParser:
             elif isinstance(base, ast.Attribute):
                 base_classes.append(self._get_attr_name(base))
 
-        # 获取方法
+        # alyontem
         methods = []
         for item in node.body:
             if isinstance(item, ast.FunctionDef):
@@ -241,7 +241,7 @@ class PythonParser:
                 if func_info:
                     methods.append(func_info)
 
-        # 获取类属性（简单实现，只检测类级别的赋值）
+        # alsinifozellik (basittekiluygula, sadecealgilamasinifseviyeatadeger) 
         attributes = []
         for item in node.body:
             if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
@@ -257,12 +257,12 @@ class PythonParser:
         )
 
     def _visit_function(self, node: ast.FunctionDef) -> Optional[FunctionInfo]:
-        """访问函数定义"""
-        # 获取参数
+        """erisimfonksiyontanim"""
+        # alparametre
         args = []
         args.extend([arg.arg for arg in node.args.args])
 
-        # 获取装饰器
+        # aldekoratif
         decorators = []
         for dec in node.decorator_list:
             if isinstance(dec, ast.Name):
@@ -272,7 +272,7 @@ class PythonParser:
             elif isinstance(dec, ast.Attribute):
                 decorators.append(self._get_attr_name(dec))
 
-        # 获取返回值注解
+        # aldonusdegeryorumcoz
         returns = None
         if node.returns:
             if isinstance(node.returns, ast.Name):
@@ -290,7 +290,7 @@ class PythonParser:
         )
 
     def _get_attr_name(self, node: ast.Attribute) -> str:
-        """获取属性节点的名称"""
+        """alozellikdugumad"""
         parts = []
         current = node
         while isinstance(current, ast.Attribute):
@@ -306,28 +306,28 @@ class PythonParser:
         pattern: str = "**/*.py",
     ) -> list[ModuleInfo]:
         """
-        扫描目录下的所有 Python 文件
+        taradizinaltvar Python dosya
 
         Args:
-            directory: 目录路径
-            pattern: 文件匹配模式
+            directory: dizin yolu
+            pattern: dosyaeslestirmod
 
         Returns:
-            ModuleInfo 列表
+            ModuleInfo liste
         """
         directory = Path(directory)
         modules = []
 
         for py_file in directory.glob(pattern):
-            # 忽略测试文件
+            # yoksaytestdosya
             if py_file.name.startswith("test_") or py_file.name.endswith("_test.py"):
                 continue
 
-            # 忽略指定文件
+            # yoksaybelirtdosya
             if py_file.name in self.IGNORE_FILES:
                 continue
 
-            # 忽略指定目录
+            # yoksaybelirtdizin
             should_ignore = False
             for part in py_file.parts:
                 if part in self.IGNORE_DIRS:
@@ -336,7 +336,7 @@ class PythonParser:
             if should_ignore:
                 continue
 
-            # 解析文件
+            # ayristirdosya
             module = self.parse_file(py_file)
             if module:
                 modules.append(module)

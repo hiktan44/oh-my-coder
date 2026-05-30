@@ -1,4 +1,4 @@
-"""权限治理模块"""
+"""izinyonetakilmodul"""
 
 from .permissions import (
     CheckResult,

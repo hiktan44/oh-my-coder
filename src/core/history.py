@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 """
-任务历史和回放模块
+gorevgecmisvegeri oynatmodul
 
-功能：
-1. TaskHistory - 任务历史记录
-2. TaskReplay - 任务回放功能
-3. TaskCheckpoint - 任务检查点
-4. 支持从任意点恢复执行
+Islev:
+1. TaskHistory - gorevgecmiskayit
+2. TaskReplay - gorevgeri oynatislev
+3. TaskCheckpoint - gorevkontrolnokta
+4. destekherhanginoktakurtaryurut
 """
 
 import json
@@ -20,7 +20,7 @@ from typing import Any, Optional
 
 
 class ReplayStatus(str, Enum):
-    """回放状态"""
+    """geri oynatdurum"""
 
     READY = "ready"
     PLAYING = "playing"
@@ -30,7 +30,7 @@ class ReplayStatus(str, Enum):
 
 
 class StepStatus(str, Enum):
-    """步骤状态"""
+    """adimdurum"""
 
     PENDING = "pending"
     RUNNING = "running"
@@ -41,7 +41,7 @@ class StepStatus(str, Enum):
 
 @dataclass
 class StepExecution:
-    """步骤执行记录"""
+    """adimyurutkayit"""
 
     step_id: str
     agent_name: str
@@ -59,7 +59,7 @@ class StepExecution:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        """转换为字典"""
+        """donusturicinsozluk"""
         return {
             "step_id": self.step_id,
             "agent_name": self.agent_name,
@@ -79,7 +79,7 @@ class StepExecution:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> StepExecution:
-        """从字典创建"""
+        """sozlukolustur"""
         return cls(
             step_id=data["step_id"],
             agent_name=data["agent_name"],
@@ -100,7 +100,7 @@ class StepExecution:
 
 @dataclass
 class TaskHistory:
-    """任务历史记录"""
+    """gorevgecmiskayit"""
 
     history_id: str
     task_description: str
@@ -115,18 +115,18 @@ class TaskHistory:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def add_step(self, step: StepExecution) -> None:
-        """添加步骤"""
+        """ekleadim"""
         self.steps.append(step)
         self.updated_at = datetime.now().isoformat()
 
     def update_totals(self) -> None:
-        """更新总计"""
+        """guncelletoplamhesap"""
         self.total_tokens = sum(s.tokens_used for s in self.steps)
         self.total_cost = sum(s.cost for s in self.steps)
         self.total_duration = sum(s.duration_seconds for s in self.steps)
 
     def to_dict(self) -> dict[str, Any]:
-        """转换为字典"""
+        """donusturicinsozluk"""
         self.update_totals()
         return {
             "history_id": self.history_id,
@@ -144,7 +144,7 @@ class TaskHistory:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> TaskHistory:
-        """从字典创建"""
+        """sozlukolustur"""
         return cls(
             history_id=data["history_id"],
             task_description=data["task_description"],
@@ -160,29 +160,29 @@ class TaskHistory:
         )
 
     def get_step(self, step_id: str) -> Optional[StepExecution]:
-        """获取步骤"""
+        """aladim"""
         for step in self.steps:
             if step.step_id == step_id:
                 return step
         return None
 
     def get_steps_by_agent(self, agent_name: str) -> list[StepExecution]:
-        """按 Agent 获取步骤"""
+        """gore Agent aladim"""
         return [s for s in self.steps if s.agent_name == agent_name]
 
     def get_failed_steps(self) -> list[StepExecution]:
-        """获取失败步骤"""
+        """albasarisizadim"""
         return [s for s in self.steps if s.status == StepStatus.FAILED]
 
 
 class TaskCheckpoint:
-    """任务检查点"""
+    """gorevkontrolnokta"""
 
     def __init__(self, history: TaskHistory, step_index: int = 0):
         """
         Args:
-            history: 任务历史
-            step_index: 检查点位置
+            history: gorevgecmis
+            step_index: kontrolnoktakonum
         """
         self.history = history
         self.step_index = step_index
@@ -190,14 +190,14 @@ class TaskCheckpoint:
         self.created_at = datetime.now().isoformat()
 
     def can_resume_from(self, step_id: str) -> bool:
-        """检查是否可以从指定步骤恢复"""
+        """kontrololup olmadigiolabilirilebelirtadimkurtar"""
         for i, step in enumerate(self.history.steps):
             if step.step_id == step_id:
                 return i <= self.step_index
         return False
 
     def get_resume_context(self) -> dict[str, Any]:
-        """获取恢复上下文"""
+        """alkurtarbaglam"""
         completed_steps = self.history.steps[: self.step_index]
         return {
             "completed_outputs": {
@@ -208,7 +208,7 @@ class TaskCheckpoint:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        """转换为字典"""
+        """donusturicinsozluk"""
         return {
             "checkpoint_id": self.checkpoint_id,
             "history_id": self.history.history_id,
@@ -218,29 +218,29 @@ class TaskCheckpoint:
 
 
 class TaskReplay:
-    """任务回放器"""
+    """gorevgeri oynat"""
 
     def __init__(self, history: TaskHistory):
         """
         Args:
-            history: 任务历史记录
+            history: gorevgecmiskayit
         """
         self.history = history
         self.current_step_index = 0
         self.status = ReplayStatus.READY
-        self.speed = 1.0  # 回放速度倍数
+        self.speed = 1.0  # geri oynathizderecekatsayi
         self._callbacks: dict[str, Any] = {}
 
     def on_step_start(self, callback) -> None:
-        """注册步骤开始回调"""
+        """kayitadimbaslatgeri arama"""
         self._callbacks["step_start"] = callback
 
     def on_step_complete(self, callback) -> None:
-        """注册步骤完成回调"""
+        """kayitadimtamamlageri arama"""
         self._callbacks["step_complete"] = callback
 
     def on_replay_complete(self, callback) -> None:
-        """注册回放完成回调"""
+        """kayitgeri oynattamamlageri arama"""
         self._callbacks["replay_complete"] = callback
 
     async def replay(
@@ -249,11 +249,11 @@ class TaskReplay:
         start_from: int = 0,
     ) -> None:
         """
-        执行回放
+        yurutgeri oynat
 
         Args:
-            step_by_step: 是否单步执行
-            start_from: 开始位置
+            step_by_step: olup olmadigitekiladimyurut
+            start_from: baslatkonum
         """
         self.status = ReplayStatus.PLAYING
         self.current_step_index = start_from
@@ -269,22 +269,22 @@ class TaskReplay:
 
             index = start_from + i
 
-            # 触发步骤开始回调
+            # tetikgonderadimbaslatgeri arama
             if "step_start" in self._callbacks:
                 await self._callbacks["step_start"](step, index)
 
-            # 模拟执行延迟
+            # simuleyurutgecikme
             if step.duration_seconds > 0:
                 delay = step.duration_seconds / self.speed
                 await self._async_sleep(delay)
 
-            # 触发步骤完成回调
+            # tetikgonderadimtamamlageri arama
             if "step_complete" in self._callbacks:
                 await self._callbacks["step_complete"](step, index)
 
             self.current_step_index = index + 1
 
-            # 单步模式暂停
+            # tekiladimmodduraklat
             if step_by_step:
                 self.status = ReplayStatus.PAUSED
                 break
@@ -295,30 +295,30 @@ class TaskReplay:
                 await self._callbacks["replay_complete"]()
 
     async def _async_sleep(self, seconds: float) -> None:
-        """异步睡眠"""
+        """asenkronuyku"""
         import asyncio
 
         await asyncio.sleep(seconds)
 
     def pause(self) -> None:
-        """暂停回放"""
+        """duraklatgeri oynat"""
         self.status = ReplayStatus.PAUSED
 
     def resume(self) -> None:
-        """恢复回放"""
+        """kurtargeri oynat"""
         if self.status == ReplayStatus.PAUSED:
             self.status = ReplayStatus.PLAYING
 
     def stop(self) -> None:
-        """停止回放"""
+        """durdurgeri oynat"""
         self.status = ReplayStatus.FAILED
 
     def set_speed(self, speed: float) -> None:
-        """设置回放速度"""
+        """ayarlaayargeri oynathizderece"""
         self.speed = max(0.1, min(10.0, speed))
 
     def get_progress(self) -> dict[str, Any]:
-        """获取进度"""
+        """alilerlederece"""
         total = len(self.history.steps)
         current = self.current_step_index
         return {
@@ -331,17 +331,17 @@ class TaskReplay:
 
 
 class HistoryManager:
-    """历史记录管理器"""
+    """gecmiskayityonet"""
 
     def __init__(self, storage_dir: Optional[Path] = None):
         """
         Args:
-            storage_dir: 存储目录
+            storage_dir: depolamadizin
         """
         self.storage_dir = storage_dir or Path(".omc/history")
         self.storage_dir.mkdir(parents=True, exist_ok=True)
 
-        # 内存缓存
+        # icindekaydetonbellek
         self._histories: dict[str, TaskHistory] = {}
         self._checkpoints: dict[str, TaskCheckpoint] = {}
 
@@ -351,7 +351,7 @@ class HistoryManager:
         workflow_name: str,
         tags: Optional[list[str]] = None,
     ) -> TaskHistory:
-        """创建新的历史记录"""
+        """olusturyenigecmiskayit"""
         history_id = str(uuid.uuid4())[:8]
 
         history = TaskHistory(
@@ -365,7 +365,7 @@ class HistoryManager:
         return history
 
     def save_history(self, history: TaskHistory) -> Path:
-        """保存历史记录"""
+        """kaydetgecmiskayit"""
         history_file = self.storage_dir / f"history_{history.history_id}.json"
 
         with open(history_file, "w", encoding="utf-8") as f:
@@ -374,7 +374,7 @@ class HistoryManager:
         return history_file
 
     def load_history(self, history_id: str) -> Optional[TaskHistory]:
-        """加载历史记录"""
+        """yuklegecmiskayit"""
         if history_id in self._histories:
             return self._histories[history_id]
 
@@ -395,7 +395,7 @@ class HistoryManager:
         limit: int = 50,
         tags: Optional[list[str]] = None,
     ) -> list[TaskHistory]:
-        """列出历史记录"""
+        """listelegecmiskayit"""
         histories = []
 
         for file in self.storage_dir.glob("history_*.json"):
@@ -408,7 +408,7 @@ class HistoryManager:
             except Exception:
                 continue
 
-        # 按时间排序
+        # gorezamanarasindasirala
         histories.sort(key=lambda h: h.created_at, reverse=True)
         return histories[:limit]
 
@@ -417,11 +417,11 @@ class HistoryManager:
         history: TaskHistory,
         step_index: int,
     ) -> TaskCheckpoint:
-        """创建检查点"""
+        """olusturkontrolnokta"""
         checkpoint = TaskCheckpoint(history, step_index)
         self._checkpoints[checkpoint.checkpoint_id] = checkpoint
 
-        # 保存检查点元数据
+        # kaydetkontrolnoktaogresayigore
         checkpoint_file = (
             self.storage_dir / f"checkpoint_{checkpoint.checkpoint_id}.json"
         )
@@ -431,7 +431,7 @@ class HistoryManager:
         return checkpoint
 
     def load_checkpoint(self, checkpoint_id: str) -> Optional[TaskCheckpoint]:
-        """加载检查点"""
+        """yuklekontrolnokta"""
         if checkpoint_id in self._checkpoints:
             return self._checkpoints[checkpoint_id]
 
@@ -455,7 +455,7 @@ class HistoryManager:
         return checkpoint
 
     def delete_history(self, history_id: str) -> bool:
-        """删除历史记录"""
+        """silgecmiskayit"""
         history_file = self.storage_dir / f"history_{history_id}.json"
 
         if history_file.exists():
@@ -467,7 +467,7 @@ class HistoryManager:
         return True
 
     def get_stats(self) -> dict[str, Any]:
-        """获取统计信息"""
+        """alistatistikbilgi"""
         histories = self.list_histories()
 
         total_tokens = sum(h.total_tokens for h in histories)
@@ -493,7 +493,7 @@ def create_step_execution(
     description: str,
     input_context: dict[str, Any],
 ) -> StepExecution:
-    """创建步骤执行记录"""
+    """olusturadimyurutkayit"""
     return StepExecution(
         step_id=f"{agent_name}_{str(uuid.uuid4())[:6]}",
         agent_name=agent_name,
@@ -510,7 +510,7 @@ def complete_step_execution(
     tokens_used: int = 0,
     cost: float = 0.0,
 ) -> StepExecution:
-    """完成步骤执行"""
+    """tamamlaadimyurut"""
     step.status = StepStatus.COMPLETED
     step.output = output
     step.end_time = datetime.now().isoformat()
@@ -529,7 +529,7 @@ def fail_step_execution(
     step: StepExecution,
     error: str,
 ) -> StepExecution:
-    """标记步骤失败"""
+    """isaretadimbasarisiz"""
     step.status = StepStatus.FAILED
     step.error = error
     step.end_time = datetime.now().isoformat()

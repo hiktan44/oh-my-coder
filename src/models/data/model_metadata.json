@@ -7,9 +7,9 @@
   "doubao-pro-32k": { "status": "production", "provider": "Volcengine", "name": "Doubao-Pro-32K" },
   "moonshot-v1-128k": { "status": "beta", "provider": "Moonshot", "name": "Kimi-V3-Pro" },
   "MiniMax-Text-01": { "status": "beta", "provider": "MiniMax", "name": "MiMo Flash" },
-  "tiangong-3": { "status": "beta", "provider": "Tiangong", "name": "天工AI 3.0" },
+  "tiangong-3": { "status": "beta", "provider": "Tiangong", "name": "TiangongAI 3.0" },
   "Baichuan4": { "status": "beta", "provider": "Baichuan", "name": "Baichuan4-Turbo" },
-  "ernie-4.0-8k-latest": { "status": "beta", "provider": "Baidu", "name": "文心一言 4.0" },
-  "hunyuan-turbo": { "status": "beta", "provider": "Tencent", "name": "腾讯混元 Turbo" },
+  "ernie-4.0-8k-latest": { "status": "beta", "provider": "Baidu", "name": "Wenxin Yiyan 4.0" },
+  "hunyuan-turbo": { "status": "beta", "provider": "Tencent", "name": "Tencent Hunogre Turbo" },
   "generalv4.0": { "status": "beta", "provider": "iFlytek", "name": "Spark-4.0-Ultra" }
 }

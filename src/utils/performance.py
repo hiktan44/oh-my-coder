@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 """
-性能优化模块
+performansiyimodul
 
-提供缓存、连接池、异步执行等优化功能。
+saglaronbellek, baglabaglanhavuz, asenkronyurutvb.iyiislev. 
 """
 
 import asyncio
@@ -21,7 +21,7 @@ from typing import Any, Optional
 
 class LRUCache:
     """
-    线程安全的 LRU 缓存
+    satirsurecguvenlik LRU onbellek
 
     Example:
         >>> cache = LRUCache(max_size=100)
@@ -32,10 +32,10 @@ class LRUCache:
 
     def __init__(self, max_size: int = 1000):
         """
-        初始化 LRU 缓存
+        baslat LRU onbellek
 
         Args:
-            max_size: 最大缓存条目数
+            max_size: enbuyukonbellekogrehedefsayi
         """
         self.max_size = max_size
         self._cache: OrderedDict = OrderedDict()
@@ -45,17 +45,17 @@ class LRUCache:
 
     def get(self, key: str) -> Optional[Any]:
         """
-        获取缓存值
+        alonbellekdeger
 
         Args:
-            key: 缓存键
+            key: onbellekanahtar
 
         Returns:
-            缓存值，不存在返回 None
+            onbellekdeger, mevcut degildonus None
         """
         with self._lock:
             if key in self._cache:
-                # 移动到末尾（最近使用）
+                # harekethareketkadarson (enyakinkullan) 
                 self._cache.move_to_end(key)
                 self._hits += 1
                 return self._cache[key]
@@ -64,30 +64,30 @@ class LRUCache:
 
     def set(self, key: str, value: Any) -> None:
         """
-        设置缓存值
+        ayarlaayaronbellekdeger
 
         Args:
-            key: 缓存键
-            value: 缓存值
+            key: onbellekanahtar
+            value: onbellekdeger
         """
         with self._lock:
             if key in self._cache:
                 self._cache.move_to_end(key)
             else:
                 if len(self._cache) >= self.max_size:
-                    # 删除最旧的条目
+                    # sileneskiogrehedef
                     self._cache.popitem(last=False)
             self._cache[key] = value
 
     def delete(self, key: str) -> bool:
         """
-        删除缓存条目
+        silonbellekogrehedef
 
         Args:
-            key: 缓存键
+            key: onbellekanahtar
 
         Returns:
-            是否成功删除
+            basarili misil
         """
         with self._lock:
             if key in self._cache:
@@ -96,7 +96,7 @@ class LRUCache:
             return False
 
     def clear(self) -> None:
-        """清空缓存"""
+        """temizlebosonbellek"""
         with self._lock:
             self._cache.clear()
             self._hits = 0
@@ -104,10 +104,10 @@ class LRUCache:
 
     def stats(self) -> dict[str, int]:
         """
-        获取缓存统计
+        alonbellekistatistik
 
         Returns:
-            包含 hits, misses, size, hit_rate 的字典
+            icerir hits, misses, size, hit_rate sozluk
         """
         total = self._hits + self._misses
         hit_rate = (self._hits / total * 100) if total > 0 else 0
@@ -121,9 +121,9 @@ class LRUCache:
 
 class AsyncExecutor:
     """
-    异步任务执行器
+    asenkrongorevyurut
 
-    管理并发任务执行，限制最大并发数。
+    yonetvegondergorevyurut, sinirenbuyukvegondersayi. 
 
     Example:
         >>> executor = AsyncExecutor(max_concurrent=5)
@@ -132,23 +132,23 @@ class AsyncExecutor:
 
     def __init__(self, max_concurrent: int = 10):
         """
-        初始化执行器
+        baslatyurut
 
         Args:
-            max_concurrent: 最大并发数
+            max_concurrent: enbuyukvegondersayi
         """
         self.max_concurrent = max_concurrent
         self._semaphore: Optional[asyncio.Semaphore] = None
 
     async def run(self, coro: Any) -> Any:
         """
-        执行单个协程
+        yuruttekilisbirligisurec
 
         Args:
-            coro: 协程对象
+            coro: isbirligisurecicinnesne
 
         Returns:
-            协程执行结果
+            isbirligisurecyurutme sonucu
         """
         if self._semaphore is None:
             self._semaphore = asyncio.Semaphore(self.max_concurrent)
@@ -160,14 +160,14 @@ class AsyncExecutor:
         self, coros: list[Any], fail_fast: bool = False
     ) -> list[tuple[bool, Any]]:
         """
-        执行多个协程
+        yurutcokisbirligisurec
 
         Args:
-            coros: 协程列表
-            fail_fast: 是否在第一个错误时停止
+            coros: isbirligisurecliste
+            fail_fast: olup olmadigiicindeincibirhatazamandurdur
 
         Returns:
-            (success, result) 元组列表
+            (success, result) ogregrupliste
         """
         if not coros:
             return []
@@ -190,10 +190,10 @@ class AsyncExecutor:
 
 def cache_result(ttl_seconds: int = 300):
     """
-    函数结果缓存装饰器
+    fonksiyonsonuconbellekdekoratif
 
     Args:
-        ttl_seconds: 缓存过期时间（秒）
+        ttl_seconds: onbellekdonemzamanarasinda (saniye) 
 
     Example:
         >>> @cache_result(ttl_seconds=60)
@@ -207,7 +207,7 @@ def cache_result(ttl_seconds: int = 300):
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            # 生成缓存键（非密码用途）
+            # olusturonbellekanahtar (olmayangizlikodkullanyol) 
             key = hashlib.sha256(
                 f"{func.__name__}:{args}:{kwargs}".encode()
             ).hexdigest()[:32]
@@ -232,7 +232,7 @@ def cache_result(ttl_seconds: int = 300):
 
 def measure_time(func: Callable) -> Callable:
     """
-    执行时间测量装饰器
+    yurutzamanarasindatestmiktardekoratif
 
     Example:
         >>> @measure_time
@@ -246,7 +246,7 @@ def measure_time(func: Callable) -> Callable:
         start = time.perf_counter()
         result = func(*args, **kwargs)
         elapsed = time.perf_counter() - start
-        print(f"{func.__name__} 执行耗时: {elapsed:.3f}s")
+        print(f"{func.__name__} yuruttuketzaman: {elapsed:.3f}s")
         return result
 
     return wrapper
@@ -254,9 +254,9 @@ def measure_time(func: Callable) -> Callable:
 
 class PerformanceMonitor:
     """
-    性能监控器
+    performansizle
 
-    记录和分析函数执行时间。
+    kayitveanalizfonksiyonyurutzamanarasinda. 
 
     Example:
         >>> monitor = PerformanceMonitor()
@@ -265,16 +265,16 @@ class PerformanceMonitor:
     """
 
     def __init__(self):
-        """初始化性能监控器"""
+        """baslatperformansizle"""
         self._records: dict[str, list[float]] = {}
 
     def record(self, name: str, duration: float) -> None:
         """
-        记录执行时间
+        kayityurutzamanarasinda
 
         Args:
-            name: 操作名称
-            duration: 执行时间（秒）
+            name: islemad
+            duration: yurutzamanarasinda (saniye) 
         """
         if name not in self._records:
             self._records[name] = []
@@ -282,13 +282,13 @@ class PerformanceMonitor:
 
     def get_stats(self, name: str) -> dict[str, float]:
         """
-        获取统计信息
+        alistatistikbilgi
 
         Args:
-            name: 操作名称
+            name: islemad
 
         Returns:
-            包含 min, max, avg, count 的字典
+            icerir min, max, avg, count sozluk
         """
         records = self._records.get(name, [])
         if not records:
@@ -303,28 +303,28 @@ class PerformanceMonitor:
 
     def get_all_stats(self) -> dict[str, dict[str, float]]:
         """
-        获取所有操作的统计信息
+        tumunu alislemistatistikbilgi
 
         Returns:
-            操作名到统计信息的映射
+            islemisimkadaristatistikbilgiesle
         """
         return {name: self.get_stats(name) for name in self._records}
 
     def clear(self) -> None:
-        """清空所有记录"""
+        """temizlebosvarkayit"""
         self._records.clear()
 
 
-# 全局实例
+# globalornek
 _cache = LRUCache()
 _monitor = PerformanceMonitor()
 
 
 def get_cache() -> LRUCache:
-    """获取全局缓存实例"""
+    """alglobalonbellekornek"""
     return _cache
 
 
 def get_monitor() -> PerformanceMonitor:
-    """获取全局性能监控实例"""
+    """alglobalperformansizleornek"""
     return _monitor

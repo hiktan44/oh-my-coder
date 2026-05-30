@@ -1,11 +1,11 @@
 """
-思维链可视化 — 记录和展示 Agent 推理过程
+dusunce zinciriolabilirgor - kayitvegoster Agent akil yurutmesurec
 
-功能：
-1. 捕获 Agent 的思维链（推理步骤、决策依据）
-2. 结构化存储推理过程
-3. 可视化展示（文本/JSON/HTML）
-4. 支持回溯和调试
+Islev:
+1. yakala Agent dusunce zinciri (akil yurutmeadim, kararbagligore) 
+2. yapidepolamaakil yurutmesurec
+3. olabilirgorgoster (metin/JSON/HTML) 
+4. destekgeriizlevehata ayikla
 """
 
 from __future__ import annotations
@@ -20,41 +20,41 @@ from typing import Any, Optional
 
 
 class ReasoningStepType(Enum):
-    """推理步骤类型"""
+    """akil yurutmeadimtip"""
 
-    ANALYSIS = "analysis"  # 分析问题
-    PLANNING = "planning"  # 制定计划
-    DECISION = "decision"  # 做出决策
-    EXECUTION = "execution"  # 执行操作
-    OBSERVATION = "observation"  # 观察结果
-    REFLECTION = "reflection"  # 反思总结
-    CORRECTION = "correction"  # 错误修正
+    ANALYSIS = "analysis"  # analizsorun
+    PLANNING = "planning"  # olusturplan
+    DECISION = "decision"  # yapkarar
+    EXECUTION = "execution"  # yurutislem
+    OBSERVATION = "observation"  # gozlemsonuc
+    REFLECTION = "reflection"  # yansimatoplam
+    CORRECTION = "correction"  # hataduzelt
 
 
 class ConfidenceLevel(Enum):
-    """置信度级别"""
+    """ayarbilgidereceseviye"""
 
-    HIGH = "high"  # 高置信度
-    MEDIUM = "medium"  # 中等置信度
-    LOW = "low"  # 低置信度
-    UNCERTAIN = "uncertain"  # 不确定
+    HIGH = "high"  # yuksekayarbilgiderece
+    MEDIUM = "medium"  # icindevb.ayarbilgiderece
+    LOW = "low"  # dusukayarbilgiderece
+    UNCERTAIN = "uncertain"  # hayirkesin
 
 
 @dataclass
 class ReasoningStep:
-    """推理步骤"""
+    """akil yurutmeadim"""
 
     step_id: str
     step_type: ReasoningStepType
     agent_name: str
     description: str
-    reasoning: str  # 推理过程
-    evidence: list[str]  # 支持证据
-    conclusion: str  # 结论
+    reasoning: str  # akil yurutmesurec
+    evidence: list[str]  # destekkanit
+    conclusion: str  # tartis
     confidence: ConfidenceLevel
     timestamp: str
     duration_ms: int = 0
-    parent_step_id: Optional[str] = None  # 父步骤（用于层级结构）
+    parent_step_id: Optional[str] = None  # ustadim (kullandekatmanseviyeyapi) 
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -76,7 +76,7 @@ class ReasoningStep:
 
 @dataclass
 class ChainOfThought:
-    """思维链"""
+    """dusunce zinciri"""
 
     chain_id: str
     task_description: str
@@ -102,24 +102,24 @@ class ChainOfThought:
         }
 
     def add_step(self, step: ReasoningStep) -> None:
-        """添加推理步骤"""
+        """ekleakil yurutmeadim"""
         self.steps.append(step)
 
     def complete(self, conclusion: str = "") -> None:
-        """完成思维链"""
+        """tamamladusunce zinciri"""
         self.status = "completed"
         self.end_time = datetime.now().isoformat()
         self.final_conclusion = conclusion
 
     def fail(self, error: str = "") -> None:
-        """标记为失败"""
+        """isareticinbasarisiz"""
         self.status = "failed"
         self.end_time = datetime.now().isoformat()
-        self.final_conclusion = f"失败: {error}"
+        self.final_conclusion = f"basarisiz: {error}"
 
 
 class ChainOfThoughtRecorder:
-    """思维链记录器"""
+    """dusunce zincirikayit"""
 
     def __init__(self, storage_dir: Optional[Path] = None):
         self.storage_dir = storage_dir or Path.home() / ".omc" / "chains"
@@ -132,7 +132,7 @@ class ChainOfThoughtRecorder:
         agent_name: str,
         metadata: Optional[dict] = None,
     ) -> ChainOfThought:
-        """开始记录思维链"""
+        """baslatkayitdusunce zinciri"""
         chain = ChainOfThought(
             chain_id=f"chain-{uuid.uuid4().hex[:8]}",
             task_description=task_description,
@@ -154,7 +154,7 @@ class ChainOfThoughtRecorder:
         confidence: ConfidenceLevel = ConfidenceLevel.MEDIUM,
         parent_step_id: Optional[str] = None,
     ) -> Optional[ReasoningStep]:
-        """添加推理步骤"""
+        """ekleakil yurutmeadim"""
         chain = self.active_chains.get(chain_id)
         if not chain:
             return None
@@ -175,32 +175,32 @@ class ChainOfThoughtRecorder:
         return step
 
     def complete_chain(self, chain_id: str, conclusion: str = "") -> None:
-        """完成思维链"""
+        """tamamladusunce zinciri"""
         chain = self.active_chains.get(chain_id)
         if chain:
             chain.complete(conclusion)
             self._save_chain(chain)
 
     def fail_chain(self, chain_id: str, error: str = "") -> None:
-        """标记思维链失败"""
+        """isaretdusunce zinciribasarisiz"""
         chain = self.active_chains.get(chain_id)
         if chain:
             chain.fail(error)
             self._save_chain(chain)
 
     def get_chain(self, chain_id: str) -> Optional[ChainOfThought]:
-        """获取思维链"""
+        """aldusunce zinciri"""
         return self.active_chains.get(chain_id)
 
     def list_chains(self, agent_name: Optional[str] = None) -> list[ChainOfThought]:
-        """列出思维链"""
+        """listeledusunce zinciri"""
         chains = list(self.active_chains.values())
         if agent_name:
             chains = [c for c in chains if c.agent_name == agent_name]
         return chains
 
     def _save_chain(self, chain: ChainOfThought) -> None:
-        """保存思维链到文件"""
+        """kaydetdusunce zincirikadardosya"""
         filepath = self.storage_dir / f"{chain.chain_id}.json"
         filepath.write_text(
             json.dumps(chain.to_dict(), ensure_ascii=False, indent=2),
@@ -209,18 +209,18 @@ class ChainOfThoughtRecorder:
 
 
 class ChainVisualizer:
-    """思维链可视化"""
+    """dusunce zinciriolabilirgor"""
 
     @staticmethod
     def to_text(chain: ChainOfThought) -> str:
-        """转换为文本格式"""
+        """donusturicinmetinformat"""
         lines = [
             "=" * 60,
-            f"思维链: {chain.chain_id}",
-            f"任务: {chain.task_description}",
+            f"dusunce zinciri: {chain.chain_id}",
+            f"gorev: {chain.task_description}",
             f"Agent: {chain.agent_name}",
-            f"状态: {chain.status}",
-            f"时间: {chain.start_time} ~ {chain.end_time or '进行中'}",
+            f"durum: {chain.status}",
+            f"zamanarasinda: {chain.start_time} ~ {chain.end_time or 'ilerlesatiricinde'}",
             "=" * 60,
             "",
         ]
@@ -246,26 +246,26 @@ class ChainVisualizer:
             lines.extend(
                 [
                     f"{icon} [{step.step_id}] {step.step_type.value.upper()}",
-                    f"   描述: {step.description}",
-                    f"   推理: {step.reasoning[:100]}..."
+                    f"   aciklama: {step.description}",
+                    f"   akil yurutme: {step.reasoning[:100]}..."
                     if len(step.reasoning) > 100
-                    else f"   推理: {step.reasoning}",
+                    else f"   akil yurutme: {step.reasoning}",
                 ]
             )
 
             if step.evidence:
-                lines.append(f"   证据: {', '.join(step.evidence[:3])}")
+                lines.append(f"   kanit: {', '.join(step.evidence[:3])}")
             if step.conclusion:
-                lines.append(f"   结论: {step.conclusion}")
+                lines.append(f"   tartis: {step.conclusion}")
 
-            lines.append(f"   置信度: {confidence_icon} {step.confidence.value}")
+            lines.append(f"   ayarbilgiderece: {confidence_icon} {step.confidence.value}")
             lines.append("")
 
         if chain.final_conclusion:
             lines.extend(
                 [
                     "-" * 60,
-                    f"最终结论: {chain.final_conclusion}",
+                    f"ensontartis: {chain.final_conclusion}",
                 ]
             )
 
@@ -274,7 +274,7 @@ class ChainVisualizer:
 
     @staticmethod
     def to_html(chain: ChainOfThought) -> str:
-        """转换为 HTML 格式"""
+        """donusturicin HTML format"""
         steps_html = []
         for step in chain.steps:
             color = {
@@ -292,11 +292,11 @@ class ChainVisualizer:
                 <div style="color: {color}; font-weight: bold;">
                     {step.step_type.value.upper()} [{step.step_id}]
                 </div>
-                <div style="margin: 4px 0;"><b>描述:</b> {step.description}</div>
-                <div style="margin: 4px 0; color: #666;"><b>推理:</b> {step.reasoning[:200]}</div>
-                {f'<div style="margin: 4px 0;"><b>结论:</b> {step.conclusion}</div>' if step.conclusion else ""}
+                <div style="margin: 4px 0;"><b>aciklama:</b> {step.description}</div>
+                <div style="margin: 4px 0; color: #666;"><b>akil yurutme:</b> {step.reasoning[:200]}</div>
+                {f'<div style="margin: 4px 0;"><b>tartis:</b> {step.conclusion}</div>' if step.conclusion else ""}
                 <div style="font-size: 0.9em; color: #999;">
-                    置信度: {step.confidence.value} | {step.timestamp}
+                    ayarbilgiderece: {step.confidence.value} | {step.timestamp}
                 </div>
             </div>
             """)
@@ -305,7 +305,7 @@ class ChainVisualizer:
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>思维链 - {chain.chain_id}</title>
+    <title>dusunce zinciri - {chain.chain_id}</title>
     <style>
         body {{ font-family: -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }}
         .header {{ background: #f3f4f6; padding: 20px; border-radius: 8px; margin-bottom: 20px; }}
@@ -314,18 +314,18 @@ class ChainVisualizer:
 </head>
 <body>
     <div class="header">
-        <h2>🧠 思维链可视化</h2>
-        <p><b>任务:</b> {chain.task_description}</p>
-        <p><b>Agent:</b> {chain.agent_name} | <b>状态:</b> {chain.status}</p>
+        <h2>🧠 dusunce zinciriolabilirgor</h2>
+        <p><b>gorev:</b> {chain.task_description}</p>
+        <p><b>Agent:</b> {chain.agent_name} | <b>durum:</b> {chain.status}</p>
     </div>
     {"".join(steps_html)}
-    {f'<div style="margin-top: 20px; padding: 16px; background: #e0f2fe; border-radius: 8px;"><b>最终结论:</b> {chain.final_conclusion}</div>' if chain.final_conclusion else ""}
+    {f'<div style="margin-top: 20px; padding: 16px; background: #e0f2fe; border-radius: 8px;"><b>ensontartis:</b> {chain.final_conclusion}</div>' if chain.final_conclusion else ""}
 </body>
 </html>"""
 
     @staticmethod
     def to_mermaid(chain: ChainOfThought) -> str:
-        """转换为 Mermaid 流程图"""
+        """donusturicin Mermaid akisresim"""
         lines = ["graph TD"]
 
         for step in chain.steps:
@@ -340,23 +340,23 @@ class ChainVisualizer:
         return "\n".join(lines)
 
 
-# ===== 便捷函数 =====
+# ===== kullanislifonksiyon =====
 
 
 def create_recorder() -> ChainOfThoughtRecorder:
-    """创建思维链记录器"""
+    """olusturdusunce zincirikayit"""
     return ChainOfThoughtRecorder()
 
 
 def visualize_chain(chain: ChainOfThought, format: str = "text") -> str:
-    """可视化思维链
+    """olabilirgordusunce zinciri
 
     Args:
-        chain: 思维链
-        format: 输出格式 (text/html/mermaid)
+        chain: dusunce zinciri
+        format: cikti formati (text/html/mermaid)
 
     Returns:
-        格式化字符串
+        formatkarakter dizisi
     """
     if format == "html":
         return ChainVisualizer.to_html(chain)

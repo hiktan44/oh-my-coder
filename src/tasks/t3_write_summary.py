@@ -1,7 +1,7 @@
 """
-T3: 撰写 Hacker News 首页内容总结
+T3: Hacker News ana sayfa icerik ozeti yaz
 
-基于分类结果，生成一段 200-300 字的自然语言总结。
+Puan siniflandirma sonuclarina dayanarak 200-300 kelimelik dogal dil ozeti olustur.
 """
 
 from .t1_extract_posts import extract_posts
@@ -10,91 +10,91 @@ from .t2_classify_posts import ClassificationResult, classify_all_posts
 
 def generate_summary(result: ClassificationResult) -> str:
     """
-    根据分类结果生成总结。
+    Puan siniflandirma sonucundan ozet olustur.
 
     Args:
-        result: 分类结果对象。
+        result: Puan siniflandirma sonuc nesnesi.
 
     Returns:
-        一段 200-300 字的总结文本。
+        200-300 kelimelik ozet metin.
     """
     hot_posts = result.hot_posts
     categories = result.categories
 
-    # 找出最热门的帖子
+    # En populer gonderiyi bul
     top_post = hot_posts[0] if hot_posts else result.posts[0]
     second_post = hot_posts[1] if len(hot_posts) > 1 else None
 
-    # 统计各类别帖子数量
+    # Her kategorideki gonderi sayisini say
     category_counts = {cat: len(posts) for cat, posts in categories.items()}
     top_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)[
         :3
     ]
 
-    # 构建总结
+    # Ozet olustur
     summary_parts = []
 
-    # 开头：整体介绍
+    # Giris: genel tanitim
     summary_parts.append(
-        f"Hacker News 首页今日呈现了{len(result.posts)}条热门科技动态，"
-        f"涵盖硬件、AI、开源、编程、安全等多个领域。"
+        f"Hacker News ana sayfasi bugun {len(result.posts)} populer teknoloji haberi sunuyor, "
+        f"donanim, AI, acik kaynak, programlama, guvenlik vb. bircok alani kapsiyor. "
     )
 
-    # 核心热门话题
+    # cekirdeksicakkapikonusmakonu
     if top_post:
         summary_parts.append(
-            f"最受关注的是「{top_post.title}」"
-            f"（来自{top_post.source}），"
-            f"获得了{top_post.points}点赞和{top_post.comments}条评论，"
-            f"成为今日焦点。"
+            f"en cok dikkat ceken: '{top_post.title}'"
+            f" (kaynak: {top_post.source}), "
+            f"{top_post.points} begeni ve {top_post.comments} yorum aldi, "
+            f"bugunun odak noktasi oldu. "
         )
 
     if second_post:
         summary_parts.append(
-            f"紧随其后的是「{second_post.title}」"
-            f"（来自{second_post.source}），"
-            f"同样引发了社区的热烈讨论。"
+            f"hemen ardindan: '{second_post.title}'"
+            f" (kaynak: {second_post.source}), "
+            f"toplulukta benzer ilgi gordu. "
         )
 
-    # 类别分布
+    # Kategori dagilimi
     if top_categories:
         cat_names = {
-            "hardware": "硬件",
-            "ai_ml": "AI/机器学习",
-            "open_source": "开源",
-            "programming": "编程开发",
-            "security": "安全",
-            "web_dev": "Web开发",
-            "startup_business": "创业/商业",
-            "science": "科学",
-            "culture_life": "文化/生活",
-            "gaming": "游戏",
-            "cloud_infra": "云基础设施",
-            "transportation": "交通",
+            "hardware": "donanim",
+            "ai_ml": "AI/makine ogrenmesi",
+            "open_source": "acik kaynak",
+            "programming": "programlama",
+            "security": "guvenlik",
+            "web_dev": "Web gelistirme",
+            "startup_business": "girisim/is",
+            "science": "bilim",
+            "culture_life": "kultur/yasam",
+            "gaming": "oyun",
+            "cloud_infra": "bulut altyapi",
+            "transportation": "ulasim",
         }
-        category_text = "、".join(
-            f"{cat_names.get(cat, cat)}（{count}条）"
+        category_text = ", ".join(
+            f"{cat_names.get(cat, cat)} ({count} adet) "
             for cat, count in top_categories[:3]
         )
-        summary_parts.append(f"从主题分布看，{category_text}是今日讨论最活跃的领域。")
+        summary_parts.append(f"Tema dagilimina bakildiginda, {category_text} bugunun en aktif tartisma alanlaridir. ")
 
-    # 有趣发现
+    # Ilginc kesifler
     unique_posts = [p for p in result.posts if p not in hot_posts and p.points > 100]
     if unique_posts:
         interesting = unique_posts[0]
         summary_parts.append(
-            f"一个有趣的亮点是「{interesting.title}」"
-            f"（来自{interesting.source}），"
-            f"虽然排名不高，但获得了{interesting.points}点赞，"
-            f"值得关注。"
+            f"Ilginc bir oge: '{interesting.title}'"
+            f" (kaynak: {interesting.source}), "
+            f"siralamada yuksek olmasa da {interesting.points} begeni aldi, "
+            f"dikkate deger. "
         )
 
-    # 整体趋势
+    # Genel egilim
     ai_related = len(categories.get("ai_ml", []))
     if ai_related > 3:
         summary_parts.append(
-            "整体来看，AI和编程话题持续占据主导地位，"
-            "反映出技术社区对前沿工具和开发效率的持续关注。"
+            "Genel olarak, AI ve programlama konulari hakim olmaya devam ediyor, "
+            "teknoloji toplulugunun en son araclara ve gelistirme verimligine olan ilgisini yansitiyor. "
         )
 
     return "".join(summary_parts)
@@ -102,13 +102,13 @@ def generate_summary(result: ClassificationResult) -> str:
 
 def main(raw_content: str) -> str:
     """
-    主函数：提取、分类、总结。
+    Ana fonksiyon: cikar, puanla, siniflandir, ozetle.
 
     Args:
-        raw_content: Hacker News 首页的原始文本内容。
+        raw_content: Hacker News ana sayfasi ham metin icerigi.
 
     Returns:
-        最终的总结文本。
+        Nihai ozet metni.
     """
     posts = extract_posts(raw_content)
     result = classify_all_posts(posts)
@@ -117,7 +117,7 @@ def main(raw_content: str) -> str:
 
 
 if __name__ == "__main__":
-    # 使用提供的网页内容进行测试
+    # Saglanan web sayfasi icerigi ile test calistir
     test_content = """1. Valve releases Steam Controller CAD files under Creative Commons license ( digitalfoundry.net )
 1505 points by haunter 20 hours ago | hide | 496 comments
 2. Appearing productive in the workplace ( nooneshappy.com )

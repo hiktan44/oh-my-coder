@@ -1,7 +1,7 @@
 """
-Profile CLI - omc profile 命令
+Profile CLI - omc profileEmir
 
-管理子 Agent 的隔离 profile，解决上下文污染问题。
+müdürAgentizolasyonprofileBağlam kirliliği sorununu çözmek için.
 """
 
 from __future__ import annotations
@@ -18,43 +18,43 @@ from src.core.profile_manager import (
     get_profile_summary,
 )
 
-app = typer.Typer(help="Profile 管理 - 子 Agent 上下文隔离")
+app = typer.Typer(help="Profileüstesinden gelmek-oğulAgentbağlam izolasyonu")
 console = Console()
 
 
 @app.command("create")
 def create_profile(
-    agent_id: str = typer.Argument(..., help="Agent 唯一标识"),
-    name: str = typer.Option(..., "--name", "-n", help="Agent 名称"),
+    agent_id: str = typer.Argument(..., help="Agentbenzersiz tanımlayıcı"),
+    name: str = typer.Option(..., "--name", "-n", help="Agentisim"),
     template: str = typer.Option(
         None,
         "--template",
         "-t",
-        help=f"使用预定义模板: {', '.join(PREDEFINED_PROFILES.keys())}",
+        help=f"Önceden tanımlanmış şablonları kullanın: {', '.join(PREDEFINED_PROFILES.keys())}",
     ),
 ):
-    """创建新的 Agent Profile"""
+    """yeni oluşturAgent Profile"""
     manager = ProfileManager()
 
     if template:
         if template not in PREDEFINED_PROFILES:
-            console.print(f"[red]未知模板: {template}[/red]")
-            console.print(f"可用模板: {', '.join(PREDEFINED_PROFILES.keys())}")
+            console.print(f"[red]Bilinmeyen şablon: {template}[/red]")
+            console.print(f"Mevcut şablonlar: {', '.join(PREDEFINED_PROFILES.keys())}")
             raise typer.Exit(1)
 
         profile = create_predefined_profile(template)
         if profile:
-            # 覆盖 ID 和名称
+            #kapakIDve isim
             profile.agent_id = agent_id
             profile.agent_name = name
             manager.update_profile(profile)
     else:
         if manager.get_profile(agent_id):
-            console.print(f"[red]Profile 已存在: {agent_id}[/red]")
+            console.print(f"[red]ProfileZaten var: {agent_id}[/red]")
             raise typer.Exit(1)
         profile = manager.create_profile(agent_id, name)
 
-    console.print("[green]✅ Profile 创建成功[/green]")
+    console.print("[green]✅ ProfileBaşarıyla oluşturuldu[/green]")
     console.print(f"[dim]ID: {profile.agent_id}[/dim]")
     console.print(f"Name: {profile.agent_name}")
     if profile.skills:
@@ -63,20 +63,20 @@ def create_profile(
 
 @app.command("list")
 def list_profiles():
-    """列出所有 Agent Profiles"""
+    """hepsini listeleAgent Profiles"""
     manager = ProfileManager()
     profiles = manager.list_profiles()
 
     if not profiles:
-        console.print("[dim]没有 Profile[/dim]")
+        console.print("[dim]HAYIRProfile[/dim]")
         return
 
     table = Table(title="Agent Profiles")
     table.add_column("ID", style="cyan")
-    table.add_column("名称", style="green")
-    table.add_column("记忆数", justify="right")
-    table.add_column("任务数", justify="right")
-    table.add_column("技能", style="dim")
+    table.add_column("isim", style="green")
+    table.add_column("hafıza numarası", justify="right")
+    table.add_column("Görev sayısı", justify="right")
+    table.add_column("Yetenek", style="dim")
 
     for p in profiles:
         table.add_row(
@@ -92,32 +92,32 @@ def list_profiles():
 
 @app.command("show")
 def show_profile(agent_id: str):
-    """查看 Profile 详情"""
+    """Kontrol etmekProfileDetaylar"""
     summary = get_profile_summary(agent_id)
     console.print(Panel(summary, title="Profile Details"))
 
 
 @app.command("context")
 def show_context(agent_id: str):
-    """查看 Agent 的隔离上下文（用于调试）"""
+    """Kontrol etmekAgentEtkileşimli başlatma önyüklemesi"""
     manager = ProfileManager()
     context = manager.get_context_for_agent(agent_id)
 
     if not context:
-        console.print(f"[red]Profile 不存在: {agent_id}[/red]")
+        console.print(f"[red]Profileçubuk gösterilmiyor: {agent_id}[/red]")
         raise typer.Exit(1)
 
     console.print(
         Panel(
             f"[bold]{context['agent_name']}[/bold]\n\n"
-            f"[dim]最近记忆 ({len(context['memories'])}):[/dim]\n"
+            f"[dim]son hafıza({len(context['memories'])}):[/dim]\n"
             + "\n".join(f"  • {m[:80]}" for m in context["memories"][-5:])
-            + f"\n\n[dim]最近任务 ({len(context['recent_tasks'])}):[/dim]\n"
+            + f"\n\n[dim]son görevler({len(context['recent_tasks'])}):[/dim]\n"
             + "\n".join(
                 f"  • {t['task'][:60]}... [{t['status']}]"
                 for t in context["recent_tasks"][-5:]
             )
-            + "\n\n[dim]偏好设置:[/dim]\n"
+            + "\n\n[dim]Tercihler:[/dim]\n"
             + "\n".join(f"  {k}: {v}" for k, v in context["preferences"].items()),
             title="Agent Context (Isolated)",
         )
@@ -127,47 +127,47 @@ def show_context(agent_id: str):
 @app.command("add-memory")
 def add_memory(
     agent_id: str = typer.Argument(..., help="Agent ID"),
-    memory: str = typer.Argument(..., help="记忆内容"),
+    memory: str = typer.Argument(..., help="bellek içeriği"),
 ):
-    """向 Profile 添加记忆"""
+    """KarşıProfileDüşünce zinciri başladı"""
     manager = ProfileManager()
     if manager.add_memory(agent_id, memory):
-        console.print("[green]✅ 记忆已添加[/green]")
+        console.print("[green]✅bellek eklendi[/green]")
     else:
-        console.print(f"[red]Profile 不存在: {agent_id}[/red]")
+        console.print(f"[red]Profileçubuk gösterilmiyor: {agent_id}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("add-task")
 def add_task(
     agent_id: str = typer.Argument(..., help="Agent ID"),
-    task: str = typer.Argument(..., help="任务描述"),
-    status: str = typer.Option("completed", "--status", "-s", help="任务状态"),
+    task: str = typer.Argument(..., help="Görev açıklaması"),
+    status: str = typer.Option("completed", "--status", "-s", help="Görev durumu"),
 ):
-    """记录任务执行历史"""
+    """Görev yürütme geçmişini kaydedin"""
     manager = ProfileManager()
     if manager.add_task(agent_id, task, status):
-        console.print("[green]✅ 任务已记录[/green]")
+        console.print("[green]✅Görev kaydedildi[/green]")
     else:
-        console.print(f"[red]Profile 不存在: {agent_id}[/red]")
+        console.print(f"[red]Profileçubuk gösterilmiyor: {agent_id}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("delete")
 def delete_profile(agent_id: str):
-    """删除 Profile"""
+    """silmekProfile"""
     manager = ProfileManager()
     if manager.delete_profile(agent_id):
-        console.print(f"[green]✅ 已删除: {agent_id}[/green]")
+        console.print(f"[green]✅Silindi: {agent_id}[/green]")
     else:
-        console.print(f"[red]Profile 不存在: {agent_id}[/red]")
+        console.print(f"[red]Profileçubuk gösterilmiyor: {agent_id}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("templates")
 def list_templates():
-    """列出预定义 Profile 模板"""
-    console.print("[bold]预定义 Profile 模板:[/bold]\n")
+    """Önceden tanımlanmış listeProfileÇocuk oluştur"""
+    console.print("[bold]önceden tanımlanmışProfileÇocuk oluştur:[/bold]\n")
 
     for key, config in PREDEFINED_PROFILES.items():
         prefs = config["preferences"]
@@ -177,18 +177,18 @@ def list_templates():
         console.print(
             Panel(
                 f"[bold]{config['name']}[/bold] ({key})\n"
-                f"技能: {', '.join(config['skills'])}\n"
+                f"Yetenek: {', '.join(config['skills'])}\n"
                 + (
-                    "\n[green]✓ 适合:[/green]\n  " + "\n  ".join(suitable)
+                    "\n[green]✓Uygun:[/green]\n  " + "\n  ".join(suitable)
                     if suitable
                     else ""
                 )
                 + (
-                    "\n[red]✗ 不适合:[/red]\n  " + "\n  ".join(not_suitable)
+                    "\n[red]✗Uygun değil:[/red]\n  " + "\n  ".join(not_suitable)
                     if not_suitable
                     else ""
                 )
-                + f"\n\n[dim]使用: omc profile create <id> -n <name> -t {key}[/dim]",
+                + f"\n\n[dim]kullanmak: omc profile create <id> -n <name> -t {key}[/dim]",
                 expand=False,
             )
         )

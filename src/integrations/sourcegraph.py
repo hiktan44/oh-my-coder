@@ -1,12 +1,12 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-Sourcegraph 集成模块 - 公开 API 客户端
+Sourcegraph setolmodul - ortakac API istemci
 
-使用 Sourcegraph 公开 streaming API，无需 API Key。
-支持代码搜索、文件获取、仓库搜索。
+kullan Sourcegraph ortakac streaming API, yokgerek API Key. 
+destekkodara, dosyaal, depokutuphaneara. 
 
-API 文档: https://sourcegraph.com/docs/api
+API dokumantasyon: https://sourcegraph.com/docs/api
 """
 
 from __future__ import annotations
@@ -21,22 +21,22 @@ from typing import Any, Optional
 import httpx
 
 # =============================================================================
-# 配置
+# yapilandirma
 # =============================================================================
 
 SG_API_BASE = "https://sourcegraph.com/.api"
 SG_CACHE_DIR = Path.home() / ".omc" / "cache" / "sourcegraph"
-SG_CACHE_TTL = 300  # 5 分钟缓存
+SG_CACHE_TTL = 300  # 5 puandakikaonbellek
 
 
 # =============================================================================
-# 数据模型
+# sayigoremodel
 # =============================================================================
 
 
 @dataclass
 class SearchMatch:
-    """单个搜索结果"""
+    """tekilarasonuc"""
 
     repo: str
     file_path: str
@@ -60,7 +60,7 @@ class SearchMatch:
 
 @dataclass
 class FileContent:
-    """文件内容结果"""
+    """dosyaiceriksonuc"""
 
     repo: str
     path: str
@@ -80,7 +80,7 @@ class FileContent:
 
 @dataclass
 class RepoInfo:
-    """仓库信息"""
+    """depokutuphanebilgi"""
 
     name: str
     description: str = ""
@@ -100,7 +100,7 @@ class RepoInfo:
 
 @dataclass
 class SearchResult:
-    """搜索结果"""
+    """arasonuc"""
 
     query: str
     total: int
@@ -125,11 +125,11 @@ class SearchResult:
 
 class SourcegraphClient:
     """
-    Sourcegraph 公开 API 客户端
+    Sourcegraph ortakac API istemci
 
-    使用 streaming API，无需 API Key。
+    kullan streaming API, yokgerek API Key. 
 
-    示例:
+    ornek:
         client = SourcegraphClient()
         result = client.search("func main() lang:go", limit=10)
         for match in result.matches:
@@ -148,7 +148,7 @@ class SourcegraphClient:
         self._client: Optional[httpx.Client] = None
 
     def _get_client(self) -> httpx.Client:
-        """获取 HTTP 客户端"""
+        """al HTTP istemci"""
         if self._client is None:
             self._client = httpx.Client(
                 timeout=self.timeout,
@@ -161,7 +161,7 @@ class SourcegraphClient:
         return self._client
 
     def _cache_get(self, key: str) -> Optional[Any]:
-        """从缓存获取数据"""
+        """onbellekalsayigore"""
         if not self.cache_dir.exists():
             return None
 
@@ -178,7 +178,7 @@ class SourcegraphClient:
         return None
 
     def _cache_set(self, key: str, value: Any) -> None:
-        """设置缓存"""
+        """ayarlaayaronbellek"""
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         cache_file = self.cache_dir / f"{hashlib.sha256(key.encode()).hexdigest()}.json"
         cache_file.write_text(
@@ -193,7 +193,7 @@ class SourcegraphClient:
         lang: Optional[str] = None,
         limit: int = 20,
     ) -> str:
-        """构建搜索查询"""
+        """olusturarasorgu"""
         parts = [query]
         if repo_filter:
             parts.append(f"repo:{repo_filter}")
@@ -211,22 +211,22 @@ class SourcegraphClient:
         use_cache: bool = True,
     ) -> SearchResult:
         """
-        搜索代码
+        arakod
 
         Args:
-            query: 搜索关键词或 Sourcegraph 查询语法
-            repo_filter: 仓库过滤，支持 glob 模式如 "github.com/golang/*"
-            lang: 语言过滤，如 "go", "python", "typescript"
-            limit: 返回结果数量
-            use_cache: 是否使用缓存
+            query: arama anahtar kelimeleriveya Sourcegraph sorgudilyontem
+            repo_filter: depokutuphanefiltrele, destek glob modornegin "github.com/golang/*"
+            lang: dilfiltrele, ornegin "go", "python", "typescript"
+            limit: donussonucsayimiktar
+            use_cache: olup olmadigikullanonbellek
 
         Returns:
-            SearchResult 包含匹配列表
+            SearchResult icerireslestirliste
         """
         full_query = self._build_search_query(query, repo_filter, lang, limit)
         cache_key = f"search:{full_query}"
 
-        # 检查缓存
+        # kontrolonbellek
         if use_cache:
             cached = self._cache_get(cache_key)
             if cached:
@@ -239,7 +239,7 @@ class SourcegraphClient:
                     warnings=["from cache"],
                 )
 
-        # 调用 streaming API
+        # cagri streaming API
         url = f"{SG_API_BASE}/search/stream"
         client = self._get_client()
 
@@ -248,7 +248,7 @@ class SourcegraphClient:
         warnings: list[str] = []
 
         try:
-            # streaming API 使用 POST
+            # streaming API kullan POST
             with client.stream(
                 "POST",
                 url,
@@ -261,7 +261,7 @@ class SourcegraphClient:
                     if not line.strip():
                         continue
 
-                    # 解析 streaming 格式
+                    # ayristir streaming format
                     if line.startswith("data: "):
                         try:
                             data = json.loads(line[6:])
@@ -277,15 +277,15 @@ class SourcegraphClient:
 
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 429:
-                warnings.append("API 限流，请稍后重试")
+                warnings.append("API sinirakis, lutfenbirazsonrayeniden dene")
             elif e.response.status_code == 401:
-                warnings.append("需要认证（公开 API 不应出现此错误）")
+                warnings.append("gerekisterkimlik dogrulama (ortakac API hayirolmalisu anbuhata) ")
             else:
-                warnings.append(f"HTTP 错误: {e.response.status_code}")
+                warnings.append(f"HTTP hata: {e.response.status_code}")
         except httpx.TimeoutException:
-            warnings.append("请求超时")
+            warnings.append("istekasirizaman")
         except Exception as e:
-            warnings.append(f"请求失败: {e}")
+            warnings.append(f"istek başarısız: {e}")
 
         elapsed = (time.time() - start_time) * 1000
 
@@ -297,15 +297,15 @@ class SourcegraphClient:
             warnings=warnings,
         )
 
-        # 缓存结果
+        # onbelleksonuc
         if use_cache and matches:
             self._cache_set(cache_key, result.to_dict())
 
         return result
 
     def _parse_search_result(self, data: dict[str, Any]) -> Optional[SearchMatch]:
-        """解析搜索结果"""
-        # streaming API 返回格式可能是多种类型
+        """ayristirarasonuc"""
+        # streaming API donusformatolabiliredebilirdircokturtip
         result_type = data.get("__typename") or data.get("type")
 
         if result_type == "FileMatch" or "file" in data:
@@ -334,7 +334,7 @@ class SourcegraphClient:
                     url=f"https://sourcegraph.com/{repo_info.get('name', '')}/-/{file_info.get('path', '')}",
                 )
 
-        # 兼容其他格式
+        # uyumluonunoformat
         if "repository" in data and "path" in data:
             return SearchMatch(
                 repo=data.get("repository", ""),
@@ -353,15 +353,15 @@ class SourcegraphClient:
         use_cache: bool = True,
     ) -> Optional[FileContent]:
         """
-        获取文件内容
+        aldosyaicerik
 
         Args:
-            repo: 仓库名，如 "github.com/golang/go"
-            path: 文件路径，如 "src/runtime/proc.go"
-            use_cache: 是否使用缓存
+            repo: depokutuphaneisim, ornegin "github.com/golang/go"
+            path: dosyayol, ornegin "src/runtime/proc.go"
+            use_cache: olup olmadigikullanonbellek
 
         Returns:
-            FileContent 或 None
+            FileContent veya None
         """
         cache_key = f"file:{repo}:{path}"
 
@@ -378,7 +378,7 @@ class SourcegraphClient:
             response.raise_for_status()
             content = response.text
 
-            # 推断语言
+            # cikarimdil
             lang = self._infer_language(path)
 
             result = FileContent(
@@ -408,15 +408,15 @@ class SourcegraphClient:
         use_cache: bool = True,
     ) -> list[RepoInfo]:
         """
-        搜索仓库
+        aradepokutuphane
 
         Args:
-            query: 搜索关键词
-            limit: 返回数量
-            use_cache: 是否使用缓存
+            query: arama anahtar kelimeleri
+            limit: donussayimiktar
+            use_cache: olup olmadigikullanonbellek
 
         Returns:
-            RepoInfo 列表
+            RepoInfo liste
         """
         cache_key = f"repos:{query}:{limit}"
 
@@ -425,7 +425,7 @@ class SourcegraphClient:
             if cached:
                 return [RepoInfo(**r) for r in cached]
 
-        # 使用搜索 API 的 type:repo 过滤
+        # kullanara API  type:repo filtrele
         search_query = f"type:repo {query} count:{limit}"
         url = f"{SG_API_BASE}/search/stream"
         client = self._get_client()
@@ -474,7 +474,7 @@ class SourcegraphClient:
         return repos
 
     def _infer_language(self, path: str) -> str:
-        """从文件扩展名推断语言"""
+        """dosyagenisletisimcikarimdil"""
         ext_map = {
             ".py": "Python",
             ".js": "JavaScript",
@@ -527,7 +527,7 @@ class SourcegraphClient:
         return ext_map.get(ext, "")
 
     def close(self) -> None:
-        """关闭客户端"""
+        """kapatistemci"""
         if self._client:
             self._client.close()
             self._client = None
@@ -540,7 +540,7 @@ class SourcegraphClient:
 
 
 # =============================================================================
-# 便捷函数
+# kullanislifonksiyon
 # =============================================================================
 
 
@@ -551,9 +551,9 @@ def search(
     limit: int = 20,
 ) -> SearchResult:
     """
-    快捷搜索函数
+    hizlihizliarafonksiyon
 
-    示例:
+    ornek:
         result = search("http.Client", lang="go", limit=5)
         for m in result.matches:
             print(f"{m.repo}:{m.file_path}:{m.line_number}")
@@ -563,12 +563,12 @@ def search(
 
 
 def get_file(repo: str, path: str) -> Optional[FileContent]:
-    """快捷获取文件内容"""
+    """hizlihizlialdosyaicerik"""
     with SourcegraphClient() as client:
         return client.get_file(repo, path)
 
 
 def list_repos(query: str, limit: int = 10) -> list[RepoInfo]:
-    """快捷搜索仓库"""
+    """hizlihizliaradepokutuphane"""
     with SourcegraphClient() as client:
         return client.list_repos(query, limit=limit)

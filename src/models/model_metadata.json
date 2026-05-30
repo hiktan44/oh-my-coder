@@ -23,7 +23,7 @@
     "provider": "DeepSeek",
     "tier": "low",
     "context": 64000,
-    "description": "高性能对话模型，支持函数调用"
+    "description": "yuksekperformansicinkonusmamodel, destekfonksiyoncagri"
   },
 
   "glm-4-flash": {
@@ -32,7 +32,7 @@
     "provider": "Zhipu",
     "tier": "free",
     "context": 128000,
-    "description": "免费高性能，支持函数调用、视觉"
+    "description": "ucretsizyuksekperformans, destekfonksiyoncagri, gorsel"
   },
   "MiniMax-Text-01": {
     "status": "production",
@@ -40,7 +40,7 @@
     "provider": "MiniMax",
     "tier": "free",
     "context": 1000000,
-    "description": "免费超长上下文（100万 token）"
+    "description": "ucretsizasiriuzunlukbaglam (10010 bin token) "
   },
   "moonshot-v1-128k": {
     "status": "production",
@@ -48,7 +48,7 @@
     "provider": "Moonshot",
     "tier": "medium",
     "context": 128000,
-    "description": "128K 超长上下文"
+    "description": "128K asiriuzunlukbaglam"
   },
   "doubao-pro-32k": {
     "status": "production",
@@ -56,55 +56,55 @@
     "provider": "Volcengine",
     "tier": "medium",
     "context": 32000,
-    "description": "豆包 Pro，性价比高"
+    "description": "paket Pro, degerkiyasyuksek"
   },
   "tiangong-3": {
     "status": "production",
-    "name": "天工 3.0",
+    "name": "Tiangong 3.0",
     "provider": "Tiangong",
     "tier": "medium",
     "context": 128000,
-    "description": "天工大模型 3.0"
+    "description": "Tiangongbuyukmodel 3.0"
   },
   "Baichuan4": {
     "status": "production",
-    "name": "百川 4",
+    "name": "yuz 4",
     "provider": "Baichuan",
     "tier": "medium",
     "context": 128000,
-    "description": "百川智能 4"
+    "description": "Baichuanedebilir 4"
   },
   "ernie-4.0-8k-latest": {
     "status": "beta",
-    "name": "文心一言 4.0",
+    "name": "Wenxin Yiyan 4.0",
     "provider": "Baidu",
     "tier": "medium",
     "context": 8000,
-    "description": "百度文心一言 4.0（Beta）"
+    "description": "yuzdereceWenxin Yiyan 4.0 (Beta) "
   },
   "qwen-plus": {
     "status": "beta",
-    "name": "通义千问 2.5",
+    "name": "Tongyi Qianwen 2.5",
     "provider": "Alibaba",
     "tier": "medium",
     "context": 131072,
-    "description": "阿里通义千问（Beta）"
+    "description": "AliTongyi Qianwen (Beta) "
   },
   "hunyuan-turbo": {
     "status": "beta",
-    "name": "混元 Turbo",
+    "name": "karisikogre Turbo",
     "provider": "Tencent",
     "tier": "medium",
     "context": 128000,
-    "description": "腾讯混元（Beta）"
+    "description": "Tencent Hunogre (Beta) "
   },
   "generalv4.0": {
     "status": "beta",
-    "name": "讯飞星火 4.0",
+    "name": "iFlytek Spark 4.0",
     "provider": "iFlytek",
     "tier": "medium",
     "context": 128000,
-    "description": "讯飞星火 4.0（Beta）"
+    "description": "iFlytek Spark 4.0 (Beta) "
   },
   "gpt-4o-mini": {
     "status": "beta",
@@ -112,7 +112,7 @@
     "provider": "OpenAI",
     "tier": "high",
     "context": 128000,
-    "description": "OpenAI GPT-4o mini（Beta，需海外网络）"
+    "description": "OpenAI GPT-4o mini (Beta, gerekdenizdisindaag) "
   },
   "claude-3-5-haiku-20241022": {
     "status": "beta",
@@ -120,7 +120,7 @@
     "provider": "Anthropic",
     "tier": "high",
     "context": 200000,
-    "description": "Anthropic Claude 3.5 Haiku（Beta，需海外网络）"
+    "description": "Anthropic Claude 3.5 Haiku (Beta, gerekdenizdisindaag) "
   },
   "gemini-2.0-flash": {
     "status": "beta",
@@ -128,6 +128,6 @@
     "provider": "Google",
     "tier": "low",
     "context": 1000000,
-    "description": "Google Gemini 2.0 Flash（Beta，需海外网络）"
+    "description": "Google Gemini 2.0 Flash (Beta, gerekdenizdisindaag) "
   }
 }

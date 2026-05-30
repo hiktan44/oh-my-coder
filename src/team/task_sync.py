@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 """
-任务状态同步模块
+gorevdurumesitlemodul
 
-实现多人共享任务状态，支持实时更新和订阅。
+uygulacokkisiortakpaylasgorevdurum, destekzamanguncelleveabone. 
 """
 
 import json
@@ -25,7 +25,7 @@ except ImportError:
 
 
 class TaskStatus(str, Enum):
-    """任务状态"""
+    """gorevdurum"""
 
     PENDING = "pending"
     RUNNING = "running"
@@ -35,7 +35,7 @@ class TaskStatus(str, Enum):
 
 
 class MemberRole(str, Enum):
-    """成员角色"""
+    """oluyerol"""
 
     OWNER = "owner"
     ADMIN = "admin"
@@ -44,7 +44,7 @@ class MemberRole(str, Enum):
 
 @dataclass
 class TeamTask:
-    """团队任务"""
+    """takimgorev"""
 
     task_id: str
     team_id: str
@@ -66,7 +66,7 @@ class TeamTask:
     subscribers: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        """转换为字典"""
+        """donusturicinsozluk"""
         return {
             "task_id": self.task_id,
             "team_id": self.team_id,
@@ -92,7 +92,7 @@ class TeamTask:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> TeamTask:
-        """从字典创建"""
+        """sozlukolustur"""
         return cls(
             task_id=data["task_id"],
             team_id=data["team_id"],
@@ -125,20 +125,20 @@ class TeamTask:
 
 class TaskSync:
     """
-    任务状态同步器
+    gorevdurumesitle
 
-    支持：
-    - 创建/更新/删除任务
-    - 订阅任务更新
-    - 获取团队任务列表
+    destek: 
+    - olustur/guncelle/silgorev
+    - abonegorevguncelle
+    - altakimgorevliste
     """
 
     def __init__(self, redis_url: str = "redis://localhost:6379"):
         """
-        初始化
+        baslat
 
         Args:
-            redis_url: Redis 连接地址
+            redis_url: Redis baglabaglanadres
         """
         self.redis_url = redis_url
         self._redis: Optional[redis.Redis] = None
@@ -148,7 +148,7 @@ class TaskSync:
         self._use_memory = not REDIS_AVAILABLE
 
     async def connect(self) -> None:
-        """连接 Redis"""
+        """baglabaglan Redis"""
         if self._use_memory:
             return
 
@@ -157,20 +157,20 @@ class TaskSync:
             self._pubsub = self._redis.pubsub()
             await self._pubsub.subscribe("task_updates")
         except Exception as e:
-            print(f"⚠️ Redis 连接失败，使用内存模式: {e}")
+            print(f"⚠️ Redis baglabaglanbasarisiz, kullanicindekaydetmod: {e}")
             self._use_memory = True
 
     async def disconnect(self) -> None:
-        """断开连接"""
+        """kesacbaglabaglan"""
         if self._redis:
             await self._redis.close()
 
     def _get_task_key(self, task_id: str) -> str:
-        """获取任务的 Redis 键"""
+        """algorev Redis anahtar"""
         return f"task:{task_id}"
 
     def _get_team_tasks_key(self, team_id: str) -> str:
-        """获取团队任务列表的 Redis 键"""
+        """altakimgorevliste Redis anahtar"""
         return f"team:{team_id}:tasks"
 
     async def create_task(
@@ -184,19 +184,19 @@ class TaskSync:
         model: str = "deepseek",
     ) -> TeamTask:
         """
-        创建任务
+        olusturgorev
 
         Args:
-            task_id: 任务 ID
-            team_id: 团队 ID
-            creator_id: 创建者 ID
-            title: 任务标题
-            description: 任务描述
-            workflow: 工作流类型
-            model: 使用的模型
+            task_id: gorev ID
+            team_id: takim ID
+            creator_id: olustur ID
+            title: gorev basligi
+            description: gorev aciklamasi
+            workflow: is akisitip
+            model: kullanmodel
 
         Returns:
-            TeamTask: 创建的任务
+            TeamTask: olusturgorev
         """
         now = datetime.now()
         task = TeamTask(
@@ -215,19 +215,19 @@ class TaskSync:
         if self._use_memory:
             self._tasks_cache[task_id] = task
         else:
-            # 存储任务
+            # depolamagorev
             assert self._redis is not None, "Redis client not initialized"
             # redis-py returns Union[Awaitable[int], int]; cast to satisfy mypy
             _hset_result: int = await cast(Any, self._redis).hset(
                 self._get_task_key(task_id),
                 mapping={"data": json.dumps(task.to_dict())},
             )
-            # 添加到团队任务列表
+            # eklekadartakimgorevliste
             _sadd_result: int = await cast(Any, self._redis).sadd(
                 self._get_team_tasks_key(team_id), task_id
             )
 
-        # 发布创建事件
+        # gonderolusturolay
         await self._publish_event("task_created", task.to_dict())
 
         return task
@@ -242,18 +242,18 @@ class TaskSync:
         cost: float = 0.0,
     ) -> Optional[TeamTask]:
         """
-        更新任务状态
+        guncellegorevdurum
 
         Args:
-            task_id: 任务 ID
-            status: 新状态
-            result: 执行结果
-            error: 错误信息
-            tokens_used: 消耗的 Token 数
-            cost: 成本
+            task_id: gorev ID
+            status: yenidurum
+            result: yurutme sonucu
+            error: hata mesaji
+            tokens_used: tuket Token sayi
+            cost: ol
 
         Returns:
-            TeamTask: 更新后的任务
+            TeamTask: guncellesonragorev
         """
         task = await self.get_task(task_id)
         if not task:
@@ -280,20 +280,20 @@ class TaskSync:
                 mapping={"data": json.dumps(task.to_dict())},
             )
 
-        # 发布更新事件
+        # gonderguncelleolay
         await self._publish_event("task_updated", task.to_dict())
 
         return task
 
     async def get_task(self, task_id: str) -> Optional[TeamTask]:
         """
-        获取任务
+        algorev
 
         Args:
-            task_id: 任务 ID
+            task_id: gorev ID
 
         Returns:
-            TeamTask: 任务对象
+            TeamTask: gorevicinnesne
         """
         if self._use_memory:
             return self._tasks_cache.get(task_id)
@@ -308,13 +308,13 @@ class TaskSync:
 
     async def get_team_tasks(self, team_id: str) -> list[TeamTask]:
         """
-        获取团队所有任务
+        altakimvargorev
 
         Args:
-            team_id: 团队 ID
+            team_id: takim ID
 
         Returns:
-            List[TeamTask]: 任务列表
+            List[TeamTask]: gorevliste
         """
         if self._use_memory:
             return [t for t in self._tasks_cache.values() if t.team_id == team_id]
@@ -336,14 +336,14 @@ class TaskSync:
 
     async def subscribe_task(self, task_id: str, user_id: str) -> bool:
         """
-        订阅任务更新
+        abonegorevguncelle
 
         Args:
-            task_id: 任务 ID
-            user_id: 用户 ID
+            task_id: gorev ID
+            user_id: kullanici ID
 
         Returns:
-            bool: 是否成功
+            bool: basarili mi
         """
         task = await self.get_task(task_id)
         if not task:
@@ -364,14 +364,14 @@ class TaskSync:
 
     async def unsubscribe_task(self, task_id: str, user_id: str) -> bool:
         """
-        取消订阅任务
+        iptalabonegorev
 
         Args:
-            task_id: 任务 ID
-            user_id: 用户 ID
+            task_id: gorev ID
+            user_id: kullanici ID
 
         Returns:
-            bool: 是否成功
+            bool: basarili mi
         """
         task = await self.get_task(task_id)
         if not task:
@@ -392,13 +392,13 @@ class TaskSync:
 
     async def delete_task(self, task_id: str) -> bool:
         """
-        删除任务
+        silgorev
 
         Args:
-            task_id: 任务 ID
+            task_id: gorev ID
 
         Returns:
-            bool: 是否成功
+            bool: basarili mi
         """
         task = await self.get_task(task_id)
         if not task:
@@ -420,7 +420,7 @@ class TaskSync:
         return True
 
     async def _publish_event(self, event_type: str, data: dict[str, Any]) -> None:
-        """发布事件"""
+        """gonderolay"""
         event = {
             "type": event_type,
             "data": data,
@@ -433,10 +433,10 @@ class TaskSync:
 
     async def listen_updates(self, callback: Callable[[dict[str, Any]], None]) -> None:
         """
-        监听任务更新
+        dinlegorevguncelle
 
         Args:
-            callback: 回调函数
+            callback: geri aramafonksiyon
         """
         if self._use_memory or not self._pubsub:
             return
@@ -447,9 +447,9 @@ class TaskSync:
                     event = json.loads(message["data"])
                     await callback(event)
                 except Exception as e:
-                    print(f"处理消息失败: {e}")
+                    print(f"islemesajbasarisiz: {e}")
         return None
 
 
-# 全局实例
+# globalornek
 task_sync = TaskSync()

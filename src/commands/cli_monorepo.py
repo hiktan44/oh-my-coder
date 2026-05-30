@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 """
-Monorepo 工作区感知 CLI
+Monorepoçalışma alanı farkındalığıCLI
 
-支持 pnpm workspace、lerna、bazel 等 monorepo 结构
+Destekpnpm workspace,lerna,bazelBeklemekmonorepoyapı
 """
 
 
@@ -15,10 +15,10 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-app = typer.Typer(help="Monorepo 工作区感知")
+app = typer.Typer(help="Monorepoçalışma alanı farkındalığı")
 console = Console()
 
-# Monorepo 配置文件
+# MonorepoYapılandırma dosyası
 MONOREPO_CONFIGS = {
     "pnpm": ["pnpm-workspace.yaml"],
     "lerna": ["lerna.json"],
@@ -31,7 +31,7 @@ MONOREPO_CONFIGS = {
 
 @dataclass
 class MonorepoInfo:
-    """Monorepo 信息"""
+    """Monorepobilgi"""
 
     root: Path
     type: str  # pnpm, lerna, nx, etc.
@@ -40,7 +40,7 @@ class MonorepoInfo:
 
 
 def detect_monorepo(root: Path) -> Optional[MonorepoInfo]:
-    """检测目录是否为 monorepo 根目录"""
+    """Dizinin olup olmadığını kontrol edinmonorepokök dizin"""
     for repo_type, config_files in MONOREPO_CONFIGS.items():
         for config in config_files:
             config_path = root / config
@@ -56,23 +56,23 @@ def detect_monorepo(root: Path) -> Optional[MonorepoInfo]:
 
 
 def _find_packages(root: Path, repo_type: str) -> list[Path]:
-    """根据 monorepo 类型查找 packages 目录"""
+    """buna göremonorepoTür aramapackagesİçindekiler"""
     packages = []
 
     if repo_type == "pnpm":
-        # pnpm: packages/ 目录或 workspace 文件中声明的路径
+        # pnpm: packages/dizin veyaworkspaceDosyada belirtilen yol
         workspace_file = root / "pnpm-workspace.yaml"
         if workspace_file.exists():
             content = workspace_file.read_text(encoding="utf-8")
             for line in content.splitlines():
                 line = line.strip()
                 if line.startswith("- ") or line.startswith("packages:"):
-                    # 解析路径
+                    #yolu ayrıştır
                     if "packages/" in line:
                         pkg_dir = root / line.split("- ")[-1].strip()
                         if pkg_dir.is_dir():
                             packages.append(pkg_dir)
-        # 常见位置
+        #ortak yerler
         if not packages:
             common = root / "packages"
             if common.is_dir():
@@ -97,7 +97,7 @@ def _find_packages(root: Path, repo_type: str) -> list[Path]:
                         packages.append(pkg_path)
 
     elif repo_type == "nx":
-        # nx: packages/ 目录
+        # nx: packages/İçindekiler
         common = root / "packages"
         if common.is_dir():
             for sub in common.iterdir():
@@ -109,33 +109,33 @@ def _find_packages(root: Path, repo_type: str) -> list[Path]:
 
 @app.command("detect")
 def detect(
-    path: Path = typer.Option(Path.cwd(), "--path", "-p", help="检测目录"),
+    path: Path = typer.Option(Path.cwd(), "--path", "-p", help="Test kataloğu"),
 ) -> None:
-    """检测是否为 monorepo 并显示信息"""
+    """olup olmadığını kontrol edinmonorepove bilgileri görüntüle"""
     info = detect_monorepo(path)
 
     if info is None:
         console.print(
-            f"[yellow]⚠[/yellow] 目录 [cyan]{path}[/cyan] 不是已知的 monorepo 结构"
+            f"[yellow]⚠[/yellow]İçindekiler[cyan]{path}[/cyan]bilinmiyormonorepoyapı"
         )
         console.print(
-            "[dim]支持: pnpm workspace, lerna, nx, turborepo, bazel, rush[/dim]"
+            "[dim]Destek: pnpm workspace, lerna, nx, turborepo, bazel, rush[/dim]"
         )
         return
 
-    console.print(f"[green]✓[/green] 检测到 Monorepo: [bold]{info.type}[/bold]")
-    console.print(f"[dim]根目录: {info.root}[/dim]")
-    console.print(f"[dim]配置文件: {info.config_file}[/dim]")
-    console.print(f"[dim]包数量: {len(info.packages)}[/dim]\n")
+    console.print(f"[green]✓[/green]saptanmışMonorepo: [bold]{info.type}[/bold]")
+    console.print(f"[dim]kök dizin: {info.root}[/dim]")
+    console.print(f"[dim]Yenilemeye zorla: {info.config_file}[/dim]")
+    console.print(f"[dim]Paket miktarı: {len(info.packages)}[/dim]\n")
 
-    table = Table(title=f"包列表 ({info.type})")
-    table.add_column("序号", style="dim", width=4)
-    table.add_column("包路径", style="cyan")
-    table.add_column("语言", style="yellow")
-    table.add_column("框架", style="green")
+    table = Table(title=f"Paket listesi({info.type})")
+    table.add_column("seri numarası", style="dim", width=4)
+    table.add_column("paket yolu", style="cyan")
+    table.add_column("dil", style="yellow")
+    table.add_column("çerçeve", style="green")
 
     for i, pkg in enumerate(sorted(info.packages), 1):
-        # 简单检测语言
+        #Basit algılama dili
         lang = "?"
         if (pkg / "package.json").exists():
             lang = "Node/TS"
@@ -158,22 +158,22 @@ def detect(
 
 @app.command("status")
 def monorepo_status(
-    path: Path = typer.Option(Path.cwd(), "--path", "-p", help="工作区路径"),
-    show_dirty: bool = typer.Option(True, "--dirty/--no-dirty", help="显示有改动的包"),
+    path: Path = typer.Option(Path.cwd(), "--path", "-p", help="çalışma alanı yolu"),
+    show_dirty: bool = typer.Option(True, "--dirty/--no-dirty", help="Değiştirilen paketleri göster"),
 ) -> None:
-    """显示所有包的 Git 状态"""
+    """Tüm paketleri gösterGitdurum"""
     info = detect_monorepo(path)
 
     if info is None:
-        console.print("[red]✗[/red] 不是 monorepo 目录")
+        console.print("[red]✗[/red]HAYIRmonorepoİçindekiler")
         raise typer.Exit(1)
 
     import subprocess
 
-    table = Table(title=f"Monorepo 包状态 - {info.type}")
-    table.add_column("包", style="cyan")
-    table.add_column("状态", style="yellow")
-    table.add_column("改动", style="red")
+    table = Table(title=f"Monorepopaket durumu- {info.type}")
+    table.add_column("Çanta", style="cyan")
+    table.add_column("durum", style="yellow")
+    table.add_column("değiştirmek", style="red")
 
     for pkg in sorted(info.packages):
         try:
@@ -191,28 +191,28 @@ def monorepo_status(
                 table.add_row(
                     pkg.name,
                     status_emoji,
-                    f"{count} 个文件" if count else "干净",
+                    f"{count}dosyalar" if count else "temiz",
                 )
         except Exception:
-            table.add_row(pkg.name, "❓", "无法获取")
+            table.add_row(pkg.name, "❓", "yaygın")
 
     console.print(table)
-    console.print(f"\n[dim]根目录: {info.root}[/dim]")
+    console.print(f"\n[dim]kök dizin: {info.root}[/dim]")
 
 
 @app.command("run")
 def monorepo_run(
-    script: str = typer.Argument(..., help="要运行的脚本名称"),
-    scope: str = typer.Option(None, "--scope", "-s", help="只运行指定包（模糊匹配）"),
-    path: Path = typer.Option(Path.cwd(), "--path", "-p", help="工作区路径"),
-    parallel: bool = typer.Option(False, "--parallel", help="并行运行"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="只显示将要运行的命令"),
+    script: str = typer.Argument(..., help="Çalıştırılacak betiğin adı"),
+    scope: str = typer.Option(None, "--scope", "-s", help="Yalnızca belirtilen paketleri çalıştırın (bulanık eşleştirme)"),
+    path: Path = typer.Option(Path.cwd(), "--path", "-p", help="çalışma alanı yolu"),
+    parallel: bool = typer.Option(False, "--parallel", help="Paralel olarak çalıştır"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Yalnızca çalıştırılacak komutları göster"),
 ) -> None:
-    """在所有/指定包中运行脚本"""
+    """Aynı anda yükle/Komut dosyasını belirtilen pakette çalıştır"""
     info = detect_monorepo(path)
 
     if info is None:
-        console.print("[red]✗[/red] 不是 monorepo 目录")
+        console.print("[red]✗[/red]HAYIRmonorepoİçindekiler")
         raise typer.Exit(1)
 
     packages = info.packages
@@ -220,10 +220,10 @@ def monorepo_run(
         packages = [p for p in packages if scope.lower() in p.name.lower()]
 
     if not packages:
-        console.print(f"[yellow]⚠[/yellow] 没有找到匹配的包 (scope: {scope})")
+        console.print(f"[yellow]⚠[/yellow]Eşleşen paket bulunamadı(scope: {scope})")
         return
 
-    console.print(f"[cyan]将在 {len(packages)} 个包中运行: {script}[/cyan]\n")
+    console.print(f"[cyan]içinde olacak{len(packages)}Bir pakette çalıştır: {script}[/cyan]\n")
 
     import subprocess
 
@@ -237,7 +237,7 @@ def monorepo_run(
         elif info.type == "lerna":
             cmd = ["npx", "lerna", "run", script, "--scope", pkg.name]
         else:
-            console.print(f"[yellow]⚠[/yellow] {info.type} 类型暂不支持 'run' 命令")
+            console.print(f"[yellow]⚠[/yellow] {info.type}toplam boyut'run'Emir")
             return
 
         if dry_run:
@@ -258,9 +258,9 @@ def monorepo_run(
                 console.print(f"[red]✗ {e}[/red]")
                 results.append((pkg, False, type(e).__name__))
 
-    # 汇总
+    #Özet
     passed = sum(1 for _, ok, _ in results if ok)
-    console.print(f"\n[bold]完成: {passed}/{len(results)} 成功[/bold]")
+    console.print(f"\n[bold]Sona ermek: {passed}/{len(results)}başarı[/bold]")
 
 
 if __name__ == "__main__":

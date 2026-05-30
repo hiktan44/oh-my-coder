@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 """
-Slack 平台处理器
+Slack platform isleyicisi
 
-支持 Slack Bot（Events API + Web API）。
-支持：文本消息、回复、块消息（Block Kit）、线程。
+destek Slack Bot (Events API + Web API) . 
+destek: metinmesaj, geritekrar, blokmesaj (Block Kit) , satirsurec. 
 
-文档：https://api.slack.com/apis/connected
+Dokumantasyon:https://api.slack.com/apis/connected
 """
 
 
@@ -28,23 +28,23 @@ try:
     _HAS_HTTPX = True
 except ImportError:
     _HAS_HTTPX = False
-    logger.warning("httpx not installed. Slack 支持需要: pip install httpx")
+    logger.warning("httpx not installed. Slack destekgerekister: pip install httpx")
 
 
 class SlackHandler(PlatformHandler):
     """
-    Slack Bot 处理器
+    Slack Bot isleyici
 
-    通过 HTTP Webhook（Events API）接收消息。
-    通过 Slack Web API 发送消息。
+    araciligiyla HTTP Webhook (Events API) baglanalmesaj. 
+    araciligiyla Slack Web API mesaj gonder. 
 
-    环境变量：
+    Ortam degiskenleri:
         SLACK_BOT_TOKEN       - xoxb-... Bot User OAuth Token
-        SLACK_SIGNING_SECRET  - Slack Signing Secret（用于验证请求来源）
-        SLACK_APP_TOKEN       - xapp-... App-Level Token（需要 channels:history scope）
-        SLACK_WEBHOOK_PORT    - 本地 Webhook 监听端口（默认 8080）
+        SLACK_SIGNING_SECRET  - Slack Signing Secret (kullandedogrulamaistekkaynak) 
+        SLACK_APP_TOKEN       - xapp-... App-Level Token (gerekister channels:history scope) 
+        SLACK_WEBHOOK_PORT    - yerel Webhook dinleme uc noktaagiz (varsayilan 8080) 
 
-    需要在 Slack App 配置：
+    gerekistericinde Slack App yapilandirma: 
     1. Event Subscriptions → Enable Events → Request URL
     2. Bot Token Scopes: chat:write, channels:history, im:history, groups:history
     3. Subscribe to: message.im, message.channels, message.groups
@@ -63,9 +63,9 @@ class SlackHandler(PlatformHandler):
         """
         Args:
             bot_token: xoxb-... Bot User OAuth Token
-            signing_secret: Slack Signing Secret（从 Basic Information 获取）
-            app_token: xapp-... App-Level Token（Socket Mode 需要）
-            webhook_port: 本地 Webhook 监听端口
+            signing_secret: Slack Signing Secret ( Basic Information al) 
+            app_token: xapp-... App-Level Token (Socket Mode gerekister) 
+            webhook_port: yerel Webhook dinleme uc noktaagiz
         """
         super().__init__(**kwargs)
         self.bot_token = bot_token
@@ -74,11 +74,11 @@ class SlackHandler(PlatformHandler):
         self.webhook_port = webhook_port
         self._server_task: Optional[asyncio.Task[None]] = None
 
-    # ---- PlatformHandler 实现 ----
+    # ---- PlatformHandler uygula ----
 
     async def start(self) -> None:
         if not _HAS_HTTPX:
-            raise RuntimeError("httpx 未安装。运行: pip install httpx")
+            raise RuntimeError("httpx kurulu degil. Calistirin: pip install httpx")
 
         self._server_task = asyncio.create_task(self._run_webhook_server())
         self._started = True
@@ -96,7 +96,7 @@ class SlackHandler(PlatformHandler):
         logger.info("[slack] Handler stopped")
 
     async def send(self, message: OutgoingMessage) -> bool:
-        """发送消息到 Slack"""
+        """mesaj gonderkadar Slack"""
         url = "https://slack.com/api/chat.postMessage"
         headers = {
             "Authorization": f"Bearer {self.bot_token}",
@@ -104,7 +104,7 @@ class SlackHandler(PlatformHandler):
         }
         payload: dict[str, Any] = {
             "channel": message.chat_id,
-            "text": message.text[:3000],  # Slack 限制
+            "text": message.text[:3000],  # Slack sinir
         }
 
         if message.reply_to:
@@ -127,10 +127,10 @@ class SlackHandler(PlatformHandler):
             self.on_error(e)
             return False
 
-    # ---- 内部实现 ----
+    # ---- icindekisimuygula ----
 
     async def _run_webhook_server(self) -> None:
-        """运行 HTTP 服务器接收 Slack 事件"""
+        """satir HTTP servisbaglanal Slack olay"""
         try:
             import uvicorn
             from starlette.applications import Starlette
@@ -141,13 +141,13 @@ class SlackHandler(PlatformHandler):
             return
 
         async def eventsPOST(request: Request) -> JSONResponse:
-            """接收 Slack 事件"""
+            """baglanal Slack olay"""
             body = await request.json()
             await self._handle_event(body)
             return JSONResponse(content={"status": "ok"})
 
         async def oauthGET(request: Request) -> PlainTextResponse:
-            """Slack URL 验证"""
+            """Slack URL dogrulama"""
             return PlainTextResponse("OK")
 
         app = Starlette(
@@ -164,29 +164,29 @@ class SlackHandler(PlatformHandler):
         await server.serve()
 
     async def _handle_event(self, body: dict[str, Any]) -> None:
-        """处理 Slack 事件"""
-        # URL 验证
+        """isle Slack olay"""
+        # URL dogrulama
         if "challenge" in body:
             logger.debug("[slack] URL verification challenge received")
             return
 
-        # 处理事件列表
+        # isleolayliste
         events = body.get("event", {})
         event_type = events.get("type", "")
 
-        # 处理消息事件
+        # islemesajolay
         if event_type in ("message", "app_mention"):
             await self._process_message(events)
 
-        # 处理事件回调（异步模式）
+        # isleolaygeri arama (asenkronmod) 
         for item in body.get("event_callbacks", []):
             evt = item.get("event", {})
             if evt.get("type") == "message":
                 await self._process_message(evt)
 
     async def _process_message(self, event: dict[str, Any]) -> None:
-        """处理 Slack 消息事件"""
-        # 忽略机器人自己的消息
+        """isle Slack mesajolay"""
+        # yoksaymakinekisikendimesaj
         if event.get("subtype") == "bot_message":
             return
         if event.get("bot_id"):
@@ -223,6 +223,6 @@ class SlackHandler(PlatformHandler):
 
 def check_slack_dependencies() -> bool:
     if not _HAS_HTTPX:
-        logger.error("httpx 未安装: pip install httpx")
+        logger.error("httpx kurulu degil: pip install httpx")
         return False
     return True

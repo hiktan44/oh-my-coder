@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 """
-短期记忆 - 当前会话上下文
+kisadonemhafiza - mevcutyapacakkonusmabaglam
 
-存储当前会话的：
-- 对话历史（最近 N 条）
-- 当前任务状态
-- 上下文变量
+depolamamevcutyapacakkonusma: 
+- icinkonusmagecmis (enyakin N ogre) 
+- mevcutgorevdurum
+- baglamdegismiktar
 
-设计：
-- 存于内存 + 临时文件（会话结束写入长期）
-- 支持上下文压缩（当对话过长时）
+tasarim: 
+- kaydetdeicindekaydet + geçicizamandosya (yapacakkonusmabitiryazgirisuzunlukdonem) 
+- destekbaglamsikistir (ne zamanicinkonusmauzunlukzaman) 
 """
 
 import json
@@ -23,7 +23,7 @@ from typing import Any, Optional
 
 @dataclass
 class Message:
-    """单条消息"""
+    """tekilogremesaj"""
 
     role: str  # "user" | "assistant" | "system"
     content: str
@@ -33,7 +33,7 @@ class Message:
 
 @dataclass
 class SessionContext:
-    """会话上下文"""
+    """yapacakkonusmabaglam"""
 
     session_id: str
     project_path: Optional[Path] = None
@@ -44,18 +44,18 @@ class SessionContext:
     last_active: float = field(default_factory=time.time)
 
     def add_message(self, role: str, content: str, metadata: Optional[dict] = None):
-        """添加消息"""
+        """eklemesaj"""
         self.messages.append(
             Message(role=role, content=content, metadata=metadata or {})
         )
         self.last_active = time.time()
 
     def get_recent_messages(self, limit: int = 20) -> list[Message]:
-        """获取最近 N 条消息"""
+        """alenyakin N ogremesaj"""
         return self.messages[-limit:]
 
     def to_dict(self) -> dict[str, Any]:
-        """序列化"""
+        """sira"""
         return {
             "session_id": self.session_id,
             "project_path": str(self.project_path) if self.project_path else None,
@@ -68,7 +68,7 @@ class SessionContext:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SessionContext:
-        """反序列化"""
+        """terssira"""
         messages = [Message(**m) for m in data.get("messages", [])]
         return cls(
             session_id=data["session_id"],
@@ -84,13 +84,13 @@ class SessionContext:
 
 
 class ShortTermMemory:
-    """短期记忆管理器"""
+    """kisadonemhafizayonet"""
 
     def __init__(self, storage_dir: Path, max_messages: int = 100):
         """
         Args:
-            storage_dir: 存储目录
-            max_messages: 单个会话最大消息数（超过后压缩）
+            storage_dir: depolamadizin
+            max_messages: tekilyapacakkonusmaenbuyukmesajsayi (asirisonrasikistir) 
         """
         self.storage_dir = storage_dir / "short-term"
         self.storage_dir.mkdir(parents=True, exist_ok=True)
@@ -100,7 +100,7 @@ class ShortTermMemory:
     def create_session(
         self, project_path: Optional[Path] = None, task: Optional[str] = None
     ) -> SessionContext:
-        """创建新会话"""
+        """olusturyeniyapacakkonusma"""
         session = SessionContext(
             session_id=str(uuid.uuid4())[:8],
             project_path=project_path,
@@ -110,15 +110,15 @@ class ShortTermMemory:
         return session
 
     def get_current_session(self) -> Optional[SessionContext]:
-        """获取当前会话"""
+        """almevcutyapacakkonusma"""
         return self._current_session
 
     def set_current_session(self, session: SessionContext):
-        """设置当前会话"""
+        """ayarlaayarmevcutyapacakkonusma"""
         self._current_session = session
 
     def load_session(self, session_id: str) -> Optional[SessionContext]:
-        """加载已有会话"""
+        """yuklevaryapacakkonusma"""
         session_file = self.storage_dir / f"{session_id}.json"
         if session_file.exists():
             data = json.loads(session_file.read_text())
@@ -126,38 +126,38 @@ class ShortTermMemory:
         return None
 
     def save_session(self, session: SessionContext):
-        """保存会话到临时文件"""
+        """kaydetyapacakkonusmakadargeçicizamandosya"""
         session_file = self.storage_dir / f"{session.session_id}.json"
         session_file.write_text(
             json.dumps(session.to_dict(), ensure_ascii=False, indent=2)
         )
 
     def compress_if_needed(self, session: SessionContext) -> list[Message]:
-        """当消息过多时压缩，返回保留的消息
+        """ne zamanmesajcokzamansikistir, donuskorumesaj
 
         .. deprecated::
-            此方法已被标记为废弃，请使用 `memory.auto_compact.check_and_compact()`
-            替代。新实现基于 token 使用率而非消息条数，更加智能。
+            buyontemisareticinkullanim disi, lutfenkullan `memory.auto_compact.check_and_compact()`
+            yedekyerine. yeniuygulatemelde token kullanoranveolmayanmesajogresayi, dahaekleakilliedebilir. 
         """
         if len(session.messages) <= self.max_messages:
             return session.messages
 
-        # 压缩策略：保留系统消息 + 最近的一半 + 摘要
+        # sikistirstrateji: korusistemmesaj + enyakinbiryari + alintiister
         system_msgs = [m for m in session.messages if m.role == "system"]
         recent = session.messages[len(system_msgs) :]
         keep = recent[-self.max_messages // 2 :]
 
-        # 摘要丢失的消息
+        # alintiisterkayipmesaj
         summary = Message(
             role="system",
-            content=f"[记忆压缩] 省略了 {len(session.messages) - len(keep)} 条早期消息",
+            content=f"[hafizasikistir] atla {len(session.messages) - len(keep)} ogreerkendonemmesaj",
         )
 
         session.messages = [*system_msgs, summary, *keep]
         return session.messages
 
     def list_sessions(self) -> list[SessionContext]:
-        """列出所有会话（按最后活跃时间倒序）"""
+        """tumunu listelevaryapacakkonusma (goreensonraaktifzamanarasindaters sira) """
         sessions = []
         for f in self.storage_dir.glob("*.json"):
             try:
@@ -169,12 +169,12 @@ class ShortTermMemory:
         return sessions
 
     def get_latest_session(self) -> Optional[SessionContext]:
-        """获取最新活跃的会话"""
+        """alenyeniaktifyapacakkonusma"""
         sessions = self.list_sessions()
         return sessions[0] if sessions else None
 
     def clear_expired(self, max_age_hours: int = 24):
-        """清理过期会话（超过 max_age_hours）"""
+        """temizledonemyapacakkonusma (asiri max_age_hours) """
         now = time.time()
         max_age = max_age_hours * 3600
 

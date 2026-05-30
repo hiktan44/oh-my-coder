@@ -4,12 +4,12 @@ from __future__ import annotations
 
 
 """
-安全执行器 - Safe Executor
+guvenlikyurut - Safe Executor
 
-为 API 调用提供重试 + 超时包装，解决高并发偶发超时问题。
-基于 tenacity 库实现指数退避重试。
+icin API cagrisaglaryeniden dene + asirizamanpaketkur, cozyuksekvegonderaragonderasirizamansorun. 
+temelde tenacity kutuphaneuygulaisaretsayigerikacinyeniden dene. 
 
-使用示例：
+kullanornek: 
     @safe_execute(max_attempts=3, timeout=30)
     async def call_api():
         return await httpx_client.post(url, json=data)
@@ -28,7 +28,7 @@ from tenacity import (
     wait_exponential,
 )
 
-# 需要重试的异常类型
+# gerekisteryeniden denefarklisiktip
 RETRYABLE_EXCEPTIONS: tuple[type[Exception], ...] = (
     httpx.ReadTimeout,
     httpx.ConnectTimeout,
@@ -44,7 +44,7 @@ RETRYABLE_EXCEPTIONS: tuple[type[Exception], ...] = (
 
 
 def _default_retry_if(exc: Exception) -> bool:
-    """默认重试条件：仅重试网络超时类错误"""
+    """varsayilanyeniden denekosul: sadeceyeniden deneagasirizamansinifhata"""
     return isinstance(exc, RETRYABLE_EXCEPTIONS)
 
 
@@ -55,17 +55,17 @@ def safe_execute(
     max_wait: float = 10.0,
 ) -> Callable:
     """
-    安全执行装饰器（异步函数）
+    guvenlikyurutdekoratif (asenkronfonksiyon) 
 
-    指数退避重试（1s → 2s → 4s）+ 单次调用超时保护。
+    isaretsayigerikacinyeniden dene (1s → 2s → 4s) + tekilkezcagriasirizamankoru. 
 
     Args:
-        max_attempts: 最大重试次数
-        timeout: 单次调用超时（秒）
-        base_wait: 初始退避等待（秒），重试间隔 = base_wait * 2^n
-        max_wait: 最大等待时间（秒）
+        max_attempts: enbuyukyeniden denekezsayi
+        timeout: tekilkezcagriasirizaman (saniye) 
+        base_wait: baslangicgerikacinvb.bekle (saniye) , yeniden denearasindaayir = base_wait * 2^n
+        max_wait: enbuyukvb.beklezamanarasinda (saniye) 
 
-    使用示例：
+    kullanornek: 
         @safe_execute(max_attempts=3, timeout=30)
         async def call_api():
             return await httpx_client.post(url, json=data)
@@ -74,8 +74,8 @@ def safe_execute(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
-            # 如果没配置超时，用 tenacity 自带的 wait_exponential
-            # 如果有超时，用 asyncio.wait_for 包裹
+            # egeryokyapilandirmaasirizaman, kullan tenacity kendikemer wait_exponential
+            # egervarasirizaman, kullan asyncio.wait_for paketsar
 
             async for attempt_ctx in AsyncRetrying(
                 stop=stop_after_attempt(max_attempts),
@@ -104,11 +104,11 @@ def safe_execute_sync(
     max_wait: float = 10.0,
 ) -> Callable:
     """
-    安全执行装饰器（同步函数）
+    guvenlikyurutdekoratif (esitlefonksiyon) 
 
-    参数同 safe_execute。
+    parametreayni safe_execute. 
 
-    使用示例：
+    kullanornek: 
         @safe_execute_sync(max_attempts=3)
         def call_api():
             return requests.post(url, json=data)
@@ -139,7 +139,7 @@ def safe_execute_sync(
 
 
 class BlockedError(Exception):
-    """命令被安全护栏拦截"""
+    """komutguvenlikkorkulukengelle"""
 
     def __init__(self, command: str, reason: str):
         self.command = command

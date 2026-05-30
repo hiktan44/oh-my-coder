@@ -1,13 +1,13 @@
 """
-DataAgent - 数据处理与 ETL 智能体
+DataAgent - veri işleme ve ETL ajan
 
-职责：
-1. 数据清洗与转换
-2. ETL 流水线设计
-3. 数据导出与导入
-4. 数据验证脚本
+Sorumluluklar:
+1. Veri temizleme ve dönüştürme
+2. ETL Montaj hattı tasarımı
+3. Verileri dışa aktarma ve içe aktarma
+4. Veri doğrulama komut dosyası
 
-模型层级：MEDIUM（平衡）
+Modeli seviyesi:MEDIUM(denge)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class DataAgent(BaseAgent):
-    """数据处理与 ETL 智能体"""
+    """veri işleme ve ETL ajan"""
 
     name = "data"
-    description = "数据处理与 ETL 智能体 - 数据清洗、导入导出、流水线"
+    description = "veri işleme ve ETL ajan - Veri temizleme, içe ve dışa aktarma, boru hattı"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "📥"
@@ -34,35 +34,35 @@ class DataAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个数据工程专家。
+        return """Siz bir veri mühendisliği uzmanısınız.
 
-## 角色
-你擅长数据清洗、ETL 流水线设计和数据导入导出。
+## Rol
+Veri temizlemede iyi misiniz?ETL Boru hattı tasarımı ve veri içe ve dışa aktarımı.
 
-## 能力
-1. CSV / Excel / JSON 数据处理
-2. 数据清洗（去重、填充、类型转换）
-3. ETL 流水线（Pandas / Polars）
-4. 数据导出（数据库 / 文件）
+## yetenek
+1. CSV / Excel / JSON Veri işleme
+2. Veri temizleme (tekilleştirme, doldurma, tür dönüştürme)
+3. ETL montaj hattı (Pandas / Polars)
+4. Veri aktarımı (veritabanı / belge)
 
-## 数据清洗规范
+## Veri temizleme özellikleri
 ```python
 import pandas as pd
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    # 去重
+    # Yinelenenleri kaldır
     df = df.drop_duplicates()
 
-    # 填充缺失值
+    # Eksik değerleri doldurun
     df["age"] = df["age"].fillna(df["age"].median())
 
-    # 类型转换
+    # tür dönüşümü
     df["created_at"] = pd.to_datetime(df["created_at"])
 
     return df
 ```
 
-## ETL 示例
+## ETL Örnek
 ```python
 def etl_pipeline():
     # Extract
@@ -75,24 +75,24 @@ def etl_pipeline():
     df.to_sql("clean_data", engine, if_exists="replace")
 ```
 
-## 输出格式
-1. 数据质量报告
-2. 清洗代码
-3. ETL 流水线
-4. 验证脚本
+## Çıkış formatı
+1. Veri kalitesi raporu
+2. Kodu temizle
+3. ETL montaj hattı
+4. Doğrulama komut dosyası
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行数据处理"""
+        """Veri işlemeyi gerçekleştirin"""
         data_hint = """
 
-请进行数据处理：
-1. 分析数据质量（缺失值、重复、异常值）
-2. 提供数据清洗代码
-3. 设计 ETL 流水线
-4. 提供数据验证脚本
+Lütfen veri işlemeye devam edin:
+1. Veri kalitesini analiz edin (eksik değerler, kopyalar, aykırı değerler)
+2. Veri temizleme kodunu sağlayın
+3. tasarım ETL montaj hattı
+4. Veri doğrulama komut dosyaları sağlayın
 """
         prompt.append({"role": "user", "content": data_hint})
 
@@ -112,8 +112,8 @@ def etl_pipeline():
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "验证清洗后的数据质量",
-                "建立定时 ETL 任务",
-                "记录数据血缘关系",
+                "Temizlemeden sonra veri kalitesini doğrulayın",
+                "Zamanlama oluştur ETL Görev",
+                "Veri akrabalığını kaydedin",
             ],
         )

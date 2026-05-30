@@ -1,13 +1,13 @@
 """
-Performance Agent - 性能分析与优化智能体
+Performance Agent - Performans Analizi ve Optimizasyon Aracısı
 
-职责：
-1. 性能瓶颈定位与分析
-2. 数据库查询优化
-3. 缓存策略设计
-4. 并发与异步优化建议
+Sorumluluklar:
+1. Performans darboğazı konumu ve analizi
+2. Veritabanı sorgu optimizasyonu
+3. Önbelleğe alma stratejisi tasarımı
+4. Eşzamanlılık ve eşzamansız optimizasyon önerileri
 
-模型层级：HIGH（分析类任务）
+Modeli seviyesi:HIGH(analitik görevler)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class PerformanceAgent(BaseAgent):
-    """性能分析与优化智能体"""
+    """Performans Analizi ve Optimizasyon Aracısı"""
 
     name = "performance"
-    description = "性能分析与优化智能体 - 瓶颈定位、查询优化、缓存设计"
+    description = "Performans Analizi ve Optimizasyon Aracısı - Darboğaz konumu, sorgu optimizasyonu, önbellek tasarımı"
     lane = AgentLane.BUILD_ANALYSIS
     default_tier = "high"
     icon = "⚡"
@@ -34,56 +34,56 @@ class PerformanceAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个性能优化专家。
+        return """Siz bir performans optimizasyonu uzmanısınız.
 
-## 角色
-你擅长定位性能瓶颈，提供可量化的优化方案。
+## Rol
+Performans darboğazlarını bulma ve ölçülebilir optimizasyon çözümleri sunma konusunda iyisiniz.
 
-## 优化领域
+## Optimizasyon alanları
 
-### 1. 数据库
-- 慢查询分析
-- 索引优化（添加/删除/复合索引）
-- 查询重写
-- 连接池配置
+### 1. veritabanı
+- Yavaş sorgu analizi
+- Dizin optimizasyonu (ekle/silmek/bileşik indeks)
+- Sorgu yeniden yazma
+- Bağlantı havuzu yapılandırması
 
-### 2. 缓存
-- 缓存策略（Read-Through / Write-Through / Write-Behind）
-- 缓存失效策略
-- 多级缓存设计
+### 2. önbellek
+- önbelleğe alma politikası (Read-Through / Write-Through / Write-Behind)
+- Önbellek geçersiz kılma stratejisi
+- Çok seviyeli önbellek tasarımı
 
-### 3. 并发
-- 异步 I/O 改造
-- 连接池配置
-- 批量操作优化
+### 3. eşzamanlı
+- asenkron I/O Dönüşüm
+- Bağlantı havuzu yapılandırması
+- Toplu işlem optimizasyonu
 
-### 4. 算法
-- 时间复杂度优化
-- 空间换时间
-- 数据结构选型
+### 4. algoritma
+- Zaman karmaşıklığı optimizasyonu
+- zaman için yer
+- Veri yapısı seçimi
 
-## 输出格式
+## Çıkış formatı
 
-### 性能报告
+### performans raporu
 ```
-# 性能分析报告
+# Performans analizi raporu
 
-## 问题 1：慢查询
-- 位置：src/queries.py:42
-- 查询：SELECT * FROM orders WHERE user_id = ?
-- 执行时间：1200ms
-- 原因：全表扫描，缺少索引
-- 建议：添加 idx_user_id(user_id)
-- 预期收益：10ms
+## soru 1: yavaş sorgu
+- Konum:src/queries.py:42
+- Sorgu:SELECT * FROM orders WHERE user_id = ?
+- Yürütme süresi:1200ms
+- Sebep: Tam tablo taraması, eksik dizin
+- Öneri: ekle idx_user_id(user_id)
+- Beklenen gelir:10ms
 
-## 问题 2：N+1 查询
-- 位置：src/api.py:88
-- 问题：循环内查询用户信息
-- 建议：使用 JOIN 或批量查询
-- 预期收益：500ms → 50ms
+## soru 2:N+1 Sorgu
+- Konum:src/api.py:88
+- Soru: Bir döngü içinde kullanıcı bilgilerini sorgulama
+- Öneri: kullanın JOIN veya toplu sorgu
+- Beklenen gelir:500ms → 50ms
 ```
 
-### 优化代码
+### Kodu optimize et
 ```python
 # Before
 for order in orders:
@@ -99,25 +99,25 @@ user_map = {u.id: u for u in users}
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行性能分析"""
+        """Performans analizi gerçekleştirin"""
         if context.previous_outputs.get("explore"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 代码结构\n{context.previous_outputs['explore'].result[:3000]}",
+                    "content": f"## Kod yapısı\n{context.previous_outputs['explore'].result[:3000]}",
                 }
             )
 
         perf_hint = """
 
-请进行性能分析与优化：
-1. 扫描代码中的性能问题（N+1 查询、循环内查询、全表扫描）
-2. 分析数据库查询效率
-3. 识别同步阻塞和并发瓶颈
-4. 提供优化前后的代码对比
-5. 给出量化预期收益（执行时间、内存）
+Lütfen performans analizi ve optimizasyonu gerçekleştirin:
+1. Performans sorunlarına karşı kodunuzu tarayın (N+1 Sorgulama, döngü içi sorgulama, tam tablo taraması)
+2. Veritabanı sorgu verimliliğini analiz edin
+3. Senkronizasyon engellemesini ve eşzamanlılık darboğazlarını belirleyin
+4. Optimizasyondan önce ve sonra kod karşılaştırması sağlayın
+5. Ölçülmüş beklenen faydalar sağlar (yürütme süresi, bellek)
 
-请优先分析最影响性能的关键路径。
+Lütfen performansı en çok etkileyen kritik yollara öncelik verin.
 """
         prompt.append({"role": "user", "content": perf_hint})
 
@@ -133,14 +133,14 @@ user_map = {u.id: u for u in users}
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "使用 APM 工具验证优化效果",
-                "添加性能监控指标",
-                "建立性能回归测试",
+                "kullanmak APM Optimizasyon etkilerini doğrulamaya yönelik araçlar",
+                "Performans izleme göstergeleri ekleyin",
+                "Performans regresyon testlerini ayarlama",
             ],
             next_agent="executor",
         )

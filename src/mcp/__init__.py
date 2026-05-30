@@ -1,15 +1,15 @@
 """
-MCP (Model Context Protocol) 模块
+MCP (Model Context Protocol) modul
 
-oh-my-coder 作为 MCP Server，向外部客户端（Claude Desktop / Cursor / Dify 等）
-暴露 Agent 能力。
+oh-my-coder yapicin MCP Server, yondisindakisimistemci (Claude Desktop / Cursor / Dify vb.) 
+aciga cikar Agent yetenek. 
 
-协议：JSON-RPC 2.0 over stdio
-- 读取 stdin，每行一个 JSON-RPC 请求
-- 输出 stdout，每行一个 JSON-RPC 响应
+protokol: JSON-RPC 2.0 over stdio
+- oku stdin, hersatirbir JSON-RPC istek
+- cikti stdout, hersatirbir JSON-RPC yanit
 
-MCP SDK 在 Python 3.10+ 时自动启用（pip install mcp），
-Python 3.9 使用原生手动实现（无外部依赖）。
+MCP SDK icinde Python 3.10+ zamanotomatikbaslatkullan (pip install mcp) , 
+Python 3.9 kullanasilyaratmanueluygula (yokdisindakisimbagimlilik) . 
 """
 
 __version__ = "0.2.0"

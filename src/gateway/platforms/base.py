@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 """
-Gateway - 多平台消息网关
+Gateway - cokplatformmesajag gecidi
 
-支持 Telegram / Discord / WhatsApp 接入。
-接收消息后统一转发给 Orchestrator 处理。
+destek Telegram / Discord / WhatsApp baglangiris. 
+baglanalmesajsonrabirdonusturgonderver Orchestrator isle. 
 
-设计：
-- Gateway: 总管理器，持有所有平台实例，统一消息路由
-- PlatformHandler: 各平台适配器（Telegram/Discord/WhatsApp）
-- 消息格式统一：{ platform, user_id, chat_id, text, raw }
+tasarim: 
+- Gateway: toplamyonet, tutvarvarplatformornek, birmesajyoltarafindan
+- PlatformHandler: herplatformadaptor (Telegram/Discord/WhatsApp) 
+- mesajformatbir: { platform, user_id, chat_id, text, raw }
 """
 
 
@@ -35,7 +35,7 @@ class Platform(Enum):
 
 @dataclass
 class IncomingMessage:
-    """统一收件消息格式"""
+    """biralogremesajformat"""
 
     platform: Platform
     user_id: str
@@ -43,36 +43,36 @@ class IncomingMessage:
     text: str
     raw: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
-    reply_to: Optional[str] = None  # 消息 ID（用于回复）
+    reply_to: Optional[str] = None  # mesaj ID (kullandegeritekrar) 
 
 
 @dataclass
 class OutgoingMessage:
-    """统一发件消息格式"""
+    """birgonderogremesajformat"""
 
     platform: Platform
     chat_id: str
     text: str
-    reply_to: Optional[str] = None  # 回复某条消息
-    parse_mode: str = "markdown"  # 或 "html"
+    reply_to: Optional[str] = None  # geritekrarbaziogremesaj
+    parse_mode: str = "markdown"  # veya "html"
     extra: dict[str, Any] = field(default_factory=dict)
 
 
-# ---- PlatformHandler 基类 ----
+# ---- PlatformHandler temel sinif ----
 
 
 class PlatformHandler(ABC):
     """
-    平台处理器基类。
+    platform isleyicisitemel sinif. 
 
-    子类实现：
-    - start(): 启动平台连接/Bot
-    - stop(): 优雅停止
-    - send(message: OutgoingMessage): 发送消息
-    - _register_callback(): 注册上行消息回调
+    altsinifuygula: 
+    - start(): baslatplatformbaglabaglan/Bot
+    - stop(): iyizarifdurdur
+    - send(message: OutgoingMessage): mesaj gonder
+    - _register_callback(): kayitustsatirmesajgeri arama
     """
 
-    name: Platform = Platform.TELEGRAM  # 子类覆盖
+    name: Platform = Platform.TELEGRAM  # altsinifuzerine yaz
 
     def __init__(
         self,
@@ -81,8 +81,8 @@ class PlatformHandler(ABC):
     ):
         """
         Args:
-            on_message: 收到消息时的回调
-            on_error: 出错时的回调
+            on_message: alkadarmesajzamangeri arama
+            on_error: yanliszamangeri arama
         """
         self.on_message = on_message
         self.on_error = on_error or self._default_error_handler
@@ -94,17 +94,17 @@ class PlatformHandler(ABC):
 
     @abstractmethod
     async def start(self) -> None:
-        """启动平台连接"""
+        """baslatplatformbaglabaglan"""
         raise NotImplementedError
 
     @abstractmethod
     async def stop(self) -> None:
-        """停止平台连接"""
+        """durdurplatformbaglabaglan"""
         raise NotImplementedError
 
     @abstractmethod
     async def send(self, message: OutgoingMessage) -> bool:
-        """发送消息"""
+        """mesaj gonder"""
         raise NotImplementedError
 
     @property
@@ -114,12 +114,12 @@ class PlatformHandler(ABC):
 
 class NoopHandler(PlatformHandler):
     """
-    空实现 Handler（平台未配置时使用）。
+    bosuygula Handler (platformhenuzyapilandirmazamankullan) . 
 
-    记录日志但不实际连接。
+    kayitlogancakhayirgercekbaglabaglan. 
     """
 
-    name = Platform.TELEGRAM  # 占位
+    name = Platform.TELEGRAM  # isgalkonum
 
     def __init__(self, platform: Platform, **kwargs):
         self.name = platform

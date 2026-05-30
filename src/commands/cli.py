@@ -4,18 +4,18 @@ from __future__ import annotations
 
 
 """
-Oh My Coder CLI - 命令行入口
+Oh My Coder CLI -Komut satırı girişi
 
-使用 typer 构建友好的 CLI 界面。
+kullanmaktyperDostça inşa edinCLIarayüz.
 
-主要命令：
-- omc run <task>         # 执行任务
-- omc explore            # 探索代码库
-- omc wiki               # 生成项目 Wiki
-- omc agents             # 列出所有 Agent
-- omc status             # 查看状态
-- omc --version          # 显示版本
-- omc --help             # 帮助信息
+Ana komutlar:
+- omc run <task>         #görevleri gerçekleştirmek
+- omc explore            #Kod tabanını keşfedin
+- omc wiki               #Proje oluşturWiki
+- omc agents             #hepsini listeleAgent
+- omc status             #Durumu görüntüle
+- omc --version          #sürümü göster
+- omc --help             #Yardım bilgileri
 """
 
 
@@ -25,7 +25,7 @@ from pathlib import Path
 import typer
 
 # ============================================================
-# 启动时加载环境变量（优先级：用户级 > 项目级）
+#Ortam değişkenlerini başlangıçta yükleyin (öncelik: kullanıcı düzeyi>proje düzeyi)
 # ============================================================
 from dotenv import load_dotenv
 from rich.console import Console
@@ -62,29 +62,29 @@ from .cli_task import app as task_app
 from .cli_tui import app as tui_app
 from .cli_usage import app as usage_app
 
-# 用户级配置 ~/.omc/.env（最高优先级）
+#Kullanıcı düzeyinde yapılandırma~/.omc/.env(en yüksek öncelik)
 _user_env = Path.home() / ".omc" / ".env"
 if _user_env.exists():
     load_dotenv(_user_env, override=True)
 
-# 项目级配置 .env（次优先级）
+#Proje düzeyinde yapılandırma.env(düşük öncelik)
 _project_env = Path(".env")
 if _project_env.exists():
     load_dotenv(_project_env, override=True)
 
-# 版本信息
+#Sürüm bilgisi
 __version__ = "0.2.0"
 __author__ = "VOBC"
 __repo__ = "https://github.com/VOBC/oh-my-coder"
 
 app = typer.Typer(
     name="omc",
-    help=f"Oh My Coder v{__version__} - 多智能体 AI 编程助手",
+    help=f"Oh My Coder v{__version__} -çoklu ajanAIProgramlama Asistanı",
     add_completion=False,
     no_args_is_help=True,
 )
 
-# 注册子命令
+#Alt komutu kaydet
 app.add_typer(config_ext_app, name="agent-config")
 app.add_typer(task_app, name="task")
 app.add_typer(multiagent_app, name="multiagent")
@@ -92,84 +92,84 @@ app.add_typer(security_app, name="security")
 app.add_typer(checkpoint_app, name="checkpoint")
 app.add_typer(mcp_app, name="mcp")
 app.add_typer(
-    skill_app, name="skill", help="Skill 系统 - 内置和自定义 Skill 管理与执行"
+    skill_app, name="skill", help="Skillsistem-Yerleşik ve özelSkillYönetim ve Yürütme"
 )
-app.add_typer(usage_app, name="usage", help="用量统计与追踪 - stats/trace/memory")
-app.add_typer(migrate_app, name="migrate", help="记忆迁移 - 从 Claude/Gemini 导入配置")
-app.add_typer(tui_app, name="tui", help="TUI 交互界面 - 简易终端交互")
+app.add_typer(usage_app, name="usage", help="Kullanım istatistikleri ve izleme- stats/trace/memory")
+app.add_typer(migrate_app, name="migrate", help="hafıza aktarımı-itibarenClaude/Geminiçalışma alanı")
+app.add_typer(tui_app, name="tui", help="TUIEtkileşimli arayüz-Basit terminal etkileşimi")
 app.add_typer(
-    self_config_app, name="self-config", help="自配置 - 自然语言配置 API Key/模型/代理"
+    self_config_app, name="self-config", help="kendi kendini yapılandırma-Doğal dil yapılandırmasıAPI Key/Modeli/oyunculuk"
 )
-app.add_typer(doctor_app, name="doctor", help="环境诊断 - 检查常见问题并给出修复建议")
-app.add_typer(commands_app, name="cmd", help="命令系统 - 运行自定义 Markdown 命令")
-app.add_typer(pkg_app, name="pkg", help="包管理器 - Homebrew/npm/scoop/winget/AUR")
-app.add_typer(lsp_app, name="lsp", help="LSP 集成 - 读取代码诊断信息")
-app.add_typer(search_app, name="search", help="代码搜索 - Sourcegraph 公开代码库搜索")
-app.add_typer(review_app, name="review", help="代码审查 - 智能分析代码变更")
-app.add_typer(quality_app, name="quality", help="代码质量检查 - ruff/black 集成")
-app.add_typer(profile_app, name="profile", help="Profile 隔离 - 子 Agent 上下文管理")
-app.add_typer(server_app, name="server", help="远程 Server - HTTP REST API 服务")
+app.add_typer(doctor_app, name="doctor", help="Çevresel teşhis-Yaygın sorunları kontrol edin ve düzeltme önerilerinde bulunun")
+app.add_typer(commands_app, name="cmd", help="komuta sistemi-Özel çalıştırMarkdownEmir")
+app.add_typer(pkg_app, name="pkg", help="Paket yöneticisi- Homebrew/npm/scoop/winget/AUR")
+app.add_typer(lsp_app, name="lsp", help="LSPentegre-Kod tanılama bilgilerini okuyun")
+app.add_typer(search_app, name="search", help="kod arama- SourcegraphGenel kod tabanı araması")
+app.add_typer(review_app, name="review", help="kod incelemesi-Kod değişikliklerinin akıllı analizi")
+app.add_typer(quality_app, name="quality", help="Kod kalite kontrolü- ruff/blackentegre")
+app.add_typer(profile_app, name="profile", help="Profileizolasyon-oğulAgentbağlam yönetimi")
+app.add_typer(server_app, name="server", help="uzakServer - HTTP REST APISert")
 
-# 代码清理命令
+#kod temizleme komutları
 try:
     from .cli_clean import app as clean_app
 
-    app.add_typer(clean_app, name="clean", help="代码清理 - 检测和清理冗余代码")
+    app.add_typer(clean_app, name="clean", help="kod temizleme-Gereksiz kodu tespit edin ve temizleyin")
 except Exception:
     pass
 
-# model 子命令
+# modelalt komut
 from .cli_model import app as model_app  # noqa: E402
 
-app.add_typer(model_app, name="model", help="模型管理 - 查看/切换默认模型，本地 Ollama 支持")
+app.add_typer(model_app, name="model", help="Mevcut tüm modelleri listeleyin (destekler)-Kontrol etmek/Varsayılan modeli değiştir, yerelOllamaDestek")
 
-# gateway 子命令（懒导入，避免 gateway 依赖缺失时报错）
+# gatewayalt komut (tembel içe aktarma, kaçınmagatewayBir bağımlılık eksik olduğunda bir hata oluşur)
 try:
     from .cli_gateway import app as gateway_app  # noqa: E402
 
-    app.add_typer(gateway_app, name="gateway", help="多平台网关 - Telegram / Discord")
+    app.add_typer(gateway_app, name="gateway", help="Çok platformlu ağ geçidi- Telegram / Discord")
 except Exception:
-    pass  # gateway 依赖缺失时跳过
+    pass  # gatewayBağımlılık eksikse atla
 
-# doc 子命令 - 文档管理
+# docalt komut-Doküman yönetimi
 try:
     from .cli_doc import app as doc_app  # noqa: E402
 
-    app.add_typer(doc_app, name="doc", help="文档管理 - 生成、验证、同步项目文档")
+    app.add_typer(doc_app, name="doc", help="Doküman yönetimi-Belirtilenleri yürüt")
 except Exception:
     pass
 
-# agent 子命令 - Agent 配置管理与自进化
+# agentalt komut- AgentKonfigürasyon yönetimi ve kişisel gelişim
 try:
     from .cli_agent import app as agent_app  # noqa: E402
 
-    app.add_typer(agent_app, name="agent", help="Agent 管理 - 导出/导入/进化")
+    app.add_typer(agent_app, name="agent", help="Agentüstesinden gelmek-İhracat/içe aktarmak/evrim")
 except Exception:
     pass
 
-# template 子命令 - 工作流模板
+# templatealt komut-İş akışı şablonu
 try:
     from .cli_template import app as template_app  # noqa: E402
 
-    app.add_typer(template_app, name="template", help="工作流模板 - 列出/使用模板")
+    app.add_typer(template_app, name="template", help="Mevcut durum:-Ekran miktarı/Şablonları kullanın")
 except Exception:
     pass
 
-# monorepo 子命令 - 工作区感知
+# monorepoalt komut-çalışma alanı farkındalığı
 try:
     from .cli_monorepo import app as monorepo_app  # noqa: E402
 
     app.add_typer(
-        monorepo_app, name="monorepo", help="Monorepo 支持 - pnpm/lerna/nx 工作区感知"
+        monorepo_app, name="monorepo", help="MonorepoDestek- pnpm/lerna/nxçalışma alanı farkındalığı"
     )
 except Exception:
     pass
 
-# init 子命令 - 交互式初始化引导
+# initalt komut-Etkileşimli başlatma önyüklemesi
 try:
     from .cli_init import app as init_app  # noqa: E402
 
-    app.add_typer(init_app, name="init", help="初始化引导 - 交互式配置 oh-my-coder")
+    app.add_typer(init_app, name="init", help="İlk önyükleme-Etkileşimli yapılandırmaoh-my-coder")
 except Exception:
     pass
 
@@ -183,11 +183,11 @@ def main(
         None,
         "--version",
         "-v",
-        help="显示版本信息",
+        help="Sürüm bilgilerini göster",
         is_eager=True,
     ),
 ):
-    """Oh My Coder - 多智能体 AI 编程助手"""
+    """Oh My Coder -çoklu ajanAIProgramlama Asistanı"""
     if version:
         _print_version()
         raise typer.Exit(0)
@@ -195,9 +195,9 @@ def main(
         console.print(
             Panel.fit(
                 f"[bold cyan]Oh My Coder[/bold cyan] v{__version__}\n"
-                f"[dim]多智能体 AI 编程助手[/dim]\n\n"
-                f"[dim]使用 [bold]omc --help[/bold] 查看所有命令[/dim]\n"
-                f"[dim]仓库: {__repo__}[/dim]",
+                f"[dim]çoklu ajanAIProgramlama Asistanı[/dim]\n\n"
+                f"[dim]kullanmak[bold]omc --help[/bold]Tüm komutları görüntüle[/dim]\n"
+                f"[dim]depo: {__repo__}[/dim]",
                 border_style="cyan",
             )
         )
@@ -205,7 +205,7 @@ def main(
 
 
 def _print_version():
-    """打印版本信息"""
+    """Sürüm bilgilerini yazdır"""
     console.print(
         f"[bold cyan]oh-my-coder[/bold cyan] version [green]{__version__}[/green]"
     )
@@ -214,7 +214,7 @@ def _print_version():
 
 
 # ============================================================
-# 顶级命令（从 cli_run 导入）
+#Üst düzey komutlar (cli_runiçe aktarmak)
 # ============================================================
 app.command()(run)
 app.command()(explore)
@@ -222,7 +222,7 @@ app.command()(wiki)
 
 
 # ============================================================
-# Quest Mode 命令（从 cli_quest 导入）
+# Quest Modekomut (dancli_questiçe aktarmak)
 # ============================================================
 from src.commands.cli_quest import (
     quest,
@@ -249,13 +249,13 @@ app.command("quest-wait")(quest_wait)
 
 @app.command()
 def agents():
-    """列出所有可用 Agent"""
-    table = Table(title="可用智能体")
-    table.add_column("名称", style="cyan")
-    table.add_column("描述")
-    table.add_column("层级", style="green")
+    """Mevcut olanların hepsini listeleAgent"""
+    table = Table(title="Mevcut acenteler")
+    table.add_column("isim", style="cyan")
+    table.add_column("betimlemek")
+    table.add_column("Hiyerarşi", style="green")
 
-    # 导入所有 Agent
+    #Tümünü içe aktarAgent
     from src.agents import (
         AnalystAgent,
         APIAgent,
@@ -357,60 +357,60 @@ def agents():
 
     console.print(table)
 
-    console.print(f"\n[dim]共 {len(agents_list)} 个智能体[/dim]")
+    console.print(f"\n[dim]yaygın{len(agents_list)}Modele göre yapılandırın:[/dim]")
 
 
 @app.command()
 def status():
-    """查看系统状态"""
-    console.print("[bold]系统状态[/bold]\n")
+    """Sistem durumunu görüntüle"""
+    console.print("[bold]Sistem durumu[/bold]\n")
 
-    # 检查 API Key
+    #incelemekAPI Key
     api_keys = {
-        "DEEPSEEK_API_KEY": "🟢 生产就绪",
-        "KIMI_API_KEY": "🟢 生产就绪",
-        "DOUBAO_API_KEY": "🟢 生产就绪",
+        "DEEPSEEK_API_KEY": "🟢üretime hazır",
+        "KIMI_API_KEY": "🟢üretime hazır",
+        "DOUBAO_API_KEY": "🟢üretime hazır",
         "MINIMAX_API_KEY": "🟡 Beta",
         "ZHIPUAI_API_KEY": "🟡 Beta",
         "TONGYI_API_KEY": "🟡 Beta",
-        "WENXIN_API_KEY": "🔴 待完善",
-        "HUNYUAN_API_KEY": "🔴 待完善",
+        "WENXIN_API_KEY": "🔴Geliştirilecek",
+        "HUNYUAN_API_KEY": "🔴Geliştirilecek",
     }
 
-    console.print("[bold]模型支持状态:[/bold]")
+    console.print("[bold]Model destek durumu:[/bold]")
     for key, status_label in api_keys.items():
         value = os.getenv(key)
         if value:
-            console.print(f"  {key}: [{status_label}] 已配置")
+            console.print(f"  {key}: [{status_label}]yapılandırılmış")
         else:
-            console.print(f"  {key}: [red]✗ 未配置[/red]")
+            console.print(f"  {key}: [red]✗Yapılandırılmadı[/red]")
 
-    # 检查路由器
+    #Yönlendiriciyi kontrol edin
     console.print()
     try:
         router = _init_router()
         stats = router.get_stats()
         console.print(
             Panel(
-                f"[green]✓ 路由器就绪[/green]\n"
-                f"总请求数: [cyan]{stats['total_requests']}[/cyan]\n"
-                f"总成本:   [cyan]¥{stats['total_cost']:.4f}[/cyan]",
-                title="路由器",
+                f"[green]✓Yönlendirici hazır[/green]\n"
+                f"Toplam istek: [cyan]{stats['total_requests']}[/cyan]\n"
+                f"var olmak,:   [cyan]¥{stats['total_cost']:.4f}[/cyan]",
+                title="yönlendirici",
                 border_style="green",
             )
         )
     except Exception as e:
         console.print(
             Panel(
-                f"[red]✗ 路由器初始化失败[/red]\n\n{e}",
-                title="路由器",
+                f"[red]✗Proje yapısını ve kod organizasyonunu anlayın[/red]\n\n{e}",
+                title="yönlendirici",
                 border_style="red",
             )
         )
 
 
 def _mask_secret(value: str) -> str:
-    """脱敏显示密钥"""
+    """Hassasiyeti azaltılmış ekran tuşu"""
     if not value:
         return ""
     if len(value) <= 8:
@@ -418,9 +418,9 @@ def _mask_secret(value: str) -> str:
     return value[:4] + "****" + value[-4:]
 
 
-# 注册子命令
-app.add_typer(cap_app, name="cap", help="能力包管理 - 导出、导入和分享 Agent 配置")
-app.add_typer(config_app, name="config", help="⚙️ 配置管理")
+#Alt komutu kaydet
+app.add_typer(cap_app, name="cap", help="Yetenek paketi yönetimi-Dışa aktarın, içe aktarın ve paylaşınAgentYapılandırma")
+app.add_typer(config_app, name="config", help="⚙️Yapılandırma yönetimi")
 
 if __name__ == "__main__":
     app()

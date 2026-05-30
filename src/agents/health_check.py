@@ -4,17 +4,17 @@ from __future__ import annotations
 
 
 """
-Agent 健康检查与故障自动重分配
+Agent Durum kontrolü ve arızaların otomatik olarak yeniden dağıtılması
 
-HealthChecker 类：
-- 每 60 秒检查所有活跃 Agent 的状态
-- 判断失败条件：超时（>5min 无心跳）、异常退出、任务错误
-- 失败后自动将任务重分配给空闲 Agent
-- retry_count 上限 3 次，超过后标记 failed 并通知
+HealthChecker tür:
+- Her 60 Tüm aktifleri kontrol etmek için saniyeler yeterli Agent durum
+- Karar başarısızlığı koşulu: zaman aşımı (>5min Kalp atışı yok), anormal çıkış, görev hatası
+- Başarısızlıktan sonra görevleri otomatik olarak boşta olanlara yeniden atayın Agent
+- retry_count üst sınır 3 aşıldıktan sonra işaretlenen zamanlar failed ve bildir
 
-新增数据结构：
+Yeni veri yapısı:
 - AgentHealth: agent_name / status / last_heartbeat / task_id / retry_count
-- HealthCheckResult: 每次检查的结果（可记录日志）
+- HealthCheckResult: Her denetimin sonuçları (günlük kaydedilebilir)
 """
 
 
@@ -35,22 +35,22 @@ if TYPE_CHECKING:
 
 
 # ------------------------------------------------------------------
-# 数据结构
+# veri yapısı
 # ------------------------------------------------------------------
 
 
 class AgentStatus(Enum):
-    """Agent 状态"""
+    """Agent durum"""
 
     HEALTHY = "healthy"
-    STALE = "stale"  # 超时无心跳
+    STALE = "stale"  # Kalp atışı olmadan zaman aşımı
     FAILED = "failed"
     REASSIGNED = "reassigned"
 
 
 @dataclass
 class AgentHealth:
-    """单个 Agent 的健康状态"""
+    """Bekar Agent sağlık durumu"""
 
     agent_name: str
     status: AgentStatus = AgentStatus.HEALTHY
@@ -59,37 +59,37 @@ class AgentHealth:
     retry_count: int = 0
     last_error: Optional[str] = None
     workflow_id: Optional[str] = None
-    step_index: int = -1  # 在工作流中的步骤索引
+    step_index: int = -1  # İş akışındaki adım dizini
 
-    # retry 上限（可配置）
+    # retry üst limit (yapılandırılabilir)
     MAX_RETRIES: int = field(default=3, repr=False)
 
     def touch(self) -> None:
-        """更新心跳时间"""
+        """Kalp atışı süresini güncelle"""
         self.last_heartbeat = time.time()
         if self.status == AgentStatus.STALE:
             self.status = AgentStatus.HEALTHY
 
     def is_stale(self, threshold: float = 300.0) -> bool:
-        """判断是否超时无心跳"""
+        """Zaman aşımının kalp atışı olmadan gerçekleşip gerçekleşmeyeceğini belirleme"""
         return (time.time() - self.last_heartbeat) > threshold
 
     def record_failure(self, error: str) -> bool:
         """
-        记录一次失败，返回是否超过重试上限。
+        Bir başarısızlığı kaydedin ve yeniden deneme sınırının aşılıp aşılmadığını geri gönderin.
 
-        - 若 retry_count < MAX_RETRIES → 可重试（状态改为 STALE）
-        - 若 retry_count >= MAX_RETRIES → 不可重试（状态改为 FAILED）
+        - beğenmek retry_count < MAX_RETRIES → Yeniden denenebilir (durum şu şekilde değiştirildi: STALE)
+        - beğenmek retry_count >= MAX_RETRIES → Tekrar denenemez (durum şu şekilde değiştirildi: FAILED)
         """
         self.retry_count += 1
         self.last_error = error
-        self.last_heartbeat = time.time()  # 重置心跳，避免重复判定
+        self.last_heartbeat = time.time()  # Tekrarlanan belirlemeyi önlemek için kalp atışını sıfırlayın
 
         if self.retry_count >= self.MAX_RETRIES:
             self.status = AgentStatus.FAILED
-            return True  # 已达上限
+            return True  # Sınıra ulaşıldı
         self.status = AgentStatus.STALE
-        return False  # 仍可重试
+        return False  # Yine de tekrar deneyebilirsin
 
     def can_retry(self) -> bool:
         return self.retry_count < self.MAX_RETRIES
@@ -98,13 +98,13 @@ class AgentHealth:
         d = asdict(self)
         d["status"] = self.status.value
         d["last_heartbeat"] = datetime.fromtimestamp(self.last_heartbeat).isoformat()
-        d.pop("MAX_RETRIES")  # 不序列化常量
+        d.pop("MAX_RETRIES")  # Sabitleri serileştirmeyin
         return d
 
 
 @dataclass
 class HealthCheckResult:
-    """单次健康检查的结果"""
+    """Tek bir sağlık kontrolünün sonuçları"""
 
     check_id: str
     checked_agents: int
@@ -128,14 +128,14 @@ class HealthCheckResult:
 
 class HealthChecker:
     """
-    Agent 健康检查器
+    Agent sağlık denetleyicisi
 
-    功能：
-    1. 维护所有活跃 Agent 的健康状态记录
-    2. 定期检查（默认 60 秒间隔）心跳和故障
-    3. 故障后自动重分配任务给空闲 Agent
-    4. 重试上限 3 次，超过后通知用户
-    5. 结果持久化到 .omc/state/health/
+    İşlev:
+    1. Tümünü aktif tut Agent sağlık durumu kaydı
+    2. Periyodik kontrol (varsayılan 60 saniye aralığı) kalp atışı ve başarısızlık
+    3. Bir başarısızlıktan sonra görevleri otomatik olarak boştaki görevlere yeniden atayın Agent
+    4. Yeniden deneme sınırı 3 kez aşın ve kullanıcıyı bilgilendirin
+    5. Sonuçlar sürdürülür .omc/state/health/
     """
 
     def __init__(
@@ -149,12 +149,12 @@ class HealthChecker:
     ):
         """
         Args:
-            orchestrator: Orchestrator 实例（用于任务重分配）
-            check_interval: 检查间隔（秒），默认 60
-            stale_threshold: 心跳超时阈值（秒），默认 300（5 分钟）
-            max_retries: 单个 Agent 失败重试次数上限，默认 3
-            state_dir: 状态文件目录
-            on_notification: 通知回调 (title: str, body: str) -> None
+            orchestrator: Orchestrator Örnek (görevin yeniden dağıtımı için)
+            check_interval: Kontrol aralığı (saniye), varsayılan 60
+            stale_threshold: Kalp atışı zaman aşımı eşiği (saniye), varsayılan 300(5 dakika)
+            max_retries: Bekar Agent Maksimum başarısız yeniden deneme sayısı, varsayılan 3
+            state_dir: Durum dosyası dizini
+            on_notification: Bildirim geri araması (title: str, body: str) -> None
         """
         self.orchestrator = orchestrator
         self.check_interval = check_interval
@@ -164,24 +164,24 @@ class HealthChecker:
         self.state_dir.mkdir(parents=True, exist_ok=True)
         self.on_notification = on_notification
 
-        # Agent 健康状态：agent_name -> AgentHealth
+        # Agent Sağlık durumu:agent_name -> AgentHealth
         self._agent_health: dict[str, AgentHealth] = {}
 
-        # 活跃心跳：agent_name -> asyncio.Task（当前正在执行的任务）
+        # Aktif kalp atışı:agent_name -> asyncio.Task(Görev şu anda yürütülüyor)
         self._active_tasks: dict[str, asyncio.Task[Any]] = {}
 
-        # 后台检查循环
+        # arka plan kontrol döngüsü
         self._check_task: Optional[asyncio.Task[None]] = None
         self._stop_event: Optional[asyncio.Event] = None
 
-        # 检查历史
+        # Geçmişi kontrol et
         self._history: list[HealthCheckResult] = []
 
-        # 总计统计
+        # Toplam istatistikler
         self._total_reassignments = 0
 
     # ------------------------------------------------------------------
-    # 心跳注册
+    # kalp atışı kaydı
     # ------------------------------------------------------------------
 
     def register_agent(
@@ -192,9 +192,9 @@ class HealthChecker:
         step_index: int = -1,
     ) -> AgentHealth:
         """
-        注册一个 Agent 开始执行任务（心跳开始计时）。
+        Kayıt ol Agent Görevi yürütmeye başlayın (kalp atışı zamanlamayı başlatır).
 
-        在 Agent 执行开始时调用。
+        var olmak Agent Yürütme başladığında çağrılır.
         """
         health = AgentHealth(
             agent_name=agent_name,
@@ -209,7 +209,7 @@ class HealthChecker:
         return health
 
     def unregister_agent(self, agent_name: str) -> bool:
-        """取消注册（任务完成后调用）"""
+        """Kaydı sil (görev tamamlandıktan sonra çağrılır)"""
         if agent_name in self._agent_health:
             del self._agent_health[agent_name]
         if agent_name in self._active_tasks:
@@ -217,17 +217,17 @@ class HealthChecker:
         return True
 
     def register_task(self, agent_name: str, task: asyncio.Task[Any]) -> None:
-        """注册 Agent 当前正在执行的 asyncio.Task（用于取消）"""
+        """kayıt olmak Agent Şu anda yürütülüyor asyncio.Task(iptal için)"""
         self._active_tasks[agent_name] = task
 
     def heartbeat(self, agent_name: str) -> bool:
         """
-        更新 Agent 心跳。
+        yenilemek Agent Kalp atışı.
 
-        在 Agent 执行过程中定期调用（如每个 LLM 调用完成后）。
+        var olmak Agent Yürütme sırasında periyodik olarak çağrılır (her biri gibi) LLM arama tamamlandıktan sonra).
 
         Returns:
-            True = 正常，False = Agent 未注册
+            True = normal,False = Agent Kayıtlı değil
         """
         if agent_name not in self._agent_health:
             return False
@@ -235,7 +235,7 @@ class HealthChecker:
         return True
 
     # ------------------------------------------------------------------
-    # 故障记录与重分配
+    # Arıza kaydı ve yeniden dağıtım
     # ------------------------------------------------------------------
 
     def record_failure(
@@ -246,17 +246,17 @@ class HealthChecker:
         step: Optional[WorkflowStep] = None,
     ) -> bool:
         """
-        记录 Agent 执行失败。
+        Kayıt Agent Yürütme başarısız oldu.
 
         Args:
-            agent_name: 失败的 Agent
-            error: 错误信息
-            workflow_id: 所属工作流 ID
-            step: 失败的 WorkflowStep（用于重分配）
+            agent_name: arızalı Agent
+            error: hata mesajı
+            workflow_id: Ait iş akışı ID
+            step: arızalı WorkflowStep(yeniden tahsis için)
 
         Returns:
-            True = 已达重试上限（需通知用户）
-            False = 仍在重试中
+            True = Yeniden deneme sınırına ulaşıldı (kullanıcının bilgilendirilmesi gerekiyor)
+            False = Hala yeniden deneniyor
         """
         if agent_name not in self._agent_health:
             health = self.register_agent(agent_name, workflow_id=workflow_id)
@@ -266,17 +266,17 @@ class HealthChecker:
         exceeded = health.record_failure(error)
 
         if exceeded:
-            # 通知用户
+            # Kullanıcıya bildir
             self._notify(
-                f"⚠️ Agent {agent_name} 失败",
-                f"已重试 {health.retry_count} 次仍失败，任务已放弃。"
-                f"\n\n错误：{error[:200]}",
+                f"⚠️ Agent {agent_name} hata",
+                f"Yeniden denendi {health.retry_count} Yine de başarısız olduğundan görevden vazgeçildi."
+                f"\n\nhata:{error[:200]}",
             )
         else:
-            # 触发重分配
+            # Yeniden tahsisi tetikleyin
             self._notify(
-                f"🔄 Agent {agent_name} 执行异常，正在重试",
-                f"重试 {health.retry_count}/{self.max_retries}\n错误：{error[:100]}",
+                f"🔄 Agent {agent_name} Yürütme istisnası, yeniden deneniyor",
+                f"Tekrar deneyin {health.retry_count}/{self.max_retries}\nhata:{error[:100]}",
             )
 
         self._save_health_log(health)
@@ -289,17 +289,17 @@ class HealthChecker:
         step: WorkflowStep,
     ) -> Optional[str]:
         """
-        将任务重新分配给空闲 Agent。
+        Görevleri boşta olana yeniden atayın Agent.
 
-        策略：
-        1. 遍历所有已注册 Agent，找出状态为 HEALTHY 且不繁忙的
-        2. 若找不到，创建一个新的 executor agent
-        3. 返回新分配的 agent_name
+        Strateji:
+        1. Tüm kayıtlı olanları yineleyin Agentdurumu şu şekilde bulun: HEALTHY meşgul değil
+        2. Bulunamazsa yeni bir tane oluşturun executor agent
+        3. Yeni tahsis edileni iade et agent_name
 
         Returns:
-            新分配的 agent_name，或 None（无法重分配）
+            yeni tahsis edilmiş agent_name,veya None(yeniden tahsis edilemez)
         """
-        # 寻找空闲的同类 Agent
+        # Ücretsiz akranlar bulun Agent
         for name, health in self._agent_health.items():
             if (
                 name != agent_name
@@ -316,7 +316,7 @@ class HealthChecker:
                 )
                 return new_agent_name
 
-        # 找不到空闲 Agent，记录失败但允许继续
+        # Agent bulunamadı; hata kaydedildi ama devam ediliyor
         self._log_reassignment(
             from_agent=agent_name,
             to_agent="<none>",
@@ -334,7 +334,7 @@ class HealthChecker:
         step: str,
         workflow_id: str,
     ) -> None:
-        """记录重分配事件"""
+        """Yeniden tahsis olaylarını günlüğe kaydet"""
         self._total_reassignments += 1
         log_entry = {
             "id": str(uuid.uuid4())[:8],
@@ -351,20 +351,20 @@ class HealthChecker:
             json.dump(log_entry, f, ensure_ascii=False, indent=2)
 
     # ------------------------------------------------------------------
-    # 定期检查循环
+    # Periyodik muayene döngüsü
     # ------------------------------------------------------------------
 
     async def start(self) -> None:
-        """启动后台健康检查循环"""
+        """Arka plan durum denetimi döngüsünü başlat"""
         if self._check_task is not None:
-            return  # 已启动
+            return  # Başlatıldı
 
         self._stop_event = asyncio.Event()
         self._check_task = asyncio.create_task(self._check_loop())
         self._save_status()
 
     async def stop(self) -> None:
-        """停止健康检查循环"""
+        """Durum denetimi döngüsünü durdur"""
         if self._check_task is None:
             return
 
@@ -375,7 +375,7 @@ class HealthChecker:
         self._save_status()
 
     async def _check_loop(self) -> None:
-        """后台检查循环：每 check_interval 秒执行一次"""
+        """Arka plan kontrol döngüsü: her check_interval Saniyede bir kez çalıştır"""
         while True:
             try:
                 await asyncio.sleep(self.check_interval)
@@ -385,20 +385,20 @@ class HealthChecker:
                 result = await self._check_all()
                 if result:
                     self._history.append(result)
-                    # 只保留最近 100 条
+                    # Yalnızca en güncel olanı sakla 100 şerit
                     if len(self._history) > 100:
                         self._history = self._history[-100:]
 
             except asyncio.CancelledError:
                 break
             except Exception:
-                pass  # 静默，不崩溃
+                pass  # Sessizlik, çöküş yok
 
     async def _check_all(self) -> Optional[HealthCheckResult]:
         """
-        执行一次全量检查。
+        Tam bir inceleme yapın.
 
-        检测 STALE（超时）的 Agent，触发重试。
+        Algılama STALE(zaman aşımı) Agent, yeniden denemeyi tetikliyor.
         """
         if not self._agent_health:
             return None
@@ -411,21 +411,21 @@ class HealthChecker:
         reassignments: list[dict[str, Any]] = []
 
         for agent_name, health in list(self._agent_health.items()):
-            # 跳过已完成/失败的
+            # atlama tamamlandı/arızalı
             if health.status in (AgentStatus.FAILED, AgentStatus.REASSIGNED):
                 continue
 
             checked += 1
 
-            # 检查是否超时
+            # Zaman aşımına uğrayıp uğramadığını kontrol edin
             if health.is_stale(self.stale_threshold):
                 stale += 1
                 health.status = AgentStatus.STALE
 
                 if health.can_retry():
-                    # 记录失败，触发重分配
+                    # Kayıt başarısız oldu, yeniden tahsis tetikleniyor
                     health.record_failure(
-                        f"心跳超时（>{self.stale_threshold}s 无响应）"
+                        f"Kalp atışı zaman aşımı (>{self.stale_threshold}s Yanıt yok)"
                     )
                     reassigned += 1
                     reassignments.append(
@@ -440,8 +440,8 @@ class HealthChecker:
                     failed += 1
                     health.status = AgentStatus.FAILED
                     self._notify(
-                        f"❌ Agent {agent_name} 已放弃",
-                        f"连续 {health.retry_count} 次超时，任务停止。",
+                        f"❌ Agent {agent_name} Terk edilmiş",
+                        f"sürekli {health.retry_count} zaman aşımı, görev durur.",
                     )
 
                 self._save_health_log(health)
@@ -462,15 +462,15 @@ class HealthChecker:
         return result
 
     # ------------------------------------------------------------------
-    # 状态查看
+    # Durum görünümü
     # ------------------------------------------------------------------
 
     def get_all_health(self) -> dict[str, dict[str, Any]]:
-        """获取所有 Agent 的健康状态"""
+        """Hepsini al Agent sağlık durumu"""
         return {name: h.to_dict() for name, h in self._agent_health.items()}
 
     def get_summary(self) -> dict[str, Any]:
-        """获取健康检查摘要"""
+        """Durum denetimi özetini alın"""
         statuses = [h.status for h in self._agent_health.values()]
         return {
             "total_registered": len(self._agent_health),
@@ -487,37 +487,37 @@ class HealthChecker:
         }
 
     # ------------------------------------------------------------------
-    # 持久化
+    # sebat
     # ------------------------------------------------------------------
 
     def _save_health_log(self, health: AgentHealth) -> None:
-        """保存单个 Agent 的健康日志"""
+        """tekli kaydet Agent sağlık günlüğü"""
         log_file = self.state_dir / f"health_{health.agent_name}.json"
         with open(log_file, "w", encoding="utf-8") as f:
             json.dump(health.to_dict(), f, ensure_ascii=False, indent=2)
 
     def _save_check_result(self, result: HealthCheckResult) -> None:
-        """保存检查结果"""
+        """Test sonuçlarını kaydet"""
         log_file = self.state_dir / f"check_{result.check_id}.json"
         with open(log_file, "w", encoding="utf-8") as f:
             json.dump(result.to_dict(), f, ensure_ascii=False, indent=2)
 
     def _save_status(self) -> None:
-        """保存全局状态摘要"""
+        """Genel durum özetini kaydet"""
         status_file = self.state_dir / "status.json"
         with open(status_file, "w", encoding="utf-8") as f:
             json.dump(self.get_summary(), f, ensure_ascii=False, indent=2)
 
     # ------------------------------------------------------------------
-    # 通知
+    # bildirmek
     # ------------------------------------------------------------------
 
     def _notify(self, title: str, body: str) -> None:
-        """发送通知"""
+        """Bildirim gönder"""
         if self.on_notification:
             with contextlib.suppress(Exception):
                 self.on_notification(title, body)
-        # 也可写日志文件
+        # Günlük dosyalarını da yazabilir
         log_file = self.state_dir / "notifications.jsonl"
         entry = {
             "title": title,
@@ -529,13 +529,13 @@ class HealthChecker:
 
 
 # ------------------------------------------------------------------
-# CLI 输出格式
+# CLI Çıkış formatı
 # ------------------------------------------------------------------
 
 
 def format_health_display(health_map: dict[str, dict[str, Any]]) -> str:
     """
-    格式化健康状态为可读文本，用于 `omc agent health` 输出。
+    Şunun için sağlık durumunu okunabilir metin olarak biçimlendir: `omc agent health` çıktı.
     """
     if not health_map:
         return "  (no agents registered)"

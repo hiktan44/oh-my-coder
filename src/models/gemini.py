@@ -1,20 +1,12 @@
+"""Google Gemini sağlayıcı adaptörü.
+
+Google'ın OpenAI uyumlu uç noktasını kullanır:
+  https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+
+Kayıt: https://aistudio.google.com/apikey  (GEMINI_API_KEY)
+"""
+
 from __future__ import annotations
-
-# mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
-
-
-"""
-Zhipu GLM (ChatGLM) modeladaptor
-
-API: https://open.bigmodel.cn/api/paas/v4
-dokumantasyon: https://open.bigmodel.cn/dev/api
-
-Ozellikler:
-- ZhipuHuaweikendiarastirbuyukmodel
-- icindemetinyetenekrenk
-- ackaynaksurum ChatGLM3 olabiliryerelkisimyerlestir
-- destekaraccagri (Function Calling) 
-"""
 
 import json
 import time
@@ -32,32 +24,31 @@ from .base import (
     Usage,
 )
 
-# GLM modelyapilandirma
-GLM_MODELS = {
+GEMINI_MODELS = {
     "low": {
-        "name": "glm-4.5-flash",
-        "cost_per_1k_prompt": 0.001,
-        "cost_per_1k_completion": 0.001,
+        "name": "gemini-2.5-flash",
+        "cost_per_1k_prompt": 0.00035,
+        "cost_per_1k_completion": 0.00105,
     },
     "medium": {
-        "name": "glm-4.5",
-        "cost_per_1k_prompt": 0.1,
-        "cost_per_1k_completion": 0.1,
+        "name": "gemini-2.5-flash",
+        "cost_per_1k_prompt": 0.00035,
+        "cost_per_1k_completion": 0.00105,
     },
     "high": {
-        "name": "glm-4.6",
-        "cost_per_1k_prompt": 0.1,
-        "cost_per_1k_completion": 0.1,
+        "name": "gemini-2.5-pro",
+        "cost_per_1k_prompt": 0.00125,
+        "cost_per_1k_completion": 0.01,
     },
 }
 
 
-class GLMModel(BaseModel):
-    """
-    Zhipu GLM (ChatGLM) modeladaptor
+class GeminiAPIError(Exception):
+    """Gemini API hatası."""
 
-    uyumlu OpenAI format, base URL: https://open.bigmodel.cn/api/paas/v4
-    """
+
+class GeminiModel(BaseModel):
+    """Google Gemini model adaptörü (OpenAI uyumlu uç nokta)."""
 
     def __init__(
         self,
@@ -65,59 +56,44 @@ class GLMModel(BaseModel):
         tier: ModelTier = ModelTier.MEDIUM,
     ):
         if config.base_url is None:
-            config.base_url = "https://open.bigmodel.cn/api/paas/v4"
+            config.base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
 
         tier_key = tier.value
-        model_info = GLM_MODELS.get(tier_key, GLM_MODELS["medium"])
-        config.cost_per_1k_prompt = model_info["cost_per_1k_prompt"]
-        config.cost_per_1k_completion = model_info["cost_per_1k_completion"]
+        info = GEMINI_MODELS.get(tier_key, GEMINI_MODELS["medium"])
+        config.cost_per_1k_prompt = info["cost_per_1k_prompt"]
+        config.cost_per_1k_completion = info["cost_per_1k_completion"]
 
         super().__init__(config, tier)
 
     @property
     def provider(self) -> ModelProvider:
-        return ModelProvider.GLM
+        return ModelProvider.GEMINI
 
     @property
     def model_name(self) -> str:
-        return GLM_MODELS[self.tier.value]["name"]
+        return GEMINI_MODELS[self.tier.value]["name"]
 
     async def generate(self, messages: list[Message], **kwargs) -> ModelResponse:
         client = await self._get_client()
-
-        # temel sınıfın istek oluşturma yöntemini kullan
         request_body = self._build_request_body(messages, **kwargs)
-        # GLM-4.5+ varsayılan reasoning'i kapatma: content boş kalmasın
-        request_body.setdefault("thinking", {"type": "disabled"})
 
         start_time = time.time()
 
         async def _do_request():
-            """çekirdek istek mantığı, saglaryeniden denemekanizmacagri"""
             response = await client.post("/chat/completions", json=request_body)
             response.raise_for_status()
             return response
 
         try:
-            # temel sınıfın yeniden deneme mekanizmasını kullan
             response = await self._execute_with_retry(_do_request)
             response.raise_for_status()
             data = response.json()
             latency_ms = (time.time() - start_time) * 1000
 
             choice = data["choices"][0]
-            delta = choice["message"]
-
-            # GLM döndürebilir text veya content veya tool_calls
-            content = ""
-            if delta.get("text"):
-                content = delta["text"]
-            elif delta.get("content"):
-                content = delta["content"] or ""
-            elif delta.get("reasoning_content"):
-                content = delta["reasoning_content"] or ""
-
-            tool_calls = delta.get("tool_calls", [])
+            msg = choice["message"]
+            content = msg.get("content") or ""
+            tool_calls = msg.get("tool_calls", [])
 
             usage_data = data.get("usage", {})
             usage = Usage(
@@ -140,17 +116,16 @@ class GLMModel(BaseModel):
             )
 
         except httpx.HTTPStatusError as e:
-            raise GLMAPIError(f"Zhipu GLM API hata ({e.response.status_code}): {e}")
+            raise GeminiAPIError(
+                f"Gemini API hatası ({e.response.status_code}): {e.response.text[:300]}"
+            )
         except httpx.RequestError as e:
-            raise GLMAPIError(f"ag istegibasarisiz: {e}")
+            raise GeminiAPIError(f"Ağ isteği başarısız: {e}")
 
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
         client = await self._get_client()
-
-        # temel sınıfın istek oluşturma yöntemini kullan
         request_body = self._build_request_body(messages, **kwargs)
         request_body["stream"] = True
-        request_body.setdefault("thinking", {"type": "disabled"})
 
         try:
             async with client.stream(
@@ -167,17 +142,14 @@ class GLMModel(BaseModel):
                     try:
                         data = json.loads(line)
                         delta = data["choices"][0].get("delta", {})
-                        content = delta.get("content", delta.get("text", ""))
+                        content = delta.get("content", "")
                         if content:
                             yield content
                     except json.JSONDecodeError:
                         continue
-
         except httpx.HTTPStatusError as e:
-            raise GLMAPIError(f"Zhipu GLM API hata ({e.response.status_code}): {e}")
+            raise GeminiAPIError(
+                f"Gemini stream hatası ({e.response.status_code}): {e}"
+            )
         except httpx.RequestError as e:
-            raise GLMAPIError(f"ag istegibasarisiz: {e}")
-
-
-class GLMAPIError(Exception):
-    """Zhipu GLM API hata"""
+            raise GeminiAPIError(f"Ağ isteği başarısız: {e}")

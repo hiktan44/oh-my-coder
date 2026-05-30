@@ -4,19 +4,19 @@ from __future__ import annotations
 
 
 """
-模型路由器 - 智能选择最优模型
+modelyoltarafindan - akilliedebilirsecseceniyimodel
 
-核心功能：
-1. 根据任务类型选择合适的模型层级
-2. 根据成本预算选择提供商
-3. 支持故障转移（fallback）
-4. 记录路由决策用于优化
-5. 响应缓存（避免重复请求）
-6. 增强日志和错误处理
+cekirdekIslev:
+1. goregorevtipsecsecbirlestiruygunmodelkatmanseviye
+2. goreolonhesaplasecsecsaglayici
+3. destekarizadonusturhareket (fallback) 
+4. kayityoltarafindankararkullandeiyi
+5. yanitonbellek (kacintekrartekraristek) 
+6. artguclulogvehata isleme
 
-设计思路：
-原项目使用 haiku/sonnet/opus 三层模型路由，节省 30-50% token。
-我们扩展为多提供商路由，优先使用 DeepSeek（免费），必要时才调用付费模型。
+tasarimdusunceyol: 
+asilprojekullan haiku/sonnet/opus uckatmanmodelyoltarafindan, bolumatla 30-50% token. 
+benlergenisleticincoksaglayiciyoltarafindan, oncelikkullan DeepSeek (ucretsiz) , gerekliisterzamanyetenekcagriucretlimodel. 
 """
 
 import asyncio
@@ -29,7 +29,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# 加载 .env 文件，确保 DEFAULT_MODEL 等配置能正确读取
+# yukle .env dosya, saglar DEFAULT_MODEL vb.yapilandirmaedebilirdogruoku
 load_dotenv(Path.home() / ".omc" / ".env", override=False)
 load_dotenv(Path(".env"), override=False)
 
@@ -50,7 +50,7 @@ from ..models.deepseek import DeepSeekModel
 from ..utils.api_key_mask import mask_api_key
 
 # ============================================================
-# 用户自定义模型目录
+# kullaniciozelmodeldizin
 # ============================================================
 USER_MODELS_DIR = Path.home() / ".omc" / "models"
 
@@ -64,7 +64,7 @@ logger = logging.getLogger("omc.router")
 # Task Type Enum
 # ============================================================
 class TaskType:
-    """任务类型 - 用于路由决策（使用类避免 Enum 序列化问题）"""
+    """gorevtip - kullandeyoltarafindankarar (kullansinifkacin Enum sirasorun) """
 
     EXPLORE = "explore"
     SIMPLE_QA = "simple_qa"
@@ -96,19 +96,19 @@ class TaskType:
 
 
 # ============================================================
-# 任务类型到模型层级的映射
+# gorevtipkadarmodelkatmanseviyeesle
 # ============================================================
 _TASK_TIER_MAPPING: dict[str, str] = {
-    # LOW tier - 快速便宜
+    # LOW tier - hizlihizkolayuygun
     TaskType.EXPLORE: "low",
     TaskType.SIMPLE_QA: "low",
     TaskType.FORMATTING: "low",
-    # MEDIUM tier - 平衡
+    # MEDIUM tier - denge
     TaskType.CODE_GENERATION: "medium",
     TaskType.DEBUGGING: "medium",
     TaskType.TESTING: "medium",
     TaskType.REFACTORING: "medium",
-    # HIGH tier - 最高质量
+    # HIGH tier - enyuksekkalitemiktar
     TaskType.ARCHITECTURE: "high",
     TaskType.SECURITY_REVIEW: "high",
     TaskType.CODE_REVIEW: "high",
@@ -121,9 +121,9 @@ _TASK_TIER_MAPPING: dict[str, str] = {
 # ============================================================
 @dataclass
 class RouterConfig:
-    """路由器配置"""
+    """yoltarafindanyapilandirma"""
 
-    # API Keys（从环境变量读取）
+    # API Keys (ortam degiskenmiktaroku) 
     deepseek_api_key: Optional[str] = None
     wenxin_api_key: Optional[str] = None
     tongyi_api_key: Optional[str] = None
@@ -132,38 +132,47 @@ class RouterConfig:
     kimi_api_key: Optional[str] = None
     hunyuan_api_key: Optional[str] = None
     doubao_api_key: Optional[str] = None
+    gemini_api_key: Optional[str] = None  # Google Gemini (ücretli)
 
-    # Ollama 本地模型配置
+    # Ollama yerel model yapılandırması
     ollama_base_url: Optional[str] = None
-    ollama_model: Optional[str] = None  # 如 qwen2:7b
-    prefer_local: bool = True  # 优先使用本地模型
+    ollama_model: Optional[str] = None  # ornegin qwen2:7b
+    prefer_local: bool = True  # oncelikkullanyerelmodel
 
-    # 成本预算（元）
+    # olonhesapla (ogre) 
     daily_budget: float = 10.0
 
-    # 故障转移顺序
+    # arizadonusturhareketsira
     fallback_order: list[str] = field(default_factory=list)
 
-    # 缓存配置
+    # onbellekyapilandirma
     cache_enabled: bool = True
-    cache_ttl_seconds: int = 300  # 5 分钟缓存
+    cache_ttl_seconds: int = 300  # 5 puandakikaonbellek
     cache_max_entries: int = 100
 
     def __post_init__(self):
-        # 1) 从 ~/.omc/config.json 加载 API Keys（Web UI 设置页写入）
+        # 1)  ~/.omc/config.json yukle API Keys (Web UI ayarlaayarsayfayazgiris) 
         self._load_from_config_file()
 
-        # 2) 环境变量覆盖（优先级最高）
-        self.deepseek_api_key = self.deepseek_api_key or os.getenv("DEEPSEEK_API_KEY")
-        self.wenxin_api_key = self.wenxin_api_key or os.getenv("WENXIN_API_KEY")
-        self.tongyi_api_key = self.tongyi_api_key or os.getenv("TONGYI_API_KEY")
-        self.glm_api_key = self.glm_api_key or os.getenv("ZHIPUAI_API_KEY")
-        self.minimax_api_key = self.minimax_api_key or os.getenv("MINIMAX_API_KEY")
-        self.kimi_api_key = self.kimi_api_key or os.getenv("KIMI_API_KEY")
-        self.hunyuan_api_key = self.hunyuan_api_key or os.getenv("HUNYUAN_API_KEY")
-        self.doubao_api_key = self.doubao_api_key or os.getenv("DOUBAO_API_KEY")
+        # 2) ortam değişkeni üzerine yaz (öncelik en yüksek)
+        # Placeholder değerleri (your_api_key vb.) gerçek anahtar sayılmasın
+        def _env(name: str) -> Optional[str]:
+            v = os.getenv(name, "").strip()
+            if not v or v.lower().startswith("your_") or v in ("xxx", "changeme"):
+                return None
+            return v
 
-        # 3) Ollama 配置
+        self.deepseek_api_key = self.deepseek_api_key or _env("DEEPSEEK_API_KEY")
+        self.wenxin_api_key = self.wenxin_api_key or _env("WENXIN_API_KEY")
+        self.tongyi_api_key = self.tongyi_api_key or _env("TONGYI_API_KEY")
+        self.glm_api_key = self.glm_api_key or _env("GLM_API_KEY") or _env("ZHIPUAI_API_KEY")
+        self.minimax_api_key = self.minimax_api_key or _env("MINIMAX_API_KEY")
+        self.kimi_api_key = self.kimi_api_key or _env("KIMI_API_KEY")
+        self.hunyuan_api_key = self.hunyuan_api_key or _env("HUNYUAN_API_KEY")
+        self.doubao_api_key = self.doubao_api_key or _env("DOUBAO_API_KEY")
+        self.gemini_api_key = self.gemini_api_key or _env("GEMINI_API_KEY")
+
+        # 3) Ollama yapilandirma
         self.ollama_base_url = self.ollama_base_url or os.getenv(
             "OLLAMA_BASE_URL", "http://localhost:11434"
         )
@@ -174,11 +183,11 @@ class RouterConfig:
             "yes",
         )
 
-        # 3b) 读取用户配置的默认模型（优先级：环境变量 > config.json）
-        # 兼容 OMC_DEFAULT_MODEL（环境变量）、DEFAULT_MODEL（.env）和 defaults.model（config.json）
+        # 3b) okukullaniciyapilandirmavarsayilanmodel (oncelikseviye: ortam degiskenmiktar > config.json) 
+        # uyumlu OMC_DEFAULT_MODEL (ortam degiskenmiktar) , DEFAULT_MODEL (.env) ve defaults.model (config.json) 
         default_model = os.getenv("OMC_DEFAULT_MODEL") or os.getenv("DEFAULT_MODEL", "")
         if not default_model:
-            # 尝试从 ~/.omc/config.json 读取 defaults.model
+            # dene ~/.omc/config.json oku defaults.model
             try:
                 config_path = Path.home() / ".omc" / "config.json"
                 if config_path.exists():
@@ -189,25 +198,26 @@ class RouterConfig:
             except Exception:
                 pass
 
-        # 4) 默认故障转移顺序（优先本地模型，然后免费/便宜的云端）
-        # 用户配置的默认模型永远排在第一位，而不是硬编码 deepseek
+        # 4) varsayilanarizadonusturhareketsira (oncelikyerelmodel, sonraucretsiz/kolayuygunbulutuc) 
+        # kullaniciyapilandirmavarsayilanmodelkaliciuzaksiralaicindeincibirkonum, vehayirdirsertduzenlekod deepseek
         if not self.fallback_order:
             prefer_local = self.prefer_local
 
-            # 通用云端备选列表（不含ollama和用户默认模型）
+            # kullanbulutuchazirlasecliste (hayiricerirollamavekullanicivarsayilanmodel) 
             cloud_fallback = [
-                "deepseek",  # 免费额度高
-                "kimi",  # 长上下文
-                "doubao",  # 性价比高
+                "deepseek",  # ücretsiz kota yüksek
+                "kimi",  # uzun bağlam
+                "doubao",  # fiyat/performans yüksek
                 "minimax",  # MiniMax
-                "glm",  # 智谱
-                "tongyi",  # 通义千问
-                "wenxin",  # 文心一言
-                "hunyuan",  # 混元
+                "glm",  # Zhipu
+                "tongyi",  # Tongyi
+                "wenxin",  # Wenxin
+                "hunyuan",  # Hunyuan
+                "gemini",  # Google Gemini (ücretli, premium fallback)
             ]
 
             if default_model and default_model != "ollama":
-                # 模型 ID → provider 名的映射（前端传的是 glm-4-flash 等模型 ID）
+                # model ID → provider isimesle (frontend glm-4-flash vb.model ID) 
                 _MODEL_ID_TO_PROVIDER = {
                     "deepseek-chat": "deepseek",
                     "glm-4-flash": "glm",
@@ -225,11 +235,11 @@ class RouterConfig:
                     "hunyuan-turbo": "hunyuan",
                     "hunyuan-pro": "hunyuan",
                 }
-                # 如果 default_model 是模型 ID，转换为 provider 名
+                # eger default_model dirmodel ID, donusturicin provider isim
                 default_provider = _MODEL_ID_TO_PROVIDER.get(
                     default_model, default_model
                 )
-                # 用户配置的默认模型（如 glm、kimi 等）插入到第一位
+                # kullaniciyapilandirmavarsayilanmodel (ornegin glm, kimi vb.) takgiriskadarincibirkonum
                 if default_provider in cloud_fallback:
                     cloud_fallback.remove(default_provider)
                 cloud_fallback.insert(0, default_provider)
@@ -237,10 +247,10 @@ class RouterConfig:
             if prefer_local:
                 self.fallback_order = ["ollama"] + cloud_fallback
             else:
-                self.fallback_order = cloud_fallback + ["ollama"]  # 本地模型作为后备
+                self.fallback_order = cloud_fallback + ["ollama"]  # yerel model son seçenek
 
     def _load_from_config_file(self) -> None:
-        """从 ~/.omc/config.json 读取 API Keys（Web UI 设置保存的目标文件）"""
+        """ ~/.omc/config.json oku API Keys (Web UI ayarlaayarkaydethedefisaretdosya) """
         config_path = Path.home() / ".omc" / "config.json"
         if not config_path.exists():
             return
@@ -252,19 +262,20 @@ class RouterConfig:
             models = data.get("models", {})
             if not isinstance(models, dict):
                 return
-            # provider name → RouterConfig field 映射
+            # provider name → RouterConfig field esle
             _key_map = {
                 "deepseek": "deepseek_api_key",
                 "glm": "glm_api_key",
-                "minimax": "minimax_api_key",  # mimo 也映射到 minimax
+                "minimax": "minimax_api_key",  # mimo ayricaeslekadar minimax
                 "mimo": "minimax_api_key",
                 "kimi": "kimi_api_key",
                 "doubao": "doubao_api_key",
                 "tongyi": "tongyi_api_key",
                 "wenxin": "wenxin_api_key",
                 "hunyuan": "hunyuan_api_key",
-                "tiangong": None,  # 暂无对应字段
-                "baichuan": None,  # 暂无对应字段
+                "gemini": "gemini_api_key",
+                "tiangong": None,  # henüz karşılık gelen alan yok
+                "baichuan": None,  # henüz karşılık gelen alan yok
             }
             for provider, field_name in _key_map.items():
                 if not field_name:
@@ -277,9 +288,9 @@ class RouterConfig:
                     current = getattr(self, field_name, None)
                     if not current:
                         setattr(self, field_name, key_val)
-                        logger.debug(f"从 config.json 加载 {provider} API Key")
+                        logger.debug(f" config.json yukle {provider} API Key")
         except Exception as e:
-            logger.warning(f"读取 ~/.omc/config.json 失败: {e}")
+            logger.warning(f"oku ~/.omc/config.json basarisiz: {e}")
 
 
 # ============================================================
@@ -287,7 +298,7 @@ class RouterConfig:
 # ============================================================
 @dataclass
 class RoutingDecision:
-    """路由决策记录"""
+    """yoltarafindankararkayit"""
 
     task_type: str
     selected_provider: str
@@ -302,34 +313,34 @@ class RoutingDecision:
 # ============================================================
 class ResponseCache:
     """
-    简单 LRU 缓存，按消息内容哈希存储响应
+    basittekil LRU onbellek, goremesajicerikhashdepolamayanit
 
-    适用场景：
-    - 重复的探索请求
-    - 相同的分析请求（项目结构未变时）
-    - 相同问题的简单 QA
+    uygunkullansenaryo: 
+    - tekrartekrarkesfetistek
+    - aynianalizistek (proje yapisihenuzdegiszaman) 
+    - aynisorunbasittekil QA
     """
 
     def __init__(self, max_entries: int = 100, ttl_seconds: int = 300):
         self._cache: dict[str, dict[str, Any]] = {}
-        self._order: list[str] = []  # 简单 FIFO（非真实 LRU，但够用）
+        self._order: list[str] = []  # basittekil FIFO (olmayangercek LRU, ancakyeterlikullan) 
         self._max_entries = max_entries
         self._ttl = ttl_seconds
 
     def _make_key(self, messages: list[Message]) -> str:
-        """根据消息内容生成缓存 key"""
+        """goremesajicerikolusturonbellek key"""
         content = "".join(m.content for m in messages)
         return hashlib.sha256(content.encode()).hexdigest()[:16]
 
     def get(self, messages: list[Message]) -> Optional[ModelResponse]:
-        """获取缓存的响应"""
+        """alonbellekyanit"""
         key = self._make_key(messages)
         entry = self._cache.get(key)
 
         if entry is None:
             return None
 
-        # 检查是否过期
+        # kontrololup olmadigidonem
         age = (datetime.now() - entry["cached_at"]).total_seconds()
         if age > self._ttl:
             del self._cache[key]
@@ -340,10 +351,10 @@ class ResponseCache:
         return entry["response"]
 
     def set(self, messages: list[Message], response: ModelResponse) -> None:
-        """缓存响应"""
+        """onbellekyanit"""
         key = self._make_key(messages)
 
-        # LRU 淘汰
+        # LRU ele
         if len(self._cache) >= self._max_entries and key not in self._cache:
             oldest = self._order.pop(0)
             del self._cache[oldest]
@@ -356,12 +367,12 @@ class ResponseCache:
             self._order.append(key)
 
     def clear(self) -> None:
-        """清空缓存"""
+        """temizlebosonbellek"""
         self._cache.clear()
         self._order.clear()
 
     def stats(self) -> dict[str, int]:
-        """缓存统计"""
+        """onbellekistatistik"""
         total = len(self._cache)
         expired = sum(
             1
@@ -381,12 +392,12 @@ class ResponseCache:
 # ============================================================
 class ModelRouter:
     """
-    模型路由器
+    modelyoltarafindan
 
-    核心方法：
-    - select():       选择最优模型
-    - route_and_call(): 路由并执行（带故障转移 + 缓存）
-    - get_stats():    获取路由统计
+    cekirdekyontem: 
+    - select():       secseceniyimodel
+    - route_and_call(): yoltarafindanveyurut (kemerarizadonusturhareket + onbellek) 
+    - get_stats():    alyoltarafindanistatistik
     """
 
     def __init__(self, config: Optional[RouterConfig] = None):
@@ -406,8 +417,8 @@ class ModelRouter:
         self._initialize_models()
 
     def _initialize_models(self) -> None:
-        """初始化所有可用模型（惰性初始化）"""
-        # Ollama 本地模型（优先检测）
+        """baslatvarolabilirkullanmodel (tembelbaslat) """
+        # Ollama yerelmodel (oncelikalgilama) 
         try:
             from ..models.ollama import OLLAMA_DEFAULT_URL, OllamaModel
 
@@ -419,16 +430,16 @@ class ModelRouter:
                     self._models.setdefault("ollama", {})[tier] = OllamaModel(
                         cfg, ModelTier(tier), model_name=model_name
                     )
-                logger.info(f"Ollama 本地模型已初始化 ({model_name})")
+                logger.info(f"Ollama yerelmodel başlatıldı ({model_name})")
 
-                # 列出可用模型
+                # listeleolabilirkullanmodel
                 available = OllamaModel.list_models(base_url)
                 if available:
-                    logger.info(f"本地可用模型: {[m['name'] for m in available[:5]]}")
+                    logger.info(f"yerelolabilirkullanmodel: {[m['name'] for m in available[:5]]}")
             else:
-                logger.debug(f"Ollama 服务不可用 ({base_url})")
+                logger.debug(f"Ollama servishayirolabilirkullan ({base_url})")
         except Exception as e:
-            logger.debug(f"Ollama 初始化跳过: {e}")
+            logger.debug(f"Ollama baslatatla: {e}")
 
         # DeepSeek
         if self.config.deepseek_api_key:
@@ -438,11 +449,11 @@ class ModelRouter:
                     self._models.setdefault("deepseek", {})[tier] = DeepSeekModel(
                         cfg, ModelTier(tier)
                     )
-                logger.info("DeepSeek 模型已初始化")
+                logger.info("DeepSeek model başlatıldı")
             except Exception as e:
-                logger.warning(f"DeepSeek 初始化失败: {mask_api_key(str(e))}")
+                logger.warning(f"DeepSeek başlatma başarısız: {mask_api_key(str(e))}")
 
-        # 文心一言
+        # Wenxin
         wenxin_secret = os.getenv("WENXIN_SECRET_KEY")
         if self.config.wenxin_api_key and wenxin_secret:
             try:
@@ -453,11 +464,11 @@ class ModelRouter:
                     self._models.setdefault("wenxin", {})[tier] = WenxinModel(
                         cfg, ModelTier(tier), secret_key=wenxin_secret
                     )
-                logger.info("文心一言模型已初始化")
+                logger.info("Wenxinmodel başlatıldı")
             except Exception as e:
-                logger.warning(f"文心一言初始化失败: {mask_api_key(str(e))}")
+                logger.warning(f"Wenxinbaşlatma başarısız: {mask_api_key(str(e))}")
 
-        # 通义千问
+        # Tongyi
         if self.config.tongyi_api_key:
             try:
                 from ..models.tongyi import TongyiModel
@@ -467,11 +478,11 @@ class ModelRouter:
                     self._models.setdefault("tongyi", {})[tier] = TongyiModel(
                         cfg, ModelTier(tier)
                     )
-                logger.info("通义千问模型已初始化")
+                logger.info("Tongyimodel başlatıldı")
             except Exception as e:
-                logger.warning(f"通义千问初始化失败: {mask_api_key(str(e))}")
+                logger.warning(f"Tongyibaşlatma başarısız: {mask_api_key(str(e))}")
 
-        # 智谱 GLM
+        # Zhipu GLM
         if self.config.glm_api_key:
             try:
                 from ..models.glm import GLMModel
@@ -481,9 +492,23 @@ class ModelRouter:
                     self._models.setdefault("glm", {})[tier] = GLMModel(
                         cfg, ModelTier(tier)
                     )
-                logger.info("智谱 GLM 模型已初始化")
+                logger.info("Zhipu GLM model başlatıldı")
             except Exception as e:
-                logger.warning(f"智谱 GLM 初始化失败: {mask_api_key(str(e))}")
+                logger.warning(f"Zhipu GLM başlatma başarısız: {mask_api_key(str(e))}")
+
+        # Google Gemini (ücretli)
+        if self.config.gemini_api_key:
+            try:
+                from ..models.gemini import GeminiModel
+
+                for tier in ["low", "medium", "high"]:
+                    cfg = ModelConfig(api_key=self.config.gemini_api_key)
+                    self._models.setdefault("gemini", {})[tier] = GeminiModel(
+                        cfg, ModelTier(tier)
+                    )
+                logger.info("Google Gemini modeli başlatıldı")
+            except Exception as e:
+                logger.warning(f"Gemini başlatma hatası: {mask_api_key(str(e))}")
 
         # MiniMax
         if self.config.minimax_api_key:
@@ -495,9 +520,9 @@ class ModelRouter:
                     self._models.setdefault("minimax", {})[tier] = MiniMaxModel(
                         cfg, ModelTier(tier)
                     )
-                logger.info("MiniMax 模型已初始化")
+                logger.info("MiniMax model başlatıldı")
             except Exception as e:
-                logger.warning(f"MiniMax 初始化失败: {mask_api_key(str(e))}")
+                logger.warning(f"MiniMax başlatma başarısız: {mask_api_key(str(e))}")
 
         # Kimi
         if self.config.kimi_api_key:
@@ -509,11 +534,11 @@ class ModelRouter:
                     self._models.setdefault("kimi", {})[tier] = KimiModel(
                         cfg, ModelTier(tier)
                     )
-                logger.info("Kimi 模型已初始化")
+                logger.info("Kimi model başlatıldı")
             except Exception as e:
-                logger.warning(f"Kimi 初始化失败: {mask_api_key(str(e))}")
+                logger.warning(f"Kimi başlatma başarısız: {mask_api_key(str(e))}")
 
-        # 腾讯混元
+        # Tencent Hunyuan
         if self.config.hunyuan_api_key:
             try:
                 from ..models.hunyuan import HunyuanModel
@@ -524,11 +549,11 @@ class ModelRouter:
                     self._models.setdefault("hunyuan", {})[tier] = HunyuanModel(
                         cfg, ModelTier(tier), secret_key=hunyuan_secret
                     )
-                logger.info("腾讯混元模型已初始化")
+                logger.info("Tencent Hunyuanmodel başlatıldı")
             except Exception as e:
-                logger.warning(f"腾讯混元初始化失败: {mask_api_key(str(e))}")
+                logger.warning(f"Tencent Hunyuanbaşlatma başarısız: {mask_api_key(str(e))}")
 
-        # 字节豆包
+        # bytepaket
         if self.config.doubao_api_key:
             try:
                 from ..models.doubao import DoubaoModel
@@ -538,26 +563,26 @@ class ModelRouter:
                     self._models.setdefault("doubao", {})[tier] = DoubaoModel(
                         cfg, ModelTier(tier)
                     )
-                logger.info("字节豆包模型已初始化")
+                logger.info("bytepaketmodel başlatıldı")
             except Exception as e:
-                logger.warning(f"字节豆包初始化失败: {mask_api_key(str(e))}")
+                logger.warning(f"bytepaketbaşlatma başarısız: {mask_api_key(str(e))}")
 
         # ============================================================
-        # 加载用户自定义模型配置 (~/.omc/models/*.yaml)
+        # yuklekullaniciozelmodelyapilandirma (~/.omc/models/*.yaml)
         # ============================================================
         if USER_MODELS_DIR.exists():
             self._load_user_models()
 
-        # 记录可用提供商
+        # kayitolabilirkullansaglayici
         available = list(self._models.keys())
-        logger.info(f"可用模型提供商: {available or '无'}")
+        logger.info(f"olabilirkullanmodelsaglayici: {available or 'yok'}")
 
     def _load_user_models(self) -> None:
         """
-        加载用户自定义模型配置 (~/.omc/models/*.yaml)
+        yuklekullaniciozelmodelyapilandirma (~/.omc/models/*.yaml)
 
-        支持用户添加任意 OpenAI 兼容的模型提供商。
-        配置文件格式见：examples/model-config.yaml
+        destekkullaniciekleherhangi OpenAI uyumlumodelsaglayici. 
+        yapilandirma dosyasiformatgor: examples/model-config.yaml
         """
         if not USER_MODELS_DIR.exists():
             return
@@ -571,29 +596,29 @@ class ModelRouter:
                 if not cfg or not isinstance(cfg, dict):
                     continue
 
-                # 校验必要字段
+                # kontroldogrulagerekliisteralan
                 required = ["provider", "model"]
                 if not all(k in cfg for k in required):
-                    logger.warning(f"跳过 {yaml_file.name}: 缺少必要字段")
+                    logger.warning(f"atla {yaml_file.name}: eksikazgerekliisteralan")
                     continue
 
                 provider = cfg["provider"]
                 model_name = cfg["model"]
 
-                # 如果该 provider 已有内置模型，跳过
+                # egerbu provider varicindeayarmodel, atla
                 if provider in self._models:
-                    logger.debug(f"跳过 {provider}: 已有内置模型")
+                    logger.debug(f"atla {provider}: varicindeayarmodel")
                     continue
 
-                # 获取 API Key
+                # al API Key
                 api_key_env = cfg.get("api_key_env", f"{provider.upper()}_API_KEY")
                 api_key = os.getenv(api_key_env)
 
                 if not api_key:
-                    logger.debug(f"跳过 {provider}: 环境变量 {api_key_env} 未设置")
+                    logger.debug(f"atla {provider}: ortam degiskenmiktar {api_key_env} henuzayarlaayar")
                     continue
 
-                # 使用 OpenAI 兼容接口（DeepSeekModel）初始化
+                # kullan OpenAI uyumlubaglanagiz (DeepSeekModel) baslat
                 base_url = cfg.get("endpoint")
 
                 for tier in ["low", "medium", "high"]:
@@ -602,19 +627,19 @@ class ModelRouter:
                         base_url=base_url,
                         model_name=model_name,
                     )
-                    # 复用 DeepSeek 模型（OpenAI 兼容）
+                    # tekrarkullan DeepSeek model (OpenAI uyumlu) 
                     self._models.setdefault(provider, {})[tier] = DeepSeekModel(
                         model_cfg, ModelTier(tier)
                     )
 
                 loaded_count += 1
-                logger.info(f"用户模型已加载: {provider}/{model_name}")
+                logger.info(f"kullanicimodelyukle: {provider}/{model_name}")
 
             except Exception as e:
-                logger.warning(f"加载 {yaml_file.name} 失败: {mask_api_key(str(e))}")
+                logger.warning(f"yukle {yaml_file.name} basarisiz: {mask_api_key(str(e))}")
 
         if loaded_count > 0:
-            logger.info(f"已加载 {loaded_count} 个用户自定义模型")
+            logger.info(f"yukle {loaded_count} kullaniciozelmodel")
 
     def select(
         self,
@@ -623,21 +648,21 @@ class ModelRouter:
         budget_remaining: Optional[float] = None,
     ) -> RoutingDecision:
         """
-        选择最优模型
+        secseceniyimodel
 
         Args:
-            task_type: 任务类型
-            complexity: 任务复杂度（low/medium/high，可覆盖默认层级）
-            budget_remaining: 剩余预算（元）
+            task_type: gorevtip
+            complexity: gorevtekrarkarisikderece (low/medium/high, olabiliruzerine yazvarsayilankatmanseviye) 
+            budget_remaining: kalankalanonhesapla (ogre) 
 
         Returns:
-            RoutingDecision: 路由决策
+            RoutingDecision: yoltarafindankarar
         """
-        # 确定模型层级
+        # kesinmodelkatmanseviye
         base_tier = _TASK_TIER_MAPPING.get(task_type, "medium")
 
         tier = base_tier
-        # 层级升降
+        # katmanseviyeyukseltdusur
         if complexity == "low" and base_tier == "high":
             tier = "medium"
         elif complexity == "low" and base_tier == "medium":
@@ -647,12 +672,12 @@ class ModelRouter:
         elif complexity == "high" and base_tier == "medium":
             tier = "high"
 
-        # 预算检查（如果设置了预算且不足，降级到便宜模型）
+        # onhesaplakontrol (egerayarlaayaronhesaplavehayiryeterli, dusurseviyekadarkolayuygunmodel) 
         if budget_remaining is not None and budget_remaining < 0.01 and tier == "high":
             tier = "medium"
-            logger.info("预算不足，降级到 MEDIUM tier")
+            logger.info("onhesaplahayiryeterli, dusurseviyekadar MEDIUM tier")
 
-        # 选择提供商（优先 DeepSeek）
+        # secsecsaglayici (oncelik DeepSeek) 
         selected_provider = None
         reason = ""
 
@@ -661,19 +686,19 @@ class ModelRouter:
             if tier in provider_models:
                 selected_provider = provider
                 reason = (
-                    "DeepSeek 免费额度优先"
+                    "DeepSeek ucretsizkotadereceoncelik"
                     if provider == "deepseek"
-                    else f"{provider} 备用"
+                    else f"{provider} hazirlakullan"
                 )
                 break
 
         if selected_provider is None:
             raise NoModelAvailableError(
-                f"没有可用的模型处理 {task_type} 任务（tier={tier}，"
-                f"可用提供商={list(self._models.keys())}"
+                f"yokvarolabilirkullanmodelisle {task_type} gorev (tier={tier}, "
+                f"olabilirkullansaglayici={list(self._models.keys())}"
             )
 
-        # 估算成本
+        # tahminol
         model = self._models[selected_provider][tier]
         estimated_cost = model.get_cost(
             Usage(prompt_tokens=1000, completion_tokens=500)
@@ -689,7 +714,7 @@ class ModelRouter:
 
         self._decision_history.append(decision)
         logger.debug(
-            f"路由决策: {task_type} → {selected_provider}/{tier} "
+            f"yoltarafindankarar: {task_type} → {selected_provider}/{tier} "
             f"(reason={reason}, cost≈{estimated_cost:.4f})"
         )
 
@@ -705,64 +730,64 @@ class ModelRouter:
         **kwargs,
     ) -> ModelResponse:
         """
-        路由并执行（带故障转移 + 缓存）
+        yoltarafindanveyurut (kemerarizadonusturhareket + onbellek) 
 
-        优化点：
-        1. 缓存相同消息的响应
-        2. 故障转移：主模型失败自动切换备用
-        3. 任务类型识别：自动降级/升级 tier
-        4. override_model：用户指定模型时直接使用，忽略自动选择
+        iyinokta: 
+        1. onbellekaynimesajyanit
+        2. arizadonusturhareket: anamodelbasarisizotomatikgecishazirlakullan
+        3. gorevtiptani: otomatikdusurseviye/yukseltseviye tier
+        4. override_model: kullanicibelirtmodelzamandogrubaglankullan, yoksayotomatiksecsec
         """
-        # 0. 兼容 dict 消息格式（自动转为 Message 对象）
+        # 0. uyumlu dict mesajformat (otomatikdonusturicin Message icinnesne) 
         if messages and isinstance(messages[0], dict):
             from ..models.base import Message
             messages = [Message(**m) if isinstance(m, dict) else m for m in messages]
 
-        # 0b. 处理用户指定的模型覆盖
+        # 0b. islekullanicibelirtmodeluzerine yaz
         forced_provider: Optional[str] = None
         forced_tier: Optional[str] = None
         if override_model:
             mapped = self._MODEL_ID_TO_PROVIDER.get(override_model)
             if mapped:
-                # 自定义模型或已知模型 ID → 映射到 provider
+                # ozelmodelveyabilmodel ID → eslekadar provider
                 forced_provider = mapped
-                forced_tier = "high"  # 自定义/指定模型统一用 high tier
-                logger.info(f"使用用户指定模型: {override_model} → {forced_provider}")
+                forced_tier = "high"  # ozel/belirtmodelbirkullan high tier
+                logger.info(f"kullankullanicibelirtmodel: {override_model} → {forced_provider}")
             else:
-                # 完全未知的模型 ID → 尝试直接作为 provider 名
+                # tamamtumhenuzbilmodel ID → denedogrubaglanyapicin provider isim
                 if override_model in self._models:
                     forced_provider = override_model
                     forced_tier = "high"
-                    logger.info(f"使用用户指定 provider: {override_model}")
+                    logger.info(f"kullankullanicibelirt provider: {override_model}")
                 else:
-                    logger.warning(f"未知的 override_model: {override_model}，忽略")
+                    logger.warning(f"henuzbil override_model: {override_model}, yoksay")
 
-        # 1. 检查缓存（不区分 override，相同消息返回相同响应）
+        # 1. kontrolonbellek (hayirbolgepuan override, aynimesajdonusayniyanit) 
         if use_cache and self._cache:
             cached = self._cache.get(messages)
             if cached:
-                logger.info(f"使用缓存响应（task={task_type}）")
+                logger.info(f"kullanonbellekyanit (task={task_type}) ")
                 return cached
 
-        # 2. 选择模型（用户指定时跳过自动选择）
+        # 2. secsecmodel (kullanicibelirtzamanatlaotomatiksecsec) 
         if forced_provider and forced_tier:
             decision = RoutingDecision(
                 task_type=task_type,
                 selected_provider=forced_provider,
                 selected_tier=forced_tier,
-                reason=f"用户指定模型: {override_model}",
+                reason=f"kullanicibelirtmodel: {override_model}",
                 estimated_cost=0.0,
             )
         else:
             decision = self.select(task_type, complexity)
 
-        # 3. 故障转移：按 fallback 顺序尝试（仅已初始化的 provider）
-        # 用户指定模型时，优先使用该模型，失败后自动降级到默认 fallback
+        # 3. arizadonusturhareket: gore fallback siradene (sadecebaslat provider) 
+        # kullanicibelirtmodelzaman, oncelikkullanbumodel, basarisizsonraotomatikdusurseviyekadarvarsayilan fallback
         if forced_provider:
             fallback_order = (
                 [forced_provider] if forced_provider in self._models else []
             )
-            # 添加默认 fallback 作为降级选项（排除已添加的）
+            # eklevarsayilan fallback yapicindusurseviyesecogre (harir tutekle) 
             for p in self.config.fallback_order:
                 if (
                     p not in fallback_order
@@ -776,7 +801,7 @@ class ModelRouter:
                 for p in self.config.fallback_order
                 if p in self._models and decision.selected_tier in self._models[p]
             ]
-            # 确保当前选择的在最前
+            # saglarmevcutsecsecicindeenonce
             if decision.selected_provider not in fallback_order:
                 fallback_order.insert(0, decision.selected_provider)
 
@@ -793,18 +818,18 @@ class ModelRouter:
                     response = await m.generate(messages, **kwargs)
                     elapsed = (datetime.now() - start).total_seconds() * 1000
 
-                    # 更新成本统计
+                    # guncelleolistatistik
                     actual_cost = m.get_cost(response.usage)
                     self._total_cost += actual_cost
                     response.latency_ms = elapsed
 
                     logger.info(
-                        f"请求成功: {provider}/{decision.selected_tier} "
+                        f"istekbasarili: {provider}/{decision.selected_tier} "
                         f"(tokens={response.usage.total_tokens}, "
                         f"latency={elapsed:.0f}ms, cost={actual_cost:.6f})"
                     )
 
-                    # 缓存响应
+                    # onbellekyanit
                     if use_cache and self._cache:
                         self._cache.set(messages, response)
 
@@ -812,39 +837,39 @@ class ModelRouter:
 
                 except Exception as e:
                     last_error = e
-                    # 429 限流：不重试当前 provider，failover 到下一个
+                    # 429 sinirakis: hayiryeniden denemevcut provider, failover kadaraltbir
                     if (
                         isinstance(e, httpx.HTTPStatusError)
                         and e.response.status_code == 429
                     ):
                         logger.warning(
-                            f"429 限流（{provider}/{decision.selected_tier}），"
-                            f"跳过该 provider，尝试下一个"
+                            f"429 sinirakis ({provider}/{decision.selected_tier}) , "
+                            f"atlabu provider, denealtbir"
                         )
                         rate_limited_providers.append(provider)
-                        break  # 不重试当前 provider，切换下一个
+                        break  # hayiryeniden denemevcut provider, gecisaltbir
 
                     logger.warning(
-                        f"请求失败（{provider}/{decision.selected_tier}, "
-                        f"attempt={attempt + 1}/3）: {mask_api_key(str(e))}"
+                        f"istek başarısız ({provider}/{decision.selected_tier}, "
+                        f"attempt={attempt + 1}/3) : {mask_api_key(str(e))}"
                     )
                     if attempt < 2:
-                        await asyncio.sleep(2 * (attempt + 1))  # 递增等待
+                        await asyncio.sleep(2 * (attempt + 1))  # iletartvb.bekle
 
-        # 所有尝试都失败
-        # 只有当所有实际尝试过的 provider 都是 429 时才抛 RateLimitError
+        # vardenetumbasarisiz
+        # sadecevarne zamanvargercekdene provider tumdir 429 zamanyetenekfirlat RateLimitError
         if rate_limited_providers and set(rate_limited_providers) == set(
             attempted_providers
         ):
-            logger.error("所有 provider 均 429 限流")
+            logger.error("var provider ortalama 429 sinirakis")
             raise RateLimitError(
-                f"所有模型均触发限流（429）：{rate_limited_providers}。"
-                f"建议稍后重试或配置更多 API Key。"
+                f"varmodelortalamatetikgondersinirakis (429) : {rate_limited_providers}. "
+                f"oneribirazsonrayeniden deneveyayapilandirmadahacok API Key. "
             ) from last_error
 
-        logger.error(f"所有提供商均失败: {mask_api_key(str(last_error))}")
+        logger.error(f"sağlayıcı başarısız: {mask_api_key(str(last_error))}")
         raise NoModelAvailableError(
-            f"所有模型均不可用（task={task_type}）: {mask_api_key(str(last_error))}"
+            f"kullanılabilir model bulunamadı (task={task_type}) : {mask_api_key(str(last_error))}"
         ) from last_error
 
     def get_model(
@@ -852,11 +877,11 @@ class ModelRouter:
         provider: str,
         tier: str,
     ) -> Optional[BaseModel]:
-        """直接获取指定模型"""
+        """dogrubaglanalbelirtmodel"""
         return self._models.get(provider, {}).get(tier)
 
     def get_stats(self) -> dict[str, Any]:
-        """获取路由统计"""
+        """alyoltarafindanistatistik"""
         return {
             "total_requests": len(self._decision_history),
             "total_cost": self._total_cost,
@@ -873,49 +898,49 @@ class ModelRouter:
         return counts
 
     def clear_cache(self) -> None:
-        """清空响应缓存"""
+        """temizlebosyanitonbellek"""
         if self._cache:
             self._cache.clear()
-            logger.info("响应缓存已清空")
+            logger.info("yanitonbellektemizlebos")
 
     def reset_stats(self) -> None:
-        """重置统计信息"""
+        """tekrarayaristatistikbilgi"""
         self._decision_history.clear()
         self._total_cost = 0.0
 
-    # 模型 ID → 路由器内部 provider 名称的映射
-    # 前端下拉菜单传的是模型 ID（如 "glm-4-flash"），需要映射到 provider（如 "glm"）
+    # model ID → yoltarafindanicindekisim provider adesle
+    # onceucaltmenutekililetdirmodel ID (ornegin "glm-4-flash") , gerekistereslekadar provider (ornegin "glm") 
     _MODEL_ID_TO_PROVIDER: dict[str, str] = {
         # DeepSeek
         "deepseek-chat": "deepseek",
-        # 智谱 GLM
+        # Zhipu GLM
         "glm-4-flash": "glm",
         # MiniMax / MiMo
         "MiniMax-Text-01": "minimax",
         # Kimi / Moonshot
         "moonshot-v1-128k": "kimi",
-        # 豆包 / Volcengine
+        # paket / Volcengine
         "doubao-pro-32k": "doubao",
-        # 天工
-        "tiangong-3": None,  # 路由器暂不支持 tiangong provider
-        # 百川
-        "Baichuan4": None,  # 路由器暂不支持 baichuan provider
-        # 文心
+        # Tiangong
+        "tiangong-3": None,  # yoltarafindangeçicihayirdestek tiangong provider
+        # yuz
+        "Baichuan4": None,  # yoltarafindangeçicihayirdestek baichuan provider
+        # metinkalp
         "ernie-4.0-8k-latest": "wenxin",
-        # 通义
+        # anlam
         "qwen-plus": "tongyi",
-        # 混元
+        # Hunyuan
         "hunyuan-turbo": "hunyuan",
     }
 
 
 class RateLimitError(Exception):
-    """429 限流错误，不重试"""
+    """429 sinirakishata, hayiryeniden dene"""
 
     pass
 
 
 class NoModelAvailableError(Exception):
-    """没有可用模型"""
+    """yokvarolabilirkullanmodel"""
 
     pass

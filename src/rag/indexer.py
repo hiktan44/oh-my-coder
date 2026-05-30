@@ -4,13 +4,13 @@ from __future__ import annotations
 
 
 """
-代码库索引器
+kodkutuphaneindeks
 
-功能：
-1. 扫描项目文件
-2. 解析代码结构
-3. 生成嵌入向量
-4. 构建向量索引
+Islev:
+1. taraprojedosya
+2. ayristirkodyapi
+3. olusturgomuyonmiktar
+4. olusturyonmiktarindeks
 """
 
 import ast
@@ -26,7 +26,7 @@ from typing import Any, Optional
 
 
 class CodeElementType(str, Enum):
-    """代码元素类型"""
+    """kodogreogretip"""
 
     MODULE = "module"
     CLASS = "class"
@@ -39,7 +39,7 @@ class CodeElementType(str, Enum):
 
 
 class ProgrammingLanguage(str, Enum):
-    """编程语言"""
+    """duzenlesurecdil"""
 
     PYTHON = "python"
     JAVASCRIPT = "javascript"
@@ -54,7 +54,7 @@ class ProgrammingLanguage(str, Enum):
 
 @dataclass
 class CodeElement:
-    """代码元素"""
+    """kodogreogre"""
 
     id: str
     name: str
@@ -65,7 +65,7 @@ class CodeElement:
     source_code: str
     docstring: Optional[str] = None
     signature: Optional[str] = None
-    parent: Optional[str] = None  # 父元素 ID
+    parent: Optional[str] = None  # ustogreogre ID
     children: list[str] = field(default_factory=list)
     embedding: Optional[list[float]] = None
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -73,7 +73,7 @@ class CodeElement:
 
 @dataclass
 class FileIndex:
-    """文件索引"""
+    """dosyaindeks"""
 
     file_path: str
     language: ProgrammingLanguage
@@ -88,7 +88,7 @@ class FileIndex:
 
 @dataclass
 class IndexConfig:
-    """索引配置"""
+    """indeksyapilandirma"""
 
     root_path: Path
     exclude_patterns: list[str] = field(
@@ -139,10 +139,10 @@ class IndexConfig:
 
 
 class PythonParser:
-    """Python 代码解析器"""
+    """Python kodayristir"""
 
     def parse(self, source: str, file_path: str) -> list[CodeElement]:
-        """解析 Python 源码"""
+        """ayristir Python kaynakkod"""
         elements = []
 
         try:
@@ -168,12 +168,12 @@ class PythonParser:
     def _parse_function(
         self, node: ast.FunctionDef, source_lines: list[str], file_path: str
     ) -> Optional[CodeElement]:
-        """解析函数定义"""
+        """ayristirfonksiyontanim"""
         start_line = node.lineno
         end_line = node.end_lineno or start_line
         source_code = "\n".join(source_lines[start_line - 1 : end_line])
 
-        # 构建签名
+        # olusturimzaisim
         args = []
         for arg in node.args.args:
             arg_str = arg.arg
@@ -187,7 +187,7 @@ class PythonParser:
 
         signature = f"def {node.name}({', '.join(args)}){returns}"
 
-        # 提取 docstring
+        # cikar docstring
         docstring = ast.get_docstring(node)
 
         return CodeElement(
@@ -205,18 +205,18 @@ class PythonParser:
     def _parse_class(
         self, node: ast.ClassDef, source_lines: list[str], file_path: str
     ) -> Optional[CodeElement]:
-        """解析类定义"""
+        """ayristirsiniftanim"""
         start_line = node.lineno
         end_line = node.end_lineno or start_line
         source_code = "\n".join(source_lines[start_line - 1 : end_line])
 
-        # 构建签名
+        # olusturimzaisim
         bases = [ast.unparse(base) for base in node.bases]
         signature = f"class {node.name}"
         if bases:
             signature += f"({', '.join(bases)})"
 
-        # 提取 docstring
+        # cikar docstring
         docstring = ast.get_docstring(node)
 
         return CodeElement(
@@ -232,20 +232,20 @@ class PythonParser:
         )
 
     def _generate_id(self, file_path: str, name: str, line: int) -> str:
-        """生成元素 ID（非密码用途）"""
+        """olusturogreogre ID (olmayangizlikodkullanyol) """
         hash_input = f"{file_path}:{name}:{line}"
         return hashlib.sha256(hash_input.encode()).hexdigest()[:12]
 
 
 class CodebaseIndexer:
     """
-    代码库索引器
+    kodkutuphaneindeks
 
-    功能：
-    1. 扫描项目文件
-    2. 解析代码结构
-    3. 生成嵌入向量
-    4. 构建向量索引
+    Islev:
+    1. taraprojedosya
+    2. ayristirkodyapi
+    3. olusturgomuyonmiktar
+    4. olusturyonmiktarindeks
     """
 
     LANGUAGE_EXTENSIONS = {
@@ -266,8 +266,8 @@ class CodebaseIndexer:
     def __init__(self, config: IndexConfig, embedding_client=None):
         """
         Args:
-            config: 索引配置
-            embedding_client: 嵌入向量客户端（可选）
+            config: indeksyapilandirma
+            embedding_client: gomuyonmiktaristemci (olabilirsec) 
         """
         self.config = config
         self.embedding_client = embedding_client
@@ -278,45 +278,45 @@ class CodebaseIndexer:
         }
 
     def should_index(self, file_path: Path) -> bool:
-        """判断是否应该索引该文件"""
-        # 检查文件大小
+        """karar verolup olmadigiolmalibuindeksbudosya"""
+        # kontroldosyabuyukkucuk
         if file_path.stat().st_size > self.config.max_file_size:
             return False
 
-        # 检查排除模式
+        # kontrolharir tutmod
         for pattern in self.config.exclude_patterns:
             if pattern in str(file_path):
                 return False
 
-        # 检查包含模式
+        # kontrolicerirmod
         return any(file_path.match(pattern) for pattern in self.config.include_patterns)
 
     def detect_language(self, file_path: Path) -> ProgrammingLanguage:
-        """检测文件语言"""
+        """algilamadosyadil"""
         ext = file_path.suffix.lower()
         return self.LANGUAGE_EXTENSIONS.get(ext, ProgrammingLanguage.UNKNOWN)
 
     def index_file(self, file_path: Path) -> Optional[FileIndex]:
-        """索引单个文件"""
+        """indekstekildosya"""
         try:
             source = file_path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             return None
 
         language = self.detect_language(file_path)
-        file_hash = hashlib.sha256(source.encode()).hexdigest()  # 非密码用途
+        file_hash = hashlib.sha256(source.encode()).hexdigest()  # olmayangizlikodkullanyol
         relative_path = str(file_path.relative_to(self.config.root_path))
 
-        # 解析代码元素
+        # ayristirkodogreogre
         elements = []
         parser = self._parsers.get(language)
         if parser:
             elements = parser.parse(source, relative_path)
 
-        # 提取导入
+        # cikariceri aktar
         imports = self._extract_imports(source, language)
 
-        # 更新元素索引
+        # guncelleogreogreindeks
         for element in elements:
             self.element_index[element.id] = element
 
@@ -325,7 +325,7 @@ class CodebaseIndexer:
             language=language,
             elements=elements,
             imports=imports,
-            exports=[],  # 导出提取待实现（需 AST 分析）
+            exports=[],  # disa aktarcikarbekleuygula (gerek AST analiz) 
             dependencies=[],
             hash=file_hash,
             last_modified=datetime.fromtimestamp(file_path.stat().st_mtime),
@@ -335,18 +335,18 @@ class CodebaseIndexer:
         return file_index
 
     def index_directory(self, progress_callback=None) -> dict[str, FileIndex]:
-        """索引整个目录"""
+        """indekstamdizin"""
         root = self.config.root_path
 
-        # 收集所有文件
+        # alsetvardosya
         files = []
         for ext in self.config.include_patterns:
             files.extend(root.rglob(ext.lstrip("*.")))
 
-        # 过滤文件
+        # filtreledosya
         valid_files = [f for f in files if self.should_index(f)]
 
-        # 索引文件
+        # indeksdosya
         total = len(valid_files)
         for i, file_path in enumerate(valid_files):
             self.index_file(file_path)
@@ -357,7 +357,7 @@ class CodebaseIndexer:
         return self.file_indices
 
     async def generate_embeddings(self, batch_size: int = 100) -> None:
-        """为所有元素生成嵌入向量"""
+        """icinvarogreogreolusturgomuyonmiktar"""
         if not self.embedding_client:
             return
 
@@ -367,17 +367,17 @@ class CodebaseIndexer:
             batch = elements[i : i + batch_size]
             texts = [self._element_to_text(e) for e in batch]
 
-            # 批量生成嵌入
+            # toplucamiktarolusturgomu
             embeddings = await self._batch_embed(texts)
 
             for j, element in enumerate(batch):
                 element.embedding = embeddings[j]
 
-            # 避免 API 限流
+            # kacin API sinirakis
             await asyncio.sleep(0.1)
 
     def _element_to_text(self, element: CodeElement) -> str:
-        """将元素转换为嵌入文本"""
+        """ogreogredonusturicingomumetin"""
         parts = [
             f"File: {element.file_path}",
             f"Type: {element.type.value}",
@@ -390,7 +390,7 @@ class CodebaseIndexer:
         if element.docstring:
             parts.append(f"Docstring: {element.docstring}")
 
-        # 添加源码（截断）
+        # eklekaynakkod (kes) 
         source = element.source_code
         if len(source) > 500:
             source = source[:500] + "..."
@@ -399,19 +399,19 @@ class CodebaseIndexer:
         return "\n".join(parts)
 
     async def _batch_embed(self, texts: list[str]) -> list[list[float]]:
-        """批量生成嵌入。无 embedding_client 时返回空向量列表。"""
+        """toplucamiktarolusturgomu. yok embedding_client zamandonusbosyonmiktarliste. """
         if not self.embedding_client:
             return [[] for _ in texts]
 
-        # 调用 embedding_client 生成嵌入
+        # cagri embedding_client olusturgomu
         return [[] for _ in texts]
 
     def _extract_imports(self, source: str, language: ProgrammingLanguage) -> list[str]:
-        """提取导入语句"""
+        """cikariceri aktardilcumle"""
         imports = []
 
         if language == ProgrammingLanguage.PYTHON:
-            # 提取 Python import
+            # cikar Python import
             pattern = r"^(?:from|import)\s+([^\s]+)"
             matches = re.findall(pattern, source, re.MULTILINE)
             imports.extend(matches)
@@ -419,7 +419,7 @@ class CodebaseIndexer:
         return imports
 
     def get_stats(self) -> dict[str, Any]:
-        """获取索引统计"""
+        """alindeksistatistik"""
         return {
             "files_indexed": len(self.file_indices),
             "elements_indexed": len(self.element_index),
@@ -428,7 +428,7 @@ class CodebaseIndexer:
         }
 
     def _count_by_language(self) -> dict[str, int]:
-        """按语言统计"""
+        """goredilistatistik"""
         counts = {}
         for file_index in self.file_indices.values():
             lang = file_index.language.value
@@ -436,7 +436,7 @@ class CodebaseIndexer:
         return counts
 
     def _count_by_type(self) -> dict[str, int]:
-        """按元素类型统计"""
+        """goreogreogretipistatistik"""
         counts = {}
         for element in self.element_index.values():
             type_name = element.type.value
@@ -444,10 +444,10 @@ class CodebaseIndexer:
         return counts
 
     def save(self, path: Path) -> None:
-        """保存索引"""
+        """kaydetindeks"""
         path.mkdir(parents=True, exist_ok=True)
 
-        # 保存文件索引
+        # kaydetdosyaindeks
         file_index_path = path / "files.json"
         with open(file_index_path, "w", encoding="utf-8") as f:
             json.dump(
@@ -466,7 +466,7 @@ class CodebaseIndexer:
                 ensure_ascii=False,
             )
 
-        # 保存元素索引
+        # kaydetogreogreindeks
         element_index_path = path / "elements.json"
         with open(element_index_path, "w", encoding="utf-8") as f:
             json.dump(
@@ -490,7 +490,7 @@ class CodebaseIndexer:
             )
 
     def load(self, path: Path) -> None:
-        """加载索引"""
+        """yukleindeks"""
         file_index_path = path / "files.json"
         if file_index_path.exists():
             with open(file_index_path, encoding="utf-8") as f:

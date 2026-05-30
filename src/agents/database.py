@@ -1,13 +1,13 @@
 """
-Database Agent - 数据库设计与 SQL 智能体
+Database Agent - Veritabanı tasarımı ve SQL ajan
 
-职责：
-1. 数据库表结构设计
-2. SQL 查询编写与优化
-3. 数据库迁移脚本生成
-4. 索引优化建议
+Sorumluluklar:
+1. Veritabanı tablosu yapı tasarımı
+2. SQL Sorgu yazma ve optimizasyon
+3. Veritabanı geçiş komut dosyası oluşturma
+4. Dizin optimizasyonu önerileri
 
-模型层级：MEDIUM（平衡）
+Modeli seviyesi:MEDIUM(denge)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class DatabaseAgent(BaseAgent):
-    """数据库设计与 SQL 智能体"""
+    """Veritabanı tasarımı ve SQL ajan"""
 
     name = "database"
-    description = "数据库设计与 SQL 智能体 - 表结构、查询优化、迁移脚本"
+    description = "Veritabanı tasarımı ve SQL ajan - Tablo yapısı, sorgu optimizasyonu, geçiş komut dosyası"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "🗄️"
@@ -34,60 +34,60 @@ class DatabaseAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个资深的数据库工程师。
+        return """Kıdemli bir veritabanı mühendisisiniz.
 
-## 角色
-你擅长数据库设计、SQL 编写、查询优化和数据库迁移。
+## Rol
+Veritabanı tasarımında iyisiniz,SQL Yazma, sorgu optimizasyonu ve veritabanı geçişi.
 
-## 能力
-1. **表结构设计** - 根据业务需求设计合理的表结构
-2. **SQL 编写** - 高效的 CRUD、复杂查询、聚合分析
-3. **索引优化** - 分析查询计划，提供索引建议
-4. **迁移脚本** - 数据库迁移、版本管理
+## yetenek
+1. **Masa yapısı tasarımı** - İş ihtiyaçlarına göre makul bir masa yapısı tasarlayın
+2. **SQL yazmak** - verimli CRUD, karmaşık sorgular, toplu analiz
+3. **Dizin optimizasyonu** - Sorgu planlarını analiz edin ve dizin önerileri sağlayın
+4. **Taşıma komut dosyası** - Veritabanı geçişi, sürüm yönetimi
 
-## 设计规范
+## tasarım özellikleri
 
-### 表命名
-- 表名单数：users, orders, products
-- 关联表：user_orders, order_items
-- 时间表：user_sessions_2024_01
+### Tablo adlandırma
+- Tablo sayısı:users, orders, products
+- İlişkilendirme tablosu:user_orders, order_items
+- takvim:user_sessions_2024_01
 
-### 字段规范
-- 主键：id (BIGINT, AUTO_INCREMENT)
-- 外键：xxx_id (BIGINT)
-- 时间戳：created_at, updated_at (DATETIME)
-- 布尔值：is_xxx (TINYINT)
-- 金额：amount (DECIMAL(10,2))
+### Saha spesifikasyonu
+- Birincil anahtar:id (BIGINT, AUTO_INCREMENT)
+- Yabancı anahtarlar:xxx_id (BIGINT)
+- Zaman damgası:created_at, updated_at (DATETIME)
+- Boole değeri:is_xxx (TINYINT)
+- Miktar:amount (DECIMAL(10,2))
 
-### 索引规范
-- 主键索引：PRIMARY KEY
-- 唯一索引：UNIQUE
-- 普通索引：INDEX idx_xxx
-- 组合索引：INDEX idx_xxx_yyy
+### Dizin spesifikasyonu
+- Birincil anahtar dizini:PRIMARY KEY
+- Benzersiz dizin:UNIQUE
+- Sıradan indeks:INDEX idx_xxx
+- Birleşik endeks:INDEX idx_xxx_yyy
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 表结构设计
+### 1. Masa yapısı tasarımı
 ```sql
 CREATE TABLE users (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
-    username VARCHAR(64) NOT NULL UNIQUE COMMENT '用户名',
-    email VARCHAR(255) NOT NULL UNIQUE COMMENT '邮箱',
-    password_hash VARCHAR(255) NOT NULL COMMENT '密码哈希',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'kullanıcıID',
+    username VARCHAR(64) NOT NULL UNIQUE COMMENT 'kullanıcı adı',
+    email VARCHAR(255) NOT NULL UNIQUE COMMENT 'Posta',
+    password_hash VARCHAR(255) NOT NULL COMMENT 'Şifre karması',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT 'yaratılış zamanı',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Güncelleme zamanı'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Kullanıcı tablosu';
 ```
 
-### 2. 索引设计
-| 表名 | 索引名 | 字段 | 类型 | 用途 |
+### 2. Dizin tasarımı
+| tablo adı | Dizin adı | Alan | tip | kullanmak |
 |------|--------|------|------|------|
-| users | idx_email | email | UNIQUE | 邮箱登录 |
-| orders | idx_user_status | user_id, status | INDEX | 用户订单查询 |
+| users | idx_email | email | UNIQUE | E-posta girişi |
+| orders | idx_user_status | user_id, status | INDEX | Kullanıcı siparişi sorgusu |
 
-### 3. SQL 查询
+### 3. SQL Sorgu
 ```sql
--- 查询用户的最近订单
+-- Kullanıcının son siparişlerini sorgula
 SELECT o.*, u.username
 FROM orders o
 JOIN users u ON o.user_id = u.id
@@ -100,25 +100,25 @@ LIMIT 10;
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行数据库设计"""
+        """Veritabanı tasarımını gerçekleştirin"""
         if context.previous_outputs.get("architect"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 架构设计参考\n{context.previous_outputs['architect'].result}",
+                    "content": f"## Mimari tasarım referansı\n{context.previous_outputs['architect'].result}",
                 }
             )
 
         db_hint = """
 
-请根据以下需求进行数据库设计：
-1. 分析业务需求，提取实体和关系
-2. 设计表结构，包含字段、类型、约束
-3. 设计索引策略
-4. 提供建表 SQL
-5. 如需迁移，提供 ALTER TABLE 脚本
+Lütfen veritabanını aşağıdaki gereksinimlere göre tasarlayın:
+1. İş gereksinimlerini analiz edin ve varlıkları ve ilişkileri çıkarın
+2. Alanları, türleri ve kısıtlamaları içeren tasarım tablosu yapısı
+3. Dizin oluşturma stratejisi tasarlama
+4. Tablo oluşturmayı sağlayın SQL
+5. Geçiş gerekiyorsa sağlayın ALTER TABLE senaryo
 
-如有现有数据库，请先分析现有表结构。
+Mevcut bir veritabanınız varsa lütfen öncelikle mevcut tablo yapısını analiz edin.
 """
         prompt.append({"role": "user", "content": db_hint})
 
@@ -134,14 +134,14 @@ LIMIT 10;
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "将 SQL 保存到 migrations/ 目录",
-                "审查索引设计是否合理",
-                "生成数据库迁移脚本",
+                "İrade SQL kaydet migrations/ İçindekiler",
+                "Dizin tasarımının makul olup olmadığını inceleyin",
+                "Veritabanı geçiş komut dosyası oluştur",
             ],
             next_agent="executor",
         )

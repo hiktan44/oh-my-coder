@@ -4,12 +4,12 @@ from __future__ import annotations
 
 
 """
-企业微信（WeCom）平台处理器
+WeCom (WeCom) platform isleyicisi
 
-支持企业微信自建应用接收消息 + 发送消息。
-支持：文本消息、Markdown、@ 消息。
+destekWeComkendiolusturuygulamabaglanalmesaj + mesaj gonder. 
+destek: metinmesaj, Markdown, @ mesaj. 
 
-文档：https://developer.work.weixin.qq.com/document/path/91716
+Dokumantasyon:https://developer.work.weixin.qq.com/document/path/91716
 """
 
 
@@ -32,23 +32,23 @@ try:
     _HAS_HTTPX = True
 except ImportError:
     _HAS_HTTPX = False
-    logger.warning("httpx not installed. 企业微信支持需要: pip install httpx")
+    logger.warning("httpx not installed. WeComdestekgerekister: pip install httpx")
 
 
 class WeComHandler(PlatformHandler):
     """
-    企业微信自建应用处理器
+    WeComkendiolusturuygulamaisleyici
 
-    通过 AES 解密接收消息（企业微信回调模式）。
-    发送消息通过 企业微信发消息 API。
+    araciligiyla AES cozgizlibaglanalmesaj (WeComgeri aramamod) . 
+    mesaj gonderaraciligiyla WeComgondermesaj API. 
 
-    环境变量：
-        WECOM_CORP_ID       - 企业 ID
-        WECOM_AGENT_ID      - 应用 AgentId
-        WECOM_CORP_SECRET   - 应用 Secret
-        WECOM_TOKEN         - 回调 Token（自己生成）
-        WECOM_ENCODING_AES_KEY - 回调 EncodingAESKey（自己生成）
-        WECOM_WEBHOOK_PORT  - 本地回调监听端口（默认 8080）
+    Ortam degiskenleri:
+        WECOM_CORP_ID       - kurumsal ID
+        WECOM_AGENT_ID      - uygulama AgentId
+        WECOM_CORP_SECRET   - uygulama Secret
+        WECOM_TOKEN         - geri arama Token(kendi olusturulan)
+        WECOM_ENCODING_AES_KEY - geri arama EncodingAESKey(kendi olusturulan)
+        WECOM_WEBHOOK_PORT  - yerelgeri aramadinleme uc noktaagiz (varsayilan 8080) 
     """
 
     name = Platform.WECOM
@@ -65,12 +65,12 @@ class WeComHandler(PlatformHandler):
     ):
         """
         Args:
-            corp_id: 企业 ID
-            agent_id: 应用 AgentId
-            corp_secret: 应用 Secret
-            token: 回调 Token（与企业在企业微信后台配置一致）
-            encoding_aes_key: 回调 EncodingAESKey（46字符）
-            webhook_port: 本地回调监听端口
+            corp_id: kurumsal ID
+            agent_id: uygulama AgentId
+            corp_secret: uygulama Secret
+            token: geri arama Token (ilekurumsalicindeWeComsonraplatformyapilandirmabir) 
+            encoding_aes_key: geri arama EncodingAESKey (46karakter) 
+            webhook_port: yerelgeri aramadinleme uc noktaagiz
         """
         super().__init__(**kwargs)
         self.corp_id = corp_id
@@ -84,20 +84,20 @@ class WeComHandler(PlatformHandler):
         self._stop_event = asyncio.Event()
         self._poll_task: Optional[asyncio.Task[None]] = None
 
-    # ---- PlatformHandler 实现 ----
+    # ---- PlatformHandler uygula ----
 
     async def start(self) -> None:
         if not _HAS_HTTPX:
-            raise RuntimeError("httpx 未安装。运行: pip install httpx")
+            raise RuntimeError("httpx kurulu degil. Calistirin: pip install httpx")
 
         await self._refresh_token()
         self._stop_event.clear()
 
         if self.encoding_aes_key:
-            # 有加密配置 → 启动 HTTP 服务器接收回调
+            # vareklegizliyapilandirma → baslat HTTP servisbaglanalgeri arama
             self._poll_task = asyncio.create_task(self._run_webhook_server())
         else:
-            # 无加密配置 → 轮询拉取消息
+            # yokeklegizliyapilandirma → tursorcekmesaj
             self._poll_task = asyncio.create_task(self._poll_loop())
 
         self._started = True
@@ -125,7 +125,7 @@ class WeComHandler(PlatformHandler):
             "agentid": self.agent_id,
             "text": {"content": message.text[:2048]},
         }
-        # 如果是群聊 chat_id
+        # egerdirgrupsohbet chat_id
         if message.chat_id.startswith("R:"):
             payload["toparty"] = message.chat_id[2:]
             del payload["touser"]
@@ -147,7 +147,7 @@ class WeComHandler(PlatformHandler):
             self.on_error(e)
             return False
 
-    # ---- 内部实现 ----
+    # ---- icindekisimuygula ----
 
     async def _refresh_token(self) -> None:
         url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
@@ -170,7 +170,7 @@ class WeComHandler(PlatformHandler):
         return self._access_token
 
     async def _run_webhook_server(self) -> None:
-        """运行 Starlette HTTP 服务器接收企业微信回调"""
+        """satir Starlette HTTP servisbaglanalWeComgeri arama"""
         try:
             import uvicorn
             from starlette.applications import Starlette
@@ -181,7 +181,7 @@ class WeComHandler(PlatformHandler):
             return
 
         async def verifyGET(request: Request) -> PlainTextResponse:
-            """企业微信回调 URL 验证"""
+            """WeComgeri arama URL dogrulama"""
             msg_signature = request.query_params.get("msg_signature", "")  # noqa: F841
             timestamp = request.query_params.get("timestamp", "")  # noqa: F841
             nonce = request.query_params.get("nonce", "")  # noqa: F841
@@ -190,14 +190,14 @@ class WeComHandler(PlatformHandler):
             if not echostr:
                 return PlainTextResponse("")
 
-            # 解密 echostr
+            # cozgizli echostr
             decrypted = self._decrypt(echostr)
             if decrypted:
                 return PlainTextResponse(decrypted)
             return PlainTextResponse("invalid", status_code=400)
 
         async def messagePOST(request: Request) -> PlainTextResponse:
-            """接收消息回调"""
+            """baglanalmesajgeri arama"""
             body = await request.text()
             await self._handle_callback(body)
             return PlainTextResponse("success")
@@ -216,7 +216,7 @@ class WeComHandler(PlatformHandler):
         await server.serve()
 
     async def _poll_loop(self) -> None:
-        """无加密配置时：轮询拉取应用消息"""
+        """yokeklegizliyapilandirmazaman: tursorcekuygulamamesaj"""
         last_time = int(time.time() * 1000) - 30000
 
         while not self._stop_event.is_set():
@@ -255,7 +255,7 @@ class WeComHandler(PlatformHandler):
                 await asyncio.sleep(10)
 
     def _decrypt(self, encrypted: str) -> Optional[str]:
-        """AES 解密企业微信消息"""
+        """AES cozgizliWeCommesaj"""
         if not self.encoding_aes_key or not self.token:
             return None
 
@@ -273,7 +273,7 @@ class WeComHandler(PlatformHandler):
             )
             unpadder = PKCS7(128).unpadder()
             decrypted = unpadder.update(decrypted_padded) + unpadder.finalize()
-            # PKCS7 去除随机数、AppID、长度
+            # PKCS7 githaricrastgelemakinesayi, AppID, uzunlukderece
             content = decrypted[16:]
             msg_len = int.from_bytes(content[:4], "big")
             from_appid = content[4 : 4 + msg_len].decode()
@@ -285,11 +285,11 @@ class WeComHandler(PlatformHandler):
         return None
 
     async def _handle_callback(self, body: str) -> None:
-        """处理回调消息"""
+        """islegeri aramamesaj"""
         import json
 
         try:
-            # 企业微信回调消息格式
+            # WeComgeri aramamesajformat
             data = json.loads(body)
             msg_type = data.get("MsgType", "")
             if msg_type != "text":
@@ -312,7 +312,7 @@ class WeComHandler(PlatformHandler):
             logger.exception(f"[wecom] Callback parse error: {e}")
 
     async def _process_message(self, msg: dict[str, Any]) -> None:
-        """处理拉取的消息"""
+        """islecekmesaj"""
         msg_type = msg.get("MsgType", "")
         if msg_type != "text":
             return
@@ -337,6 +337,6 @@ class WeComHandler(PlatformHandler):
 
 def check_wecom_dependencies() -> bool:
     if not _HAS_HTTPX:
-        logger.error("httpx 未安装: pip install httpx")
+        logger.error("httpx kurulu degil: pip install httpx")
         return False
     return True

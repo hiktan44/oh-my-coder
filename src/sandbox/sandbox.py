@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 """
-沙箱安全模块
+sandboxguvenlikmodul
 
-功能：
-- 路径限制：Agent 只能访问允许的目录
-- 超时保护：命令执行超时自动终止
-- 危险操作拦截：基于 PermissionGuard
-- 简单但有效的隔离机制
+Islev:
+- yolsinir: Agent sadeceedebilirerisimizin verdizin
+- asirizamankoru: komutyurutasirizamanotomatiksonlandir
+- tehlikeliislemengelle: temelde PermissionGuard
+- basittekilancakvaretkiizolemekanizma
 """
 
 
@@ -25,20 +25,20 @@ from .dangerous_command_blocker import (
 )
 
 # ─────────────────────────────────────────────────────────────
-# 配置
+# yapilandirma
 # ─────────────────────────────────────────────────────────────
 
 
 @dataclass
 class SandboxConfig:
-    """沙箱配置"""
+    """sandboxyapilandirma"""
 
     allowed_dirs: list[str] = field(
         default_factory=lambda: [
             str(Path.home() / ".omc"),
             str(Path.home() / ".qclaw" / "workspace"),
             str(Path.home()),
-            "/tmp",  # nosec B108 - sandbox 设计：/tmp 为沙箱允许的受控临时目录
+            "/tmp",  # nosec B108 - sandbox tasarim: /tmp icinsandboxizin veralkontrolgeçicizamandizin
         ]
     )
     denied_paths: list[str] = field(default_factory=list)
@@ -54,26 +54,26 @@ class SandboxConfig:
 
 
 # ─────────────────────────────────────────────────────────────
-# 沙箱
+# sandbox
 # ─────────────────────────────────────────────────────────────
 
 
 class Sandbox:
     """
-    轻量级沙箱（基于路径限制）
+    hafifmiktarseviyesandbox (temeldeyolsinir) 
 
-    工作原理：
-    1. 验证所有涉及的文件路径是否在 allowed_dirs 内
-    2. 命令执行前通过 PermissionGuard 权限检查
-    3. 设置超时和输出大小限制
-    4. 在受限的 cwd 中执行
+    isasilakil: 
+    1. dogrulamavarilgilivedosyayololup olmadigiicinde allowed_dirs icinde
+    2. komutyurutoncearaciligiyla PermissionGuard izinkontrol
+    3. ayarlaayarasirizamanveciktibuyukkucuksinir
+    4. icindealsinir cwd icindeyurut
     """
 
-    # 默认允许的目录
+    # varsayilanizin verdizin
     DEFAULT_ALLOWED_DIRS = [
         "~/.omc",
         "~/.qclaw/workspace",
-        "/tmp",  # nosec B108 - sandbox 设计
+        "/tmp",  # nosec B108 - sandbox tasarim
     ]
 
     def __init__(self, config: Optional[SandboxConfig] = None) -> None:
@@ -81,48 +81,48 @@ class Sandbox:
         self._resolve_allowed_dirs()
 
     def _resolve_allowed_dirs(self) -> None:
-        """解析并验证 allowed_dirs，自动将 working_dir 加入允许列表"""
+        """ayristirvedogrulama allowed_dirs, otomatik working_dir eklegirisizin verliste"""
         self._resolved_dirs: list[Path] = []
         for d in self.config.allowed_dirs:
             p = Path(d).expanduser().resolve()
             self._resolved_dirs.append(p)
 
-        # 自动将 working_dir 加入 allowed_dirs（如缺失）
+        # otomatik working_dir eklegiris allowed_dirs (ornegineksik) 
         working_dir = Path(self.config.working_dir).expanduser().resolve() if self.config.working_dir else Path.home() / ".omc"
         working_dir = working_dir.resolve()
 
         if working_dir not in self._resolved_dirs:
             self._resolved_dirs.append(working_dir)
-            print(f"[Sandbox] 警告: working_dir {working_dir} 不在 allowed_dirs 中，已自动添加")
+            print(f"[Sandbox] uyari: working_dir {working_dir} hayiricinde allowed_dirs icinde, otomatikekle")
 
     def validate_path(self, path: str) -> bool:
         """
-        验证路径是否在允许范围内
+        dogrulamayololup olmadigiicindeizin veraralikicinde
 
         Args:
-            path: 文件路径（可以是相对路径、包含 ~ 或 $VAR）
+            path: dosyayol (olabilirilediricinyol, icerir ~ veya $VAR) 
 
         Returns:
-            True: 路径安全
-            False: 路径超出允许范围
+            True: yolguvenlik
+            False: yolasiriizin veraralik
         """
         ok, _ = self.validate_path_with_reason(path)
         return ok
 
     def validate_path_with_reason(self, path: str) -> tuple[bool, str]:
         """
-        验证路径并返回拒绝原因
+        dogrulamayolvedonusreddetasilneden
 
         Returns:
-            (是否允许, 拒绝原因)
+            (olup olmadigiizin ver, reddetasilneden)
         """
         try:
-            # 1. 展开环境变量 ($VAR / %VAR%)
+            # 1. gelişacortam degiskenmiktar ($VAR / %VAR%)
             expanded = os.path.expandvars(path)
-            # 2. 展开用户目录 (~)
+            # 2. gelişackullanicidizin (~)
             p = Path(expanded).expanduser().resolve()
         except Exception:
-            return False, f"路径解析失败: {path}"
+            return False, f"yolayristirma basarisiz: {path}"
 
         for allowed in self._resolved_dirs:
             if allowed == Path("/tmp") or str(allowed).startswith("/tmp"):  # nosec B108
@@ -136,14 +136,14 @@ class Sandbox:
             except ValueError:
                 continue
 
-        return False, f"路径超出沙箱范围: {path} (解析为: {p})"
+        return False, f"yolasirisandboxaralik: {path} (ayristiricin: {p})"
 
     def validate_paths(self, paths: list[str]) -> tuple[bool, list[str]]:
         """
-        批量验证路径
+        toplucamiktardogrulamayol
 
         Returns:
-            (是否全部合法, 不合法路径列表)
+            (olup olmadigitumkisimbirlestiryontem, hayirbirlestiryontemyolliste)
         """
         invalid: list[str] = []
         for path in paths:
@@ -152,10 +152,10 @@ class Sandbox:
                 invalid.append(f"{path}: {reason}")
         return (len(invalid) == 0, invalid)
 
-    # ── 已知命令的路径参数位置（0-based，命令名本身不计入）───────────
-    # 格式: "cmd": [arg_index, ...]  |  "cmd": "all"（检查所有参数）
+    # ── bilkomutyolparametrekonum (0-based, komutisimkendihayirhesapgiris) ───────────
+    # format: "cmd": [arg_index, ...]  |  "cmd": "all" (kontrolvarparametre) 
     _PATH_ARG_COMMANDS: dict[str, list[int] | str] = {
-        # 单文件操作
+        # tekildosyaislem
         "cat": "all",
         "head": "all",
         "tail": "all",
@@ -163,35 +163,35 @@ class Sandbox:
         "more": "all",
         "file": "all",
         "stat": "all",
-        # 多文件操作（检查所有参数）
+        # cokdosyaislem (kontrolvarparametre) 
         "ls": "all",
         "grep": "all",
         "find": "all",
         "wc": "all",
         "sort": "all",
         "uniq": "all",
-        # cp/mv: 除最后一个是源文件，最后一个是目标（都检查）
+        # cp/mv: haricensonrabirdirkaynakdosya, ensonrabirdirhedefisaret (tumkontrol) 
         "cp": "all",
         "mv": "all",
         "ln": "all",
-        # rm: 所有参数都是路径
+        # rm: varparametretumdiryol
         "rm": "all",
         "rmdir": "all",
-        # 输出重定向类命令的 -o/--output 参数
-        "gcc": [2],   # gcc -o output src.c （简化：检查所有参数）
+        # ciktitekrarayarlayonsinifkomut -o/--output parametre
+        "gcc": [2],   # gcc -o output src.c  (basit: kontrolvarparametre) 
         "g++": [2],
         "tar": "all",
         "unzip": "all",
-        "git": "all",  # git 命令复杂，简化检查所有参数
+        "git": "all",  # git komuttekrarkarisik, basitkontrolvarparametre
     }
 
     def _extract_paths_from_command(self, command: str) -> list[str]:
-        """从命令中提取可能路径参数（使用 shlex 解析）"""
+        """komuticindecikarolabiliredebiliryolparametre (kullan shlex ayristir) """
         paths: list[str] = []
         try:
             tokens = shlex.split(command)
         except ValueError:
-            # shlex 解析失败（如未闭合引号），回退到简单分割
+            # shlex ayristirma basarisiz (orneginhenuzkapatbirlestircekno) , gerigerikadarbasittekilpuanayir
             tokens = command.split()
 
         if not tokens:
@@ -199,10 +199,10 @@ class Sandbox:
 
         base = tokens[0]
 
-        # 1. 检查已知命令的路径参数
+        # 1. kontrolbilkomutyolparametre
         arg_spec = self._PATH_ARG_COMMANDS.get(base)
         if arg_spec == "all":
-            # 检查所有参数（跳过选项类参数）
+            # kontrolvarparametre (atlasecogresinifparametre) 
             for tok in tokens[1:]:
                 if not tok.startswith("-") and (
                     "/" in tok or tok.startswith("~") or tok.startswith(".")
@@ -213,14 +213,14 @@ class Sandbox:
                 if idx + 1 < len(tokens):
                     paths.append(tokens[idx + 1])
 
-        # 2. 检查 shell 重定向（> >> < 2> &>）
+        # 2. kontrol shell tekrarayarlayon (> >> < 2> &>) 
         redirect_re = re.compile(
             r"(?:>>|2>|&>|>|<|<\s)\s*(\S+)"
         )
         for m in redirect_re.finditer(command):
             paths.append(m.group(1))
 
-        # 3. 检查 --output / -o 等常见输出参数
+        # 3. kontrol --output / -o vb.sikgorciktiparametre
         output_re = re.compile(r"(?:-o|--output)\s+(\S+)")
         for m in output_re.finditer(command):
             paths.append(m.group(1))
@@ -229,17 +229,17 @@ class Sandbox:
 
     def validate_command(self, command: str) -> tuple[bool, str]:
         """
-        验证命令的路径参数是否在沙箱允许范围内
+        dogrulamakomutyolparametreolup olmadigiicindesandboxizin veraralikicinde
 
         Returns:
-            (是否允许, 拒绝原因)
+            (olup olmadigiizin ver, reddetasilneden)
         """
         paths_to_check = self._extract_paths_from_command(command)
 
         if paths_to_check:
             ok, invalid = self.validate_paths(paths_to_check)
             if not ok:
-                return False, f"路径超出沙箱范围: {invalid[0]}"
+                return False, f"yolasirisandboxaralik: {invalid[0]}"
 
         return True, ""
 
@@ -251,24 +251,24 @@ class Sandbox:
         check_dangerous: bool = True,
     ) -> subprocess.CompletedProcess:
         """
-        在沙箱内运行命令
+        icindesandboxicindesatirkomut
 
         Args:
-            cmd: shell 命令
-            timeout: 超时秒数（默认用 config.timeout）
-            check_permission: 是否先检查权限
-            check_dangerous: 是否启用危险命令拦截
+            cmd: shell komut
+            timeout: asirizamansaniyesayi (varsayilankullan config.timeout) 
+            check_permission: olup olmadigioncekontrolizin
+            check_dangerous: olup olmadigibaslatkullantehlikelikomutengelle
 
         Returns:
             subprocess.CompletedProcess
 
         Raises:
-            BlockedCommandError: 命令被危险命令拦截器阻止
-            PermissionError: 权限检查未通过
-            TimeoutError: 命令执行超时
-            ValueError: 路径检查未通过
+            BlockedCommandError: komuttehlikelikomutengelleblokdur
+            PermissionError: izinkontrolhenuzaraciligiyla
+            TimeoutError: komutyurutasirizaman
+            ValueError: yolkontrolhenuzaraciligiyla
         """
-        # P0：危险命令拦截（最早检查，最高优先级）
+        # P0: tehlikelikomutengelle (enerkenkontrol, enyuksekoncelikseviye) 
         if check_dangerous:
             result = check_command(cmd)
             if result.risk.value == "block":
@@ -277,7 +277,7 @@ class Sandbox:
         if check_permission:
             ok, reason = self.validate_command(cmd)
             if not ok:
-                raise PermissionError(f"沙箱拒绝: {reason}")
+                raise PermissionError(f"sandboxreddet: {reason}")
 
         timeout_val = timeout or self.config.timeout
         cwd = self.config.working_dir or str(Path.home() / ".omc")
@@ -286,7 +286,7 @@ class Sandbox:
             # Use shell=False with explicit argument splitting to prevent injection
             return subprocess.run(
                 cmd,
-                shell=True,  # nosec B602 B604  # 沙箱白名单过滤后才到达此处，可控场景
+                shell=True,  # nosec B602 B604  # sandboxbeyazisimtekilfiltrelesonrayetenekkadarulasbuyer, olabilirkontrolsenaryo
                 capture_output=True,
                 timeout=timeout_val,
                 cwd=cwd,
@@ -294,7 +294,7 @@ class Sandbox:
                 env={**os.environ, "HOME": str(Path.home())},
             )
         except subprocess.TimeoutExpired:
-            raise TimeoutError(f"命令执行超时（{timeout_val}秒）")
+            raise TimeoutError(f"komutyurutasirizaman ({timeout_val}saniye) ")
 
     def run_command_with_output_limit(
         self,
@@ -302,7 +302,7 @@ class Sandbox:
         timeout: Optional[int] = None,
     ) -> dict[str, Any]:
         """
-        运行命令并限制输出大小
+        satirkomutvesinirciktibuyukkucuk
 
         Returns:
             dict(output, stderr, returncode, truncated, duration, success)
@@ -322,14 +322,14 @@ class Sandbox:
             if len(stdout) > max_size:
                 stdout = (
                     stdout[:max_size]
-                    + f"\n... (输出被截断，共 {len(result.stdout)} 字节)"
+                    + f"\n... (ciktikes, ortak {len(result.stdout)} byte)"
                 )
                 truncated = True
 
             if len(stderr) > max_size:
                 stderr = (
                     stderr[:max_size]
-                    + f"\n... (stderr 被截断，共 {len(result.stderr)} 字节)"
+                    + f"\n... (stderr kes, ortak {len(result.stderr)} byte)"
                 )
                 truncated = True
 
@@ -345,7 +345,7 @@ class Sandbox:
         except TimeoutError:
             return {
                 "output": "",
-                "stderr": f"命令执行超时（{timeout_val}秒）",
+                "stderr": f"komutyurutasirizaman ({timeout_val}saniye) ",
                 "returncode": -1,
                 "truncated": False,
                 "duration": timeout_val,
@@ -371,18 +371,18 @@ class Sandbox:
             }
 
     def get_allowed_dirs(self) -> list[str]:
-        """获取允许的目录列表"""
+        """alizin verdizinliste"""
         return [str(p) for p in self._resolved_dirs]
 
     def add_allowed_dir(self, path: str) -> None:
-        """添加允许的目录"""
+        """ekleizin verdizin"""
         p = Path(path).expanduser().resolve()
         if p not in self._resolved_dirs:
             self._resolved_dirs.append(p)
 
 
 # ─────────────────────────────────────────────────────────────
-# 便捷函数
+# kullanislifonksiyon
 # ─────────────────────────────────────────────────────────────
 
 
@@ -390,7 +390,7 @@ def create_sandbox(
     allowed_dirs: Optional[list[str]] = None,
     timeout: int = 60,
 ) -> Sandbox:
-    """创建沙箱实例"""
+    """olustursandboxornek"""
     config = SandboxConfig(
         allowed_dirs=allowed_dirs or Sandbox.DEFAULT_ALLOWED_DIRS,
         timeout=timeout,
@@ -403,6 +403,6 @@ def run_sandboxed(
     allowed_dirs: Optional[list[str]] = None,
     timeout: int = 60,
 ) -> dict[str, Any]:
-    """便捷函数：在沙箱中运行命令"""
+    """kullanislifonksiyon: icindesandboxicindesatirkomut"""
     sandbox = Sandbox()
     return sandbox.run_command_with_output_limit(cmd, timeout=timeout)

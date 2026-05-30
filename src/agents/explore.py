@@ -1,21 +1,21 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-Explore Agent - 代码库探索智能体
+Explore Agent - Kod tabanı keşif aracısı
 
-职责：
-1. 快速扫描代码库，构建文件/符号映射
-2. 识别项目结构、技术栈
-3. 发现关键文件和依赖关系
-4. 为后续 Agent 提供上下文
+Sorumluluklar:
+1. Kod tabanını hızla tarayın ve dosyalar oluşturun/sembol eşleme
+2. Proje yapısını ve teknoloji yığınını tanımlama
+3. Anahtar dosyaları ve bağımlılıkları keşfedin
+4. Takip için Agent bağlam sağlamak
 
-模型层级：LOW（快速便宜，对应 haiku）
+Modeli seviyesi:LOW(Hızlı ve ucuz, karşılık gelen haiku)
 
-工作流程：
-1. 扫描目录结构
-2. 识别文件类型和分布
-3. 提取关键符号（函数、类、模块）
-4. 生成项目地图
+İş akışı:
+1. Dizin yapısını tara
+2. Dosya türlerini ve dağıtımını tanımlama
+3. Anahtar sembolleri çıkarın (fonksiyonlar, sınıflar, modüller)
+4. Proje haritası oluştur
 """
 
 import os
@@ -36,42 +36,42 @@ from .base import (
 
 @dataclass
 class FileInfo:
-    """文件信息"""
+    """Dosya bilgileri"""
 
     path: str
     type: str  # python, javascript, markdown, etc.
     size: int
     lines: int
-    importance: float  # 0-1，基于位置和命名推断
+    importance: float  # 0-1, konum ve adlandırma çıkarımına dayalı
 
 
 @dataclass
 class ProjectMap:
-    """项目地图"""
+    """proje haritası"""
 
     root_path: str
-    language_distribution: dict[str, int]  # 语言 -> 文件数
+    language_distribution: dict[str, int]  # dil -> Dosya sayısı
     key_directories: list[str]
-    entry_points: list[str]  # 入口文件
+    entry_points: list[str]  # Giriş dosyası
     config_files: list[str]
     test_files: list[str]
-    dependencies: list[str]  # 依赖（从 package.json/requirements.txt 提取）
-    structure_tree: str  # 目录树
+    dependencies: list[str]  # bağımlılık (dan package.json/requirements.txt çıkarmak)
+    structure_tree: str  # dizin ağacı
 
 
 @register_agent
 class ExploreAgent(BaseAgent):
     """
-    代码库探索 Agent
+    Kod tabanı keşfi Agent
 
-    特点：
-    - 使用 LOW tier 模型（快速便宜）
-    - 不需要深度理解代码，只需识别结构
-    - 输出结构化的项目地图
+    Özellikler:
+    - kullanmak LOW tier Model (hızlı ve ucuz)
+    - Kodu derinlemesine anlamanıza gerek yok, sadece yapıyı tanıyın
+    - Yapılandırılmış proje haritasını dışa aktar
     """
 
     name = "explore"
-    description = "代码库探索智能体 - 快速扫描并构建项目地图"
+    description = "Kod tabanı keşif aracısı - Proje haritalarını hızla tarayın ve oluşturun"
     lane = AgentLane.BUILD_ANALYSIS
     default_tier = "low"
     icon = "🔍"
@@ -79,89 +79,89 @@ class ExploreAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个专业的代码库探索智能体。
+        return """Profesyonel bir kod tabanı keşif ajanısınız.
 
-## 角色
-你的职责是快速扫描代码库，构建文件和符号的映射关系，为后续分析提供基础。
+## Rol
+Sizin sorumluluğunuz, kod tabanını hızlı bir şekilde taramak ve sonraki analizlere temel oluşturmak üzere dosyalar ile semboller arasındaki eşleme ilişkisini oluşturmaktır.
 
-## 能力
-1. 目录结构扫描 - 识别项目的组织方式
-2. 技术栈识别 - 从文件类型和配置推断技术栈
-3. 关键文件定位 - 找出入口文件、配置文件、核心模块
-4. 依赖分析 - 从 package.json、requirements.txt 等提取依赖
+## yetenek
+1. Dizin yapısı taraması - Projenin nasıl organize edildiğini belirleyin
+2. Teknoloji yığını tanımlama - Dosya türlerinden ve yapılandırmalardan teknoloji yığınını çıkarın
+3. Anahtar dosya konumu - Giriş dosyasını, yapılandırma dosyasını ve çekirdek modülü bulun
+4. Bağımlılık analizi - itibaren package.json,requirements.txt Bağımlılıkların çıkarılmasını bekleyin
 
-## 工作原则
-1. **快速优先** - 不要深度阅读代码，只需识别结构
-2. **结构化输出** - 使用 Markdown 表格和代码块组织信息
-3. **重点突出** - 标记最重要的文件和目录
-4. **语言中立** - 支持多种编程语言
+## Çalışma prensipleri
+1. **hızlı öncelik** - Kodu derinlemesine okumayın, sadece yapıyı tanımlayın
+2. **Yapılandırılmış çıktı** - kullanmak Markdown Tablolar ve kod blokları bilgileri düzenler
+3. **Öne Çıkanlar** - En önemli dosya ve dizinleri işaretleyin
+4. **dil tarafsız** - Birden fazla programlama dilini destekleyin
 
-## 输出格式
-你的输出应该包含：
-1. 项目概览（语言、框架、规模）
-2. 目录结构树
-3. 关键文件列表（带说明）
-4. 技术栈总结
-5. 建议的后续探索路径
+## Çıkış formatı
+Çıktınız şunları içermelidir:
+1. Projeye genel bakış (dil, çerçeve, ölçek)
+2. dizin yapısı ağacı
+3. Anahtar dosyaların listesi (açıklamayla birlikte)
+4. Teknoloji yığını özeti
+5. Önerilen ileri keşif yolları
 
-## 注意事项
-- 不要猜测项目的功能，只描述观察到的事实
-- 如果找不到关键信息，明确说明
-- 保持简洁，避免冗余
+## Dikkat edilmesi gerekenler
+- Öğenin işlevselliği hakkında tahminde bulunmayın, yalnızca gözlemlenen gerçekleri açıklayın
+- Anahtar bilgi bulunamıyorsa açıkça belirtin
+- Basit tutun ve fazlalıktan kaçının
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
         """
-        执行代码库探索
+        Kod tabanı keşfi gerçekleştirin
 
-        步骤：
-        1. 扫描目录结构
-        2. 收集文件统计
-        3. 调用模型生成项目地图
+        adım:
+        1. Dizin yapısını tara
+        2. Dosya istatistiklerini toplayın
+        3. Proje haritasını oluşturmak için modeli çağırın
         """
         project_path = context.project_path
 
-        # 1. 扫描目录结构
+        # 1. Dizin yapısını tara
         structure = self._scan_directory(project_path)
 
-        # 2. 收集文件统计
+        # 2. Dosya istatistiklerini toplayın
         file_stats = self._collect_file_stats(project_path)
 
-        # 3. 提取依赖信息
+        # 3. Bağımlılık bilgilerini çıkarın
         dependencies = self._extract_dependencies(project_path)
 
-        # 4. 构建完整 prompt
+        # 4. Yapıyı tamamla prompt
         exploration_context = f"""
-## 扫描结果
+## Tarama sonuçları
 
-### 目录结构
+### Dizin yapısı
 ```
 {structure}
 ```
 
-### 文件统计
+### Dosya istatistikleri
 {self._format_file_stats(file_stats)}
 
-### 依赖信息
+### Bilgiye bağlı
 {self._format_dependencies(dependencies)}
 
-请基于以上信息，生成项目地图和探索建议。
+Lütfen yukarıdaki bilgilere dayanarak proje haritaları ve keşif önerileri oluşturun.
 """
 
         prompt.append({"role": "user", "content": exploration_context})
 
-        # 5. 调用模型
+        # 5. çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
 
-        # 使用路由器选择模型
+        # Yönlendirici kullanarak bir model seçin
         response = await self.call_model(
             task_type=TaskType.EXPLORE,
             messages=messages,
-            complexity="low",  # Explore 使用 LOW tier
+            complexity="low",  # Explore kullanmak LOW tier
         )
 
         return response.content
@@ -172,7 +172,7 @@ class ExploreAgent(BaseAgent):
         max_depth: int = 3,
         ignore_dirs: set = None,
     ) -> str:
-        """扫描目录结构并生成树形表示"""
+        """Dizin yapısını tarayın ve bir ağaç gösterimi oluşturun"""
         if ignore_dirs is None:
             ignore_dirs = {
                 "__pycache__",
@@ -201,7 +201,7 @@ class ExploreAgent(BaseAgent):
             dirs = [x for x in items if x.is_dir() and x.name not in ignore_dirs]
             files = [x for x in items if x.is_file()]
 
-            # 限制显示的文件数量
+            # Görüntülenen dosya sayısını sınırlayın
             max_files = 20
             if len(files) > max_files:
                 shown_files = files[:max_files]
@@ -228,7 +228,7 @@ class ExploreAgent(BaseAgent):
 
         return "\n".join(lines)
 
-    # 最大扫描文件数，超过后仅统计文件类型不再逐行读行数
+    # Maksimum taranan dosya sayısı. Limit aşıldıktan sonra sadece dosya türü sayılacak ve satır sayısı artık satır satır okunmayacaktır.
     _MAX_SCAN_FILES = 500
 
     def _collect_file_stats(
@@ -236,7 +236,7 @@ class ExploreAgent(BaseAgent):
         root_path: Path,
         ignore_dirs: set = None,
     ) -> dict[str, Any]:
-        """收集文件统计信息"""
+        """Dosya istatistiklerini toplayın"""
         if ignore_dirs is None:
             ignore_dirs = {
                 "__pycache__",
@@ -264,7 +264,7 @@ class ExploreAgent(BaseAgent):
         total_lines = 0
         key_files = []
 
-        # 文件扩展名到语言的映射
+        # Dil eşleme için dosya uzantısı
         ext_to_lang = {
             ".py": "Python",
             ".js": "JavaScript",
@@ -283,7 +283,7 @@ class ExploreAgent(BaseAgent):
         }
 
         for root, dirs, files in os.walk(root_path):
-            # 过滤忽略的目录
+            # Yoksayılan dizinleri filtrele
             dirs[:] = [d for d in dirs if d not in ignore_dirs]
 
             for file in files:
@@ -293,7 +293,7 @@ class ExploreAgent(BaseAgent):
                 language_map[lang] = language_map.get(lang, 0) + 1
                 total_files += 1
 
-                # 统计行数（超过上限后跳过逐行读取，用文件大小估算）
+                # Satır sayısını sayın (üst sınırı aştıktan sonra satır satır okumayı atlayın, tahmin etmek için dosya boyutunu kullanın)
                 file_path = Path(root) / file
                 try:
                     if total_files <= self._MAX_SCAN_FILES:
@@ -301,13 +301,13 @@ class ExploreAgent(BaseAgent):
                             lines = sum(1 for _ in f)
                             total_lines += lines
                     else:
-                        # 快速估算：每 50 字节约 1 行
+                        # Hızlı tahmin: başına 50 Yaklaşık bayt 1 TAMAM
                         size = file_path.stat().st_size
                         total_lines += size // 50
                 except Exception:
                     pass
 
-                # 识别关键文件
+                # Önemli belgeleri tanımlayın
                 if file in ["main.py", "app.py", "index.js", "index.ts", "__init__.py"]:
                     key_files.append(str(Path(root).relative_to(root_path) / file))
 
@@ -322,14 +322,14 @@ class ExploreAgent(BaseAgent):
         self,
         root_path: Path,
     ) -> dict[str, list[str]]:
-        """提取项目依赖"""
+        """Proje bağımlılıklarını ayıklayın"""
         dependencies = {
             "python": [],
             "node": [],
             "other": [],
         }
 
-        # Python 依赖
+        # Python güvenmek
         req_file = root_path / "requirements.txt"
         if req_file.exists():
             try:
@@ -342,7 +342,7 @@ class ExploreAgent(BaseAgent):
             except Exception:
                 pass
 
-        # Node 依赖
+        # Node güvenmek
         package_file = root_path / "package.json"
         if package_file.exists():
             try:
@@ -357,45 +357,45 @@ class ExploreAgent(BaseAgent):
         return dependencies
 
     def _format_file_stats(self, stats: dict[str, Any]) -> str:
-        """格式化文件统计"""
+        """Biçimlendirilmiş dosya istatistikleri"""
         lines = []
 
-        lines.append(f"- 总文件数：{stats['total_files']}")
-        lines.append(f"- 总代码行数：{stats['total_lines']:,}")
+        lines.append(f"- Toplam dosya sayısı:{stats['total_files']}")
+        lines.append(f"- Toplam kod satırı:{stats['total_lines']:,}")
 
-        lines.append("\n### 语言分布")
+        lines.append("\n### Dil dağıtımı")
         for lang, count in sorted(
             stats["language_distribution"].items(), key=lambda x: -x[1]
         ):
-            lines.append(f"- {lang}: {count} 文件")
+            lines.append(f"- {lang}: {count} belge")
 
         if stats["key_files"]:
-            lines.append("\n### 关键文件")
+            lines.append("\n### anahtar belgeler")
             for file in stats["key_files"]:
                 lines.append(f"- {file}")
 
         return "\n".join(lines)
 
     def _format_dependencies(self, deps: dict[str, list[str]]) -> str:
-        """格式化依赖信息"""
+        """Bağımlılık bilgilerini biçimlendir"""
         lines = []
 
         if deps["python"]:
-            lines.append("### Python 依赖")
-            for dep in deps["python"][:20]:  # 限制显示数量
+            lines.append("### Python güvenmek")
+            for dep in deps["python"][:20]:  # Görüntüleme miktarını sınırlayın
                 lines.append(f"- {dep}")
             if len(deps["python"]) > 20:
                 lines.append(f"- ... ({len(deps['python']) - 20} more)")
 
         if deps["node"]:
-            lines.append("### Node 依赖")
+            lines.append("### Node güvenmek")
             for dep in deps["node"][:20]:
                 lines.append(f"- {dep}")
             if len(deps["node"]) > 20:
                 lines.append(f"- ... ({len(deps['node']) - 20} more)")
 
         if not lines:
-            lines.append("（未找到依赖文件）")
+            lines.append("(Bağımlı dosyalar bulunamadı)")
 
         return "\n".join(lines)
 
@@ -404,14 +404,14 @@ class ExploreAgent(BaseAgent):
         result: str,
         context: AgentContext,
     ) -> AgentOutput:
-        """后处理 - 提取关键信息"""
-        # 后处理 - 提取关键信息（当前为占位实现）
+        """İşlem sonrası - Önemli bilgileri çıkarın"""
+        # İşlem sonrası - Anahtar bilgileri çıkarın (şu anda yer tutucu olarak uygulanmaktadır)
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "使用 analyst Agent 深入分析项目需求",
-                "使用 architect Agent 设计系统架构",
+                "kullanmak analyst Agent Proje gereksinimlerinin derinlemesine analizi",
+                "kullanmak architect Agent Tasarım sistemi mimarisi",
             ],
             next_agent="analyst",
         )

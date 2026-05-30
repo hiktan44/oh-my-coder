@@ -1,21 +1,21 @@
 from __future__ import annotations
 
 """
-Skill 自进化 Agent
+Skill kişisel gelişim Agent
 
-提供工具化的 Skill CRUD 操作，供其他 Agent 调用。
+Enstrümantal sağlayın Skill CRUD diğerleri için operasyon Agent Arama.
 
-工具（注册到模型）：
-- create: 创建新 Skill
-- patch: 增量更新 Skill（优先）
-- delete: 删除 Skill
-- list: 列出 Skills（支持 category/tag 过滤）
-- view: 查看单个 Skill（含 body）
+Araçlar (modele kayıtlı):
+- create: yeni oluştur Skill
+- patch: artımlı güncelleme Skill(öncelik)
+- delete: silmek Skill
+- list: liste Skills(Destek category/tag filtre)
+- view: tekli görüntüle Skill(İçermek body)
 
-设计原则：
-- patch 优先于 create（节省 token）
-- 所有操作持久化到 .omc/skills/
-- 通过 SkillManager 管理底层文件
+Tasarım ilkeleri:
+- patch öncelik almak create(kaydetmek token)
+- Tüm işlemlere devam edilir .omc/skills/
+- geçmek SkillManager Temel dosyaları yönetin
 """
 
 from pathlib import Path
@@ -35,24 +35,24 @@ from .base import (
 @register_agent
 class SkillManageAgent(BaseAgent):
     """
-    Skill 管理 Agent
+    Skill üstesinden gelmek Agent
 
-    职责：
-    1. 提供 Skill CRUD 工具（供模型调用）
-    2. 维护 .omc/skills/ 目录和索引
-    3. 支持搜索和查询
+    Sorumluluklar:
+    1. tedarik Skill CRUD Araçlar (model çağrıları için)
+    2. sürdürmek .omc/skills/ İçindekiler ve Dizin
+    3. Arama ve sorgulamayı destekleyin
     """
 
     name = "skill-manage"
-    description = "Skill 自进化管理 — 创建/更新/删除/查询 .omc/skills/ 中的经验沉淀文件"
+    description = "Skill kişisel gelişim yönetimi — yaratmak/yenilemek/silmek/Sorgu .omc/skills/ Biriktirme dosyalarını deneyimleyin"
     lane = AgentLane.COORDINATION
-    default_tier = "low"  # 纯管理操作，用最低成本模型
+    default_tier = "low"  # En düşük maliyet modelini kullanan saf yönetim işlemleri
     icon = "🧩"
-    tools: list[str] = []  # 不需要外部工具，自身就是工具
+    tools: list[str] = []  # Harici araçlara gerek yok, aracın kendisi
 
     def __init__(self, model_router, config: Optional[dict[str, Any]] = None):
         super().__init__(model_router, config)
-        # SkillManager 实例，可共享
+        # SkillManager Örnekler paylaşılabilir
         skills_dir = None
         if config:
             skills_dir = config.get("skills_dir")
@@ -62,72 +62,72 @@ class SkillManageAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个 Skill 自进化管理员。
+        return """sen bir Skill Kendini geliştiren yönetici.
 
-## 你的职责
-维护 .omc/skills/ 下的经验沉淀文件，帮助其他 Agent 复用历史经验。
+## sorumluluklarınız
+sürdürmek .omc/skills/ Aşağıdaki deneyim yağış dosyası başkalarına yardımcı olacaktır Agent Tarihsel deneyimi yeniden kullanın.
 
-## 文件结构
+## Dosya yapısı
 .omc/skills/
 ├── index.json
-├── debugging/      # 调试经验（bug fix、troubleshooting）
-├── workflow/       # 工作流经验（重构、测试等）
-├── corrections/    # 被纠正后的修复（用户纠错沉淀）
-└── best-practices/ # 最佳实践
+├── debugging/      # Hata ayıklama deneyimi (bug fix,troubleshooting)
+├── workflow/       # İş akışı deneyimi (yeniden düzenleme, test etme vb.)
+├── corrections/    # Düzeltildikten sonra onarım (kullanıcı hatası düzeltme çökelmesi)
+└── best-practices/ # en iyi uygulamalar
 
-## SKILL.md 格式
+## SKILL.md Biçim
 ```markdown
 ---
-name: 技能名称
-description: 一句话描述
+name: Beceri adı
+description: Bir cümlelik açıklama
 category: debugging|workflow|corrections|best-practices
 tags: [python, refactor]
-triggers: [重构, flask]
+triggers: [Yeniden düzenleme, flask]
 created_at: 2026-04-12
 updated_at: 2026-04-12
 ---
 
-# 正文内容
+# Metin içeriği
 ...
 ```
 
-## 工具
+## alet
 
-### list — 列出 Skills
-过滤：category（调试经验/工作流/纠正/最佳实践）、tag
-无参数 = 列出全部
+### list — liste Skills
+filtre:category(Hata ayıklama deneyimi/İş akışı/doğru/en iyi uygulamalar),tag
+parametre yok = hepsini listele
 
-### view — 查看单个 Skill
-参数：skill_id（必填）
-可选：include_body=true
+### view — tekli görüntüle Skill
+parametre:skill_id(gerekli)
+İsteğe bağlı:include_body=true
 
-### create — 创建新 Skill
-参数：name, body（正文）, category, description, tags, triggers
-⚠️ 先用 patch！只有 Skill 不存在时才 create
+### create — yeni oluştur Skill
+parametre:name, body(metin), category, description, tags, triggers
+⚠️ İlk önce kullan patch! sadece Skill mevcut olmadığında create
 
-### patch — 增量更新（优先）
-参数：skill_id（必填）, body, description, tags, triggers
-- 只传要改的字段，保留其他
-- 如果 Skill 不存在，有 body 时自动创建
+### patch — Artımlı güncellemeler (öncelik)
+parametre:skill_id(gerekli), body, description, tags, triggers
+- Yalnızca değiştirilecek alanları geçin ve diğerlerini koruyun.
+- eğer Skill yok, var body ne zaman otomatik olarak oluşturulur
 
-### delete — 删除 Skill
-参数：skill_id（必填）
+### delete — silmek Skill
+parametre:skill_id(gerekli)
 
-### search — 全文搜索
-参数：query（关键词，空格分词，AND 逻辑）
-可选：category, tags
+### search — Tam metin araması
+parametre:query(anahtar kelime, boşluk katılımcısı,AND mantık)
+İsteğe bağlı:category, tags
 
-## 决策规则
-- **patch 优先**：修改现有 Skill 总是用 patch，不是 create
-- **先查后写**：创建前先 list 确认不存在
-- **描述必填**：description 帮助其他 Agent 发现这个 Skill
+## karar kuralları
+- **patch öncelik**:Mevcut olanı değiştir Skill her zaman kullan patch,HAYIR create
+- **Önce kontrol et sonra yaz**: Oluşturmadan önce list Var olmadığını doğrulayın
+- **Açıklama gerekli**:description Başkalarına yardım edin Agent bunu buldum Skill
 
-## 输出格式
-每次工具调用后，简洁汇报结果（成功/失败/内容摘要）。
+## Çıkış formatı
+Her alet çağrısından sonra sonuçlar kısaca raporlanır (başarılı/hata/İçerik özeti).
 """
 
     # ------------------------------------------------------------------
-    # 工具实现（直接方法，BaseAgent.execute 会暴露给模型）
+    # araç uygulaması (doğrudan yöntem,BaseAgent.execute modele maruz kalacak)
     # ------------------------------------------------------------------
 
     def tool_list(
@@ -136,10 +136,10 @@ updated_at: 2026-04-12
         tag: Optional[str] = None,
         limit: int = 20,
     ) -> str:
-        """工具：列出 Skills"""
+        """Araçlar: liste Skills"""
         skills = self.sm.list_skills(category=category, tag=tag, limit=limit)
         if not skills:
-            return "（无结果）"
+            return "(sonuç yok)"
 
         lines = []
         for s in skills:
@@ -148,25 +148,25 @@ updated_at: 2026-04-12
                 f"{s.get('description', '')} "
                 f"[{' / '.join(s.get('tags', [])[:3])}]"
             )
-        return "\n".join(lines) or "（无结果）"
+        return "\n".join(lines) or "(sonuç yok)"
 
     def tool_view(
         self,
         skill_id: str,
         include_body: bool = False,
     ) -> str:
-        """工具：查看单个 Skill"""
+        """Araçlar: Tek bir tanesini görüntüleyin Skill"""
         skill = self.sm.get_skill(skill_id, include_body=include_body)
         if skill is None:
-            return f"Skill '{skill_id}' 不存在"
+            return f"Skill '{skill_id}' mevcut değil"
 
         parts = [
             f"## {skill['name']} (`{skill['skill_id']}`)",
-            f"**分类**: {skill.get('category', '')}",
-            f"**描述**: {skill.get('description', '')}",
-            f"**标签**: {', '.join(skill.get('tags', []))}",
-            f"**触发词**: {', '.join(skill.get('triggers', []))}",
-            f"**创建**: {skill.get('created_at', '')} | **更新**: {skill.get('updated_at', '')}",
+            f"**sınıflandırma**: {skill.get('category', '')}",
+            f"**betimlemek**: {skill.get('description', '')}",
+            f"**Etiket**: {', '.join(skill.get('tags', []))}",
+            f"**kelimeleri tetiklemek**: {', '.join(skill.get('triggers', []))}",
+            f"**yaratmak**: {skill.get('created_at', '')} | **yenilemek**: {skill.get('updated_at', '')}",
         ]
         if include_body and skill.get("body"):
             parts.append("\n---\n\n" + skill["body"])
@@ -183,18 +183,18 @@ updated_at: 2026-04-12
         triggers: Optional[list[str]] = None,
     ) -> str:
         """
-        工具：创建新 Skill（自动 patch 优先）
+        Araçlar: Yeni oluştur Skill(otomatik patch öncelik)
 
-        先检查同名 Skill 是否存在：
-        - 已存在 → 自动改为 patch（增量更新）
-        - 不存在 → 创建新 Skill
+        İlk önce aynı adı kontrol edin Skill Var mı:
+        - Zaten var → otomatik olarak olarak değiştirildi patch(artımlı güncelleme)
+        - mevcut değil → yeni oluştur Skill
         """
         skill_id = self.sm._slugify(name)
 
-        # 检查是否存在（patch 优先）
+        # Var olup olmadığını kontrol edin (patch öncelik)
         existing = self.sm.get_skill(skill_id)
         if existing:
-            # 自动转为 patch
+            # otomatik olarak dönüştürülür patch
             try:
                 result = self.sm.patch(
                     skill_id=skill_id,
@@ -206,13 +206,13 @@ updated_at: 2026-04-12
                     category=category,
                 )
                 return (
-                    f"✅ Skill 已存在，自动转为 patch: `{skill_id}`\n"
-                    f"   描述: {result.get('description', '')}"
+                    f"✅ Skill Zaten mevcut, otomatik olarak şuna dönüştürüldü: patch: `{skill_id}`\n"
+                    f"   betimlemek: {result.get('description', '')}"
                 )
             except Exception as e:
-                return f"❌ Patch 失败: {e}"
+                return f"❌ Patch hata: {e}"
 
-        # 不存在，创建新 Skill
+        # Mevcut değil, yeni oluştur Skill
         try:
             result = self.sm.create(
                 name=name,
@@ -223,11 +223,11 @@ updated_at: 2026-04-12
                 triggers=triggers,
             )
             return (
-                f"✅ Skill 创建成功: `{result['skill_id']}`\n"
-                f"   路径: {self.sm.skills_dir}/{category}/{result['skill_id']}/SKILL.md"
+                f"✅ Skill Başarıyla oluşturuldu: `{result['skill_id']}`\n"
+                f"   yol: {self.sm.skills_dir}/{category}/{result['skill_id']}/SKILL.md"
             )
         except Exception as e:
-            return f"❌ 创建失败: {e}"
+            return f"❌ Oluşturma başarısız oldu: {e}"
 
     def tool_patch(
         self,
@@ -239,7 +239,7 @@ updated_at: 2026-04-12
         name: Optional[str] = None,
         category: str = "workflow",
     ) -> str:
-        """工具：增量更新 Skill（优先于 create）"""
+        """Araçlar: Artımlı Güncellemeler Skill(öncelik alır create)"""
         try:
             existed_before = self.sm.get_skill(skill_id) is not None
             result = self.sm.patch(
@@ -251,20 +251,20 @@ updated_at: 2026-04-12
                 name=name,
                 category=category,
             )
-            action = "更新" if existed_before else "创建"
+            action = "yenilemek" if existed_before else "yaratmak"
             return (
                 f"✅ Skill {action}: `{result['skill_id']}`\n"
-                f"   描述: {result.get('description', '')}"
+                f"   betimlemek: {result.get('description', '')}"
             )
         except Exception as e:
-            return f"❌ 操作失败: {e}"
+            return f"❌ İşlem başarısız oldu: {e}"
 
     def tool_delete(self, skill_id: str) -> str:
-        """工具：删除 Skill"""
+        """Araçlar: Sil Skill"""
         ok = self.sm.delete(skill_id)
         if ok:
-            return f"✅ Skill 删除: `{skill_id}`"
-        return f"⚠️ Skill 不存在: `{skill_id}`"
+            return f"✅ Skill silmek: `{skill_id}`"
+        return f"⚠️ Skill mevcut değil: `{skill_id}`"
 
     def tool_search(
         self,
@@ -273,7 +273,7 @@ updated_at: 2026-04-12
         tags: Optional[list[str]] = None,
         limit: int = 10,
     ) -> str:
-        """工具：全文搜索 Skills"""
+        """Araçlar: Tam metin araması Skills"""
         results = self.sm.search(
             query=query,
             category=category,
@@ -281,9 +281,9 @@ updated_at: 2026-04-12
             limit=limit,
         )
         if not results:
-            return f"（无匹配结果 for: {query}）"
+            return f"(Eşleşen sonuç yok for: {query})"
 
-        lines = [f"**{len(results)} 个结果** (for: {query}):\n"]
+        lines = [f"**{len(results)} sonuçlar** (for: {query}):\n"]
         for s in results:
             lines.append(
                 f"- **{s['skill_id']}** [{s.get('category', '')}] "
@@ -292,7 +292,7 @@ updated_at: 2026-04-12
         return "\n".join(lines)
 
     # ------------------------------------------------------------------
-    # 生命周期方法
+    # yaşam döngüsü yöntemleri
     # ------------------------------------------------------------------
 
     async def _run(
@@ -302,23 +302,23 @@ updated_at: 2026-04-12
         **kwargs,
     ) -> str:
         """
-        执行 Skill 管理任务
+        uygulamak Skill Yönetim görevleri
 
-        从 prompt 最后一个用户消息解析工具调用请求，
-        执行对应的 tool_* 方法，返回结果。
+        itibaren prompt Son kullanıcı mesajı ayrıştırma aracı çağrı isteği,
+        İlgili işlemleri yürütün tool_* Yöntem, sonucu döndürür.
         """
-        # 提取最后一个用户消息
+        # Son kullanıcı mesajını çıkart
         user_msg = ""
         for msg in reversed(prompt):
             if msg.get("role") == "user":
                 user_msg = msg.get("content", "")
                 break
 
-        # 解析工具调用
+        # Ayrıştırma aracı çağrısı
         action = self._parse_action(user_msg)
         params = self._parse_params(user_msg)
 
-        # 执行对应工具
+        # İlgili aracı çalıştırın
         if action == "list":
             return self.tool_list(**params)
         if action == "view":
@@ -331,41 +331,41 @@ updated_at: 2026-04-12
             return self.tool_delete(**params)
         if action == "search":
             return self.tool_search(**params)
-        # 默认：列出全部 + 搜索建议
-        return self.tool_list() + "\n\n💡 提示：用 search <关键词> 搜索已有 Skill"
+        # Varsayılan: tümünü listele + Önerileri ara
+        return self.tool_list() + "\n\n💡 İpucu: Kullanın search <anahtar kelimeler> Zaten ara Skill"
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "Skill 已更新/创建，其他 Agent 可通过 skill_manage 工具查询",
+                "Skill güncellendi/Oluştur, diğer Agent Geçilebilir skill_manage Araç sorgusu",
             ],
         )
 
     # ------------------------------------------------------------------
-    # 辅助：简单意图识别（无需模型，直接规则）
+    # Yardımcı: basit amaç tanıma (model gerekmez, doğrudan kurallar)
     # ------------------------------------------------------------------
 
     def _parse_action(self, text: str) -> str:
-        """从文本识别操作类型"""
+        """Metinden işlem türünü tanımlayın"""
         text_lower = text.lower()
-        if "搜索" in text or "search" in text_lower:
+        if "aramak" in text or "search" in text_lower:
             return "search"
-        if "列出" in text or "list" in text_lower or "所有技能" in text:
+        if "liste" in text or "list" in text_lower or "Tüm beceriler" in text:
             return "list"
-        if "查看" in text or "view" in text_lower or "详情" in text:
+        if "Kontrol etmek" in text or "view" in text_lower or "Detaylar" in text:
             return "view"
-        if "更新" in text or "patch" in text_lower or "修改" in text:
+        if "yenilemek" in text or "patch" in text_lower or "Tekrar düzeltme yapmak" in text:
             return "patch"
-        if "创建" in text or "create" in text_lower or "新建" in text:
+        if "yaratmak" in text or "create" in text_lower or "Yeni" in text:
             return "create"
-        if "删除" in text or "delete" in text_lower:
+        if "silmek" in text or "delete" in text_lower:
             return "delete"
         return ""
 
     def _parse_params(self, text: str) -> dict[str, Any]:
-        """从文本解析参数（简易版）"""
+        """Parametreleri metinden ayrıştırma (kolay sürüm)"""
         params: dict[str, Any] = {}
 
         # category

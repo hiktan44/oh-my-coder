@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 """
-omc quality - 代码质量检查命令
+omc quality -Kod kalitesi kontrol komutları
 
-支持以下子命令：
-- omc quality check [path]  # 运行 ruff check
-- omc quality fix [path]   # 运行 ruff check --fix
-- omc quality type [path]  # 运行 mypy 类型检查
-- omc quality all [path]   # 先 black 再 ruff check 再 mypy
+Aşağıdaki alt komutlar desteklenir:
+- omc quality check [path]  #koşmakruff check
+- omc quality fix [path]   #koşmakruff check --fix
+- omc quality type [path]  #koşmakmypytip kontrolü
+- omc quality all [path]   #BirinciblackTekrarruff checkTekrarmypy
 """
 
 import shutil
@@ -19,17 +19,17 @@ from typing import Optional
 import typer
 from rich.console import Console
 
-app = typer.Typer(help="代码质量检查 - ruff/black/mypy 集成")
+app = typer.Typer(help="Kod kalite kontrolü- ruff/black/mypyentegre")
 console = Console()
 
 
 def _check_ruff_installed() -> bool:
-    """检查 ruff 是否已安装"""
+    """incelemekruffKurulu mu?"""
     return shutil.which("ruff") is not None
 
 
 def _check_black_installed() -> bool:
-    """检查 black 是否已安装"""
+    """incelemekblackKurulu mu?"""
     try:
         subprocess.run(
             [sys.executable, "-m", "black", "--version"],
@@ -42,7 +42,7 @@ def _check_black_installed() -> bool:
 
 
 def _check_mypy_installed() -> bool:
-    """检查 mypy 是否已安装"""
+    """incelemekmypyKurulu mu?"""
     try:
         subprocess.run(
             [sys.executable, "-m", "mypy", "--version"],
@@ -56,10 +56,10 @@ def _check_mypy_installed() -> bool:
 
 @app.command("check")
 def quality_check(
-    path: Optional[str] = typer.Argument("src", help="要检查的路径（默认 src/）"),
+    path: Optional[str] = typer.Argument("src", help="Kontrol edilecek yol (varsayılansrc/)"),
 ) -> None:
     """
-    运行 ruff check 检查代码
+koşmakruff checkKodu kontrol et
 
     Examples:
         omc quality check
@@ -67,13 +67,13 @@ def quality_check(
         omc quality check src/commands/
     """
     if not _check_ruff_installed():
-        console.print("[red]❌ ruff 未安装，请运行:[/red]")
+        console.print("[red]❌ ruffYüklü değil, lütfen çalıştırın:[/red]")
         console.print("  [cyan]pip install ruff[/cyan]")
         raise typer.Exit(1)
 
     target_path = Path(path) if path else Path("src")
 
-    console.print(f"[bold]🔍 运行 ruff check {target_path}...[/bold]\n")
+    console.print(f"[bold]🔍koşmakruff check {target_path}...[/bold]\n")
 
     try:
         result = subprocess.run(
@@ -88,23 +88,23 @@ def quality_check(
             console.print(result.stdout)
             if result.stderr:
                 console.print(f"[red]{result.stderr}[/red]")
-            console.print(f"\n[yellow]⚠️ 发现 {result.returncode} 个问题[/yellow]")
+            console.print(f"\n[yellow]⚠️Keşfetmek{result.returncode}kaydetmek[/yellow]")
             raise typer.Exit(result.returncode)
 
     except FileNotFoundError:
-        console.print("[red]❌ ruff 命令未找到[/red]")
+        console.print("[red]❌ ruffkomut bulunamadı[/red]")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ 执行失败: {e}[/red]")
+        console.print(f"[red]❌Yürütme başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("fix")
 def quality_fix(
-    path: Optional[str] = typer.Argument("src", help="要修复的路径（默认 src/）"),
+    path: Optional[str] = typer.Argument("src", help="Onarım yolu (varsayılansrc/)"),
 ) -> None:
     """
-    运行 ruff check --fix 自动修复代码
+koşmakruff check --fixKodu otomatik olarak düzelt
 
     Examples:
         omc quality fix
@@ -112,13 +112,13 @@ def quality_fix(
         omc quality fix src/commands/
     """
     if not _check_ruff_installed():
-        console.print("[red]❌ ruff 未安装，请运行:[/red]")
+        console.print("[red]❌ ruffYüklü değil, lütfen çalıştırın:[/red]")
         console.print("  [cyan]pip install ruff[/cyan]")
         raise typer.Exit(1)
 
     target_path = Path(path) if path else Path("src")
 
-    console.print(f"[bold]🔧 运行 ruff check --fix {target_path}...[/bold]\n")
+    console.print(f"[bold]🔧koşmakruff check --fix {target_path}...[/bold]\n")
 
     try:
         result = subprocess.run(
@@ -128,29 +128,29 @@ def quality_fix(
         )
 
         if result.returncode == 0:
-            console.print("[green]✅ 所有问题已自动修复[/green]")
+            console.print("[green]✅Tüm sorunlar otomatik olarak düzeltildi[/green]")
         else:
             console.print(result.stdout)
             if result.stderr:
                 console.print(f"[red]{result.stderr}[/red]")
             console.print(
-                f"\n[yellow]⚠️ 已修复部分问题，仍有 {result.returncode} 个问题待手动处理[/yellow]"
+                f"\n[yellow]⚠️Bazı sorunlar giderildi ama hâlâ var{result.returncode}Sorunların manuel olarak ele alınması gerekiyor[/yellow]"
             )
 
     except FileNotFoundError:
-        console.print("[red]❌ ruff 命令未找到[/red]")
+        console.print("[red]❌ ruffkomut bulunamadı[/red]")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ 执行失败: {e}[/red]")
+        console.print(f"[red]❌Yürütme başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("type")
 def quality_type(
-    path: Optional[str] = typer.Argument("src", help="要检查的路径（默认 src/）"),
+    path: Optional[str] = typer.Argument("src", help="Kontrol edilecek yol (varsayılansrc/)"),
 ) -> None:
     """
-    运行 mypy 类型检查
+koşmakmypytip kontrolü
 
     Examples:
         omc quality type
@@ -158,13 +158,13 @@ def quality_type(
         omc quality type src/commands/
     """
     if not _check_mypy_installed():
-        console.print("[red]❌ mypy 未安装，请运行:[/red]")
+        console.print("[red]❌ mypyYüklü değil, lütfen çalıştırın:[/red]")
         console.print("  [cyan]pip install mypy[/cyan]")
         raise typer.Exit(1)
 
     target_path = Path(path) if path else Path("src")
 
-    console.print(f"[bold]🔍 运行 mypy 类型检查 {target_path}...[/bold]\n")
+    console.print(f"[bold]🔍koşmakmypytip kontrolü{target_path}...[/bold]\n")
 
     try:
         result = subprocess.run(
@@ -174,7 +174,7 @@ def quality_type(
         )
 
         if result.returncode == 0:
-            console.print("[green]✅ 类型检查通过[/green]")
+            console.print("[green]✅Tip kontrolü başarılı oldu[/green]")
         else:
             # Parse output to count errors
             output = result.stdout + result.stderr
@@ -184,29 +184,29 @@ def quality_type(
             error_count = len(lines)
 
             # Show up to 10 errors
-            console.print("[yellow]⚠️ 发现错误:[/yellow]\n")
+            console.print("[yellow]⚠️hata bulundu:[/yellow]\n")
             for line in lines[:10]:
                 console.print(f"  {line}")
             if len(lines) > 10:
-                console.print(f"\n  ... 还有 {len(lines) - 10} 个错误未显示")
+                console.print(f"\n  ...Ayrıca{len(lines) - 10}hatalar gösterilmiyor")
 
-            console.print(f"\n[yellow]⚠️ 发现 {error_count} 个类型错误[/yellow]")
+            console.print(f"\n[yellow]⚠️Keşfetmek{error_count}yazım hataları[/yellow]")
             raise typer.Exit(1)
 
     except FileNotFoundError:
-        console.print("[red]❌ mypy 命令未找到[/red]")
+        console.print("[red]❌ mypykomut bulunamadı[/red]")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ 执行失败: {e}[/red]")
+        console.print(f"[red]❌Yürütme başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("all")
 def quality_all(
-    path: Optional[str] = typer.Argument("src", help="要处理的路径（默认 src/）"),
+    path: Optional[str] = typer.Argument("src", help="İşleme yolu (varsayılansrc/)"),
 ) -> None:
     """
-    先运行 black 格式化，再运行 ruff check，最后运行 mypy 类型检查
+İlk önce koşblackFormatlayıp tekrar çalıştırınruff checkve sonunda koşmypytip kontrolü
 
     Examples:
         omc quality all
@@ -214,24 +214,24 @@ def quality_all(
         omc quality all src/commands/
     """
     if not _check_ruff_installed():
-        console.print("[red]❌ ruff 未安装，请运行:[/red]")
+        console.print("[red]❌ ruffYüklü değil, lütfen çalıştırın:[/red]")
         console.print("  [cyan]pip install ruff[/cyan]")
         raise typer.Exit(1)
 
     if not _check_black_installed():
-        console.print("[red]❌ black 未安装，请运行:[/red]")
+        console.print("[red]❌ blackYüklü değil, lütfen çalıştırın:[/red]")
         console.print("  [cyan]pip install black[/cyan]")
         raise typer.Exit(1)
 
     if not _check_mypy_installed():
-        console.print("[red]❌ mypy 未安装，请运行:[/red]")
+        console.print("[red]❌ mypyYüklü değil, lütfen çalıştırın:[/red]")
         console.print("  [cyan]pip install mypy[/cyan]")
         raise typer.Exit(1)
 
     target_path = Path(path) if path else Path("src")
 
-    # Step 1: black 格式化
-    console.print(f"[bold]📝 运行 black 格式化 {target_path}...[/bold]\n")
+    # Step 1: blackbiçim
+    console.print(f"[bold]📝koşmakblackbiçim{target_path}...[/bold]\n")
 
     try:
         result = subprocess.run(
@@ -241,7 +241,7 @@ def quality_all(
         )
 
         if result.returncode == 0:
-            console.print("[green]✅ black 格式化完成[/green]\n")
+            console.print("[green]✅ blackBiçimlendirme tamamlandı[/green]\n")
         else:
             console.print(result.stdout)
             if result.stderr:
@@ -249,14 +249,14 @@ def quality_all(
             console.print()
 
     except FileNotFoundError:
-        console.print("[red]❌ black 命令未找到[/red]")
+        console.print("[red]❌ blackkomut bulunamadı[/red]")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ black 执行失败: {e}[/red]")
+        console.print(f"[red]❌ blackYürütme başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
     # Step 2: ruff check
-    console.print(f"[bold]🔍 运行 ruff check {target_path}...[/bold]\n")
+    console.print(f"[bold]🔍koşmakruff check {target_path}...[/bold]\n")
 
     try:
         result = subprocess.run(
@@ -271,18 +271,18 @@ def quality_all(
             console.print(result.stdout)
             if result.stderr:
                 console.print(f"[red]{result.stderr}[/red]")
-            console.print(f"\n[yellow]⚠️ 发现 {result.returncode} 个问题[/yellow]")
+            console.print(f"\n[yellow]⚠️Keşfetmek{result.returncode}kaydetmek[/yellow]")
             raise typer.Exit(result.returncode)
 
     except FileNotFoundError:
-        console.print("[red]❌ ruff 命令未找到[/red]")
+        console.print("[red]❌ ruffkomut bulunamadı[/red]")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ ruff 执行失败: {e}[/red]")
+        console.print(f"[red]❌ ruffYürütme başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
-    # Step 3: mypy 类型检查
-    console.print(f"[bold]🔍 运行 mypy 类型检查 {target_path}...[/bold]\n")
+    # Step 3: mypytip kontrolü
+    console.print(f"[bold]🔍koşmakmypytip kontrolü{target_path}...[/bold]\n")
 
     try:
         result = subprocess.run(
@@ -292,7 +292,7 @@ def quality_all(
         )
 
         if result.returncode == 0:
-            console.print("[green]✅ mypy 类型检查通过[/green]\n")
+            console.print("[green]✅ mypyTip kontrolü başarılı oldu[/green]\n")
         else:
             output = result.stdout + result.stderr
             lines = [
@@ -300,29 +300,29 @@ def quality_all(
             ]
             error_count = len(lines)
 
-            console.print("[yellow]⚠️ 发现类型错误:[/yellow]\n")
+            console.print("[yellow]⚠️yazmak:[/yellow]\n")
             for line in lines[:10]:
                 console.print(f"  {line}")
             if len(lines) > 10:
-                console.print(f"\n  ... 还有 {len(lines) - 10} 个错误未显示")
+                console.print(f"\n  ...Ayrıca{len(lines) - 10}hatalar gösterilmiyor")
 
-            console.print(f"\n[yellow]⚠️ 发现 {error_count} 个类型错误[/yellow]")
+            console.print(f"\n[yellow]⚠️Keşfetmek{error_count}yazım hataları[/yellow]")
             raise typer.Exit(1)
 
     except FileNotFoundError:
-        console.print("[red]❌ mypy 命令未找到[/red]")
+        console.print("[red]❌ mypykomut bulunamadı[/red]")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ mypy 执行失败: {e}[/red]")
+        console.print(f"[red]❌ mypyYürütme başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
     # All checks passed
-    console.print("[bold green]🎉 所有检查通过！[/bold green]")
+    console.print("[bold green]🎉Tüm kontroller geçti![/bold green]")
 
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context) -> None:
-    """默认显示帮助"""
+    """Yardımı varsayılan olarak göster"""
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
 

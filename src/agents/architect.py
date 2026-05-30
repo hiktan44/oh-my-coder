@@ -1,20 +1,20 @@
 """
-Architect Agent - 系统架构设计智能体
+Architect Agent - Sistem mimarisi tasarım temsilcisi
 
-职责：
-1. 系统架构设计
-2. 技术选型和权衡分析
-3. 接口定义
-4. 架构决策记录（ADR）
+Sorumluluklar:
+1. Sistem mimarisi tasarımı
+2. Teknoloji seçimi ve ödünleşim analizi
+3. Arayüz tanımı
+4. Mimari Karar Kaydı (ADR)
 
-模型层级：HIGH（深度推理，对应 opus）
+Modeli seviyesi:HIGH(Derin muhakeme, buna karşılık gelir opus)
 
-工作流程：
-1. 分析需求和约束
-2. 设计整体架构
-3. 技术选型
-4. 定义接口和数据流
-5. 输出架构文档
+İş akışı:
+1. Gereksinimleri ve kısıtlamaları analiz edin
+2. Genel mimariyi tasarlayın
+3. Teknoloji seçimi
+4. Arayüzleri ve veri akışlarını tanımlayın
+5. Çıkış şeması belgesi
 """
 
 from dataclasses import dataclass
@@ -32,7 +32,7 @@ from .base import (
 
 @dataclass
 class ArchitectureDecision:
-    """架构决策"""
+    """mimari kararlar"""
 
     title: str
     status: str  # proposed, accepted, deprecated
@@ -44,17 +44,17 @@ class ArchitectureDecision:
 @register_agent
 class ArchitectAgent(BaseAgent):
     """
-    架构师 Agent
+    Mimar Agent
 
-    特点：
-    - 使用 HIGH tier 模型
-    - 系统性思维
-    - 权衡分析
-    - 输出 ADR
+    Özellikler:
+    - kullanmak HIGH tier Modeli
+    - sistematik düşünme
+    - Takas analizi
+    - çıktı ADR
     """
 
     name = "architect"
-    description = "架构师智能体 - 系统架构设计和技术选型"
+    description = "mimar ajan - Sistem mimarisi tasarımı ve teknoloji seçimi"
     lane = AgentLane.BUILD_ANALYSIS
     default_tier = "high"
     icon = "🏗️"
@@ -62,71 +62,71 @@ class ArchitectAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个资深软件架构师。
+        return """Kıdemli bir yazılım mimarısınız.
 
-## 角色
-你的职责是设计系统架构，进行技术选型，并记录架构决策。
+## Rol
+Sizin sorumluluğunuz sistem mimarisini tasarlamak, teknoloji seçimleri yapmak ve mimari kararları belgelemektir.
 
-## 能力
-1. 架构设计 - 分层、微服务、事件驱动等
-2. 技术选型 - 语言、框架、数据库、中间件
-3. 权衡分析 - CAP、一致性、性能、成本
-4. 接口定义 - API 设计、数据模型、契约
+## yetenek
+1. Mimari tasarım - Katmanlama, mikro hizmetler, olay odaklı vb.
+2. Teknoloji seçimi - Dil, çerçeve, veritabanı, ara katman yazılımı
+3. Takas analizi - CAP, tutarlılık, performans, maliyet
+4. Arayüz tanımı - API Tasarım, veri modeli, sözleşme
 
-## 工作原则
-1. **KISS** - 保持简单，避免过度设计
-2. **YAGNI** - 不要提前设计不需要的功能
-3. **权衡透明** - 明确每个选择的利弊
-4. **可演进** - 架构要能适应变化
+## Çalışma prensipleri
+1. **KISS** - Basit tutun ve aşırı tasarımdan kaçının
+2. **YAGNI** - Gereksiz özellikleri önceden tasarlamayın
+3. **Takaslarda şeffaflık** - Her seçimin artılarını ve eksilerini belirleyin
+4. **Evrimleşebilir** - Mimari değişikliklere uyum sağlayabilmelidir
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 架构概览
-- 整体架构风格（分层/微服务/单体）
-- 核心组件
-- 数据流图（文字描述）
+### 1. Mimariye genel bakış
+- Genel mimari tarz (katmanlı/mikro hizmetler/monomer)
+- çekirdek bileşenler
+- Veri akış şeması (metin açıklaması)
 
-### 2. 技术栈
-| 层级 | 技术 | 理由 |
+### 2. teknoloji yığını
+| Hiyerarşi | teknoloji | sebep |
 |------|------|------|
-| 前端 | ... | ... |
-| 后端 | ... | ... |
-| 数据库 | ... | ... |
+| başlangıç ​​aşaması | ... | ... |
+| arka uç | ... | ... |
+| veritabanı | ... | ... |
 
-### 3. 核心模块
+### 3. çekirdek modül
 ```
 project/
-├── module1/     # 描述
-├── module2/     # 描述
-└── module3/     # 描述
+├── module1/     # betimlemek
+├── module2/     # betimlemek
+└── module3/     # betimlemek
 ```
 
-### 4. 接口设计
-#### API 端点
-- `GET /api/resource` - 描述
-- `POST /api/resource` - 描述
+### 4. Arayüz tasarımı
+#### API uç nokta
+- `GET /api/resource` - betimlemek
+- `POST /api/resource` - betimlemek
 
-#### 数据模型
+#### veri modeli
 ```json
 {
   "field": "type",
-  "description": "说明"
+  "description": "göstermek"
 }
 ```
 
-### 5. 架构决策记录（ADR）
+### 5. Mimari Karar Kaydı (ADR)
 
-#### ADR-001: [决策标题]
-- **状态**: proposed / accepted
-- **背景**: ...
-- **决策**: ...
-- **影响**: ...
+#### ADR-001: [Karar başlığı]
+- **durum**: proposed / accepted
+- **arka plan**: ...
+- **karar verme**: ...
+- **Etkilemek**: ...
 
-### 6. 风险和缓解
-- ⚠️ 风险1 → 缓解措施
-- ⚠️ 风险2 → 缓解措施
+### 6. Riskler ve Azaltmalar
+- ⚠️ risk1 → Azaltıcı önlemler
+- ⚠️ risk2 → Azaltıcı önlemler
 
-### 7. 下一步
+### 7. Sonraki adım
 - ...
 """
 
@@ -134,36 +134,36 @@ project/
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
         """
-        执行架构设计
+        Mimari tasarımı yürütmek
         """
-        # 添加前序输出
+        # Ön sipariş çıktısı ekle
         context_parts = []
 
         if context.previous_outputs.get("explore"):
             context_parts.append(
-                f"## 项目探索\n{context.previous_outputs['explore'].result}"
+                f"## Proje keşfi\n{context.previous_outputs['explore'].result}"
             )
 
         if context.previous_outputs.get("analyst"):
             context_parts.append(
-                f"## 需求分析\n{context.previous_outputs['analyst'].result}"
+                f"## ihtiyaç analizi\n{context.previous_outputs['analyst'].result}"
             )
 
         if context_parts:
             prompt.append({"role": "user", "content": "\n\n".join(context_parts)})
 
-        # 架构设计提示
+        # Mimari Tasarım İpuçları
         design_hint = """
 
-请基于以上信息，设计系统架构。重点关注：
-1. 架构风格是否适合项目规模？
-2. 技术选型是否合理？
-3. 是否有过度设计？
-4. 如何保证可扩展性？
+Lütfen sistem mimarisini yukarıdaki bilgilere göre tasarlayın. Odaklan:
+1. Mimari tarz projenin ölçeğine uygun mu?
+2. Teknoloji seçimi makul mü?
+3. Aşırı mühendislik mi yapıldı?
+4. Ölçeklenebilirlik nasıl sağlanır?
 """
         prompt.append({"role": "user", "content": design_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -181,13 +181,13 @@ project/
         result: str,
         context: AgentContext,
     ) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "使用 executor Agent 开始实现",
-                "使用 critic Agent 审查架构设计",
+                "kullanmak executor Agent farkına varmaya başla",
+                "kullanmak critic Agent Mimari tasarımı inceleyin",
             ],
             next_agent="executor",
         )

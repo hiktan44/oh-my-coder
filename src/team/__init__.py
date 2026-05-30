@@ -1,7 +1,7 @@
 """
-团队协作模块
+takimisbirligiyapmodul
 
-提供多人共享任务状态、团队统计和消息通知功能。
+saglarcokkisiortakpaylasgorevdurum, takimistatistikvemesajbildirimislev. 
 """
 
 from .auth import Team, TeamAuth, TeamMember, UserSession, team_auth
@@ -29,15 +29,15 @@ __all__ = [
     "NotificationPriority",
     "NotificationType",
     "TaskStatus",
-    # 任务同步
+    # gorevesitle
     "TaskSync",
     "Team",
-    # 认证
+    # kimlik dogrulama
     "TeamAuth",
     "TeamMember",
-    # 通知
+    # bildirim
     "TeamNotifier",
-    # 统计
+    # istatistik
     "TeamStatistics",
     "TeamStats",
     "TeamTask",

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 
 """
-Agent 执行透明性 - 完整执行过程记录
+Agent Şeffaflığı uygulayın - Tam yürütme süreci kaydı
 
-核心功能：
-1. AgentTrace 类：记录每个 Agent 的完整执行过程
-2. 记录内容：开始时间、每步操作（读/写文件、调API）、耗时、输出摘要、结束时间
-3. 存储到 .omc/traces/{session_id}/{agent_name}.jsonl
+Temel işlevler:
+1. AgentTrace Sınıf: her birini kaydedin Agent Tam yürütme süreci
+2. İçeriği kaydedin: başlangıç ​​zamanı, her adım işlemi (okuma/dosyaları yaz, ayarlaAPI), zaman tüketimi, çıktı özeti, bitiş zamanı
+3. depolamak .omc/traces/{session_id}/{agent_name}.jsonl
 4. CLI: omc trace list / omc trace show <agent>
 """
 
@@ -28,7 +28,7 @@ from typing import Any, Optional
 
 
 class TraceEventType(str, Enum):
-    """Trace 事件类型"""
+    """Trace olay türü"""
 
     START = "start"
     END = "end"
@@ -43,7 +43,7 @@ class TraceEventType(str, Enum):
 
 @dataclass
 class TraceEvent:
-    """Trace 单条事件"""
+    """Trace Tek olay"""
 
     timestamp: str
     type: str
@@ -51,7 +51,7 @@ class TraceEvent:
     duration_ms: float = 0.0
     description: str = ""
     details: dict[str, Any] = field(default_factory=dict)
-    output_preview: str = ""  # 输出摘要（前 200 字符）
+    output_preview: str = ""  # Çıktı özeti (önceki) 200 karakter)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -59,7 +59,7 @@ class TraceEvent:
 
 @dataclass
 class AgentTrace:
-    """单个 Agent 的完整执行轨迹"""
+    """Bekar Agent Tam yürütme takibi"""
 
     trace_id: str
     agent_name: str
@@ -71,21 +71,21 @@ class AgentTrace:
     events: list[TraceEvent] = field(default_factory=list)
     total_duration_ms: float = 0.0
     error: Optional[str] = None
-    output_summary: str = ""  # 最终输出摘要
+    output_summary: str = ""  # son çıktı özeti
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def _now(self) -> str:
         return datetime.now().isoformat()
 
     def start(self) -> None:
-        """开始追踪"""
+        """Takibi başlat"""
         self.started_at = self._now()
         self.events.append(
             TraceEvent(
                 timestamp=self.started_at,
                 type=TraceEventType.START.value,
                 step=len(self.events),
-                description=f"Agent '{self.agent_name}' 开始执行",
+                description=f"Agent '{self.agent_name}' Yürütmeyi başlat",
             )
         )
 
@@ -95,7 +95,7 @@ class AgentTrace:
         output_summary: str = "",
         error: Optional[str] = None,
     ) -> None:
-        """结束追踪"""
+        """İzlemeyi sonlandır"""
         self.ended_at = self._now()
         self.status = status
         self.output_summary = output_summary
@@ -110,7 +110,7 @@ class AgentTrace:
                 type=TraceEventType.END.value,
                 step=len(self.events),
                 duration_ms=self.total_duration_ms,
-                description=f"Agent '{self.agent_name}' 结束 ({status})",
+                description=f"Agent '{self.agent_name}' Sona ermek ({status})",
                 output_preview=output_summary[:200] if output_summary else "",
             )
         )
@@ -122,9 +122,9 @@ class AgentTrace:
         details: Optional[dict[str, Any]] = None,
         output_preview: str = "",
     ) -> None:
-        """记录任意事件"""
+        """Herhangi bir olayı kaydedin"""
         now = self._now()
-        # 计算距开始的时间
+        # Başlangıçtan bu yana geçen süreyi hesaplayın
         duration_ms = 0.0
         if self.started_at:
             try:
@@ -147,42 +147,42 @@ class AgentTrace:
         )
 
     def log_read(self, file_path: str, lines: int = 0) -> None:
-        """记录读取文件"""
+        """Okuma dosyasını kaydet"""
         self.log(
             TraceEventType.READ_FILE,
-            f"读取文件: {file_path}",
+            f"dosyayı oku: {file_path}",
             details={"path": file_path, "lines": lines},
         )
 
     def log_write(self, file_path: str, lines: int = 0) -> None:
-        """记录写入文件"""
+        """Kayıtları dosyaya yaz"""
         self.log(
             TraceEventType.WRITE_FILE,
-            f"写入文件: {file_path}",
+            f"dosya yaz: {file_path}",
             details={"path": file_path, "lines": lines},
         )
 
     def log_api(self, model: str, tokens: int = 0, duration_ms: float = 0.0) -> None:
-        """记录 API 调用"""
+        """Kayıt API Arama"""
         self.log(
             TraceEventType.CALL_API,
-            f"调用 API: {model}",
+            f"Arama API: {model}",
             details={"model": model, "tokens": tokens, "duration_ms": duration_ms},
         )
 
     def log_command(self, command: str, exit_code: int = 0) -> None:
-        """记录命令执行"""
+        """Komut yürütmeyi kaydet"""
         self.log(
             TraceEventType.RUN_COMMAND,
-            f"执行命令: {command[:80]}{'...' if len(command) > 80 else ''}",
+            f"komutu yürütmek: {command[:80]}{'...' if len(command) > 80 else ''}",
             details={"command": command, "exit_code": exit_code},
         )
 
     def log_error(self, error_msg: str) -> None:
-        """记录错误"""
+        """Hataları günlüğe kaydet"""
         self.log(
             TraceEventType.ERROR,
-            f"发生错误: {error_msg}",
+            f"Bir hata oluştu: {error_msg}",
             details={"error": error_msg},
         )
 
@@ -213,8 +213,8 @@ class AgentTrace:
 
 class TraceStore:
     """
-    Trace 存储管理器
-    存储路径: .omc/traces/{session_id}/{agent_name}_{timestamp}.jsonl
+    Trace depolama yöneticisi
+    depolama yolu: .omc/traces/{session_id}/{agent_name}_{timestamp}.jsonl
     """
 
     _instance: Optional[TraceStore] = None
@@ -238,10 +238,10 @@ class TraceStore:
         return self.base_dir / session_id
 
     def save(self, trace: AgentTrace) -> Path:
-        """保存 trace 到文件"""
+        """kaydetmek trace dosyalamak"""
         session_dir = self._session_dir(trace.session_id)
         session_dir.mkdir(parents=True, exist_ok=True)
-        # 文件名: agent_name.jsonl
+        # dosya adı: agent_name.jsonl
         safe_name = trace.agent_name.replace("/", "_").replace("\\", "_")
         file_path = session_dir / f"{safe_name}.jsonl"
         with open(file_path, "a", encoding="utf-8") as f:
@@ -249,7 +249,7 @@ class TraceStore:
         return file_path
 
     def list_sessions(self) -> list[str]:
-        """列出所有 session"""
+        """hepsini listele session"""
         if not self.base_dir.exists():
             return []
         return sorted(
@@ -257,7 +257,7 @@ class TraceStore:
         )
 
     def list_traces(self, session_id: str) -> list[dict[str, Any]]:
-        """列出某个 session 下的所有 trace"""
+        """listelemek session hepsi altında trace"""
         session_dir = self._session_dir(session_id)
         if not session_dir.exists():
             return []
@@ -277,7 +277,7 @@ class TraceStore:
         return traces
 
     def get_trace(self, session_id: str, agent_name: str) -> Optional[dict[str, Any]]:
-        """获取指定 agent 的最新 trace"""
+        """Belirtilen alın agent en sonuncu trace"""
         session_dir = self._session_dir(session_id)
         safe_name = agent_name.replace("/", "_").replace("\\", "_")
         file_path = session_dir / f"{safe_name}.jsonl"
@@ -293,12 +293,12 @@ class TraceStore:
         return None
 
     def get_latest_session(self) -> Optional[str]:
-        """获取最新 session ID"""
+        """En son bilgileri alın session ID"""
         sessions = self.list_sessions()
         return sessions[0] if sessions else None
 
     def get_all_agents_in_session(self, session_id: str) -> list[str]:
-        """获取某个 session 下所有 agent 名"""
+        """Bir al session Tümünü indir agent isim"""
         session_dir = self._session_dir(session_id)
         if not session_dir.exists():
             return []
@@ -315,7 +315,7 @@ class TraceStore:
 
 
 class TraceContext:
-    """与某个 Agent 执行绑定的 trace 上下文"""
+    """birisiyle Agent Bağlamanın yürütülmesi trace bağlam"""
 
     def __init__(
         self,

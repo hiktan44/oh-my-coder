@@ -3,14 +3,14 @@ from __future__ import annotations
 from typing import Optional
 
 """
-任务状态 CLI 命令
+Görev durumuCLIEmir
 
-omc task list              - 列出所有任务
-omc task status <id>      - 查看任务详情
-omc task pause <id>       - 暂停任务
-omc task resume <id>      - 恢复任务
-omc task delete <id>      - 删除任务
-omc task steps <id>       - 查看任务步骤历史
+omc task list              -tüm görevleri listele
+omc task status <id>      -Görev ayrıntılarını görüntüle
+omc task pause <id>       -Görevi duraklat
+omc task resume <id>      -kurtarma görevi
+omc task delete <id>      -Görevi sil
+omc task steps <id>       -Tarayıcı reddedildi
 """
 
 
@@ -30,14 +30,14 @@ from src.state.task_state import (
 
 app = typer.Typer(
     name="task",
-    help="任务状态管理 - 列出、暂停、恢复、查看任务",
+    help="Görev durumu yönetimi-Görevleri listeleyin, duraklatın, devam ettirin, görüntüleyin",
     add_completion=False,
 )
 console = Console()
 
 
 def _status_color(status: TaskStatus) -> str:
-    """状态颜色映射"""
+    """Durum renk haritası"""
     return {
         TaskStatus.PENDING: "dim",
         TaskStatus.RUNNING: "cyan",
@@ -48,7 +48,7 @@ def _status_color(status: TaskStatus) -> str:
 
 
 def _status_emoji(status: TaskStatus) -> str:
-    """状态 emoji 映射"""
+    """durumemojiharitalama"""
     return {
         TaskStatus.PENDING: "⏳",
         TaskStatus.RUNNING: "🔄",
@@ -64,14 +64,14 @@ def task_list(
         None,
         "--status",
         "-s",
-        help="按状态筛选 (pending/running/paused/completed/failed)",
+        help="Duruma göre filtrele(pending/running/paused/completed/failed)",
     ),
-    limit: int = typer.Option(20, "--limit", "-n", help="最多显示数量"),
+    limit: int = typer.Option(20, "--limit", "-n", help="Maksimum ekran miktarı"),
 ) -> None:
     """
-    列出所有任务
+tüm görevleri listele
 
-    示例:
+Örnek:
         omc task list
         omc task list --status running
         omc task list --status failed -n 50
@@ -82,24 +82,24 @@ def task_list(
             status_enum = TaskStatus(status_filter.lower())
         except ValueError:
             console.print(
-                f"[red]❗ 无效状态: {status_filter}[/red]\n"
-                "有效值: pending, running, paused, completed, failed"
+                f"[red]❗Geçersiz durum: {status_filter}[/red]\n"
+                "Geçerli değerler: pending, running, paused, completed, failed"
             )
             raise typer.Exit(1)
 
     states = list_tasks(status_enum)
     if not states:
-        console.print("[dim]暂无任务[/dim]")
+        console.print("[dim]Henüz görev yok[/dim]")
         return
 
     states = states[:limit]
 
-    table = Table(title=f"任务列表 ({len(states)})")
-    table.add_column("状态", width=3)
-    table.add_column("任务ID", style="cyan", width=12)
-    table.add_column("当前步骤", style="white")
-    table.add_column("进度", width=10)
-    table.add_column("创建时间", style="dim", width=18)
+    table = Table(title=f"hata işleme({len(states)})")
+    table.add_column("durum", width=3)
+    table.add_column("GörevID", style="cyan", width=12)
+    table.add_column("geçerli adım", style="white")
+    table.add_column("takvim", width=10)
+    table.add_column("yaratılış zamanı", style="dim", width=18)
 
     for state in states:
         progress_str = f"{state.progress * 100:.0f}%"
@@ -117,7 +117,7 @@ def task_list(
 
     console.print(table)
 
-    # 统计
+    #istatistikler
     len(states)
     counts = {s: sum(1 for s_ in states if s_.status == s) for s in TaskStatus}
     stats = " ".join(f"{_status_emoji(s)} {v}" for s, v in counts.items() if v > 0)
@@ -126,19 +126,19 @@ def task_list(
 
 @app.command("status")
 def task_status(
-    task_id: str = typer.Argument(..., help="任务 ID"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="显示完整步骤"),
+    task_id: str = typer.Argument(..., help="GörevID"),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Tam adımları göster"),
 ) -> None:
     """
-    查看任务详情
+Görev ayrıntılarını görüntüle
 
-    示例:
+Örnek:
         omc task status abc123
         omc task status abc123 -v
     """
     state = get_task(task_id)
     if state is None:
-        console.print(f"[red]❗ 任务不存在: {task_id}[/red]")
+        console.print(f"[red]❗Görev mevcut değil: {task_id}[/red]")
         raise typer.Exit(1)
 
     status_color = _status_color(state.status)
@@ -146,29 +146,29 @@ def task_status(
 
     info_lines = [
         f"ID: [cyan]{state.task_id}[/cyan]",
-        f"状态: [{status_color}]{emoji} {state.status.value}[/{status_color}]",
-        f"进度: [cyan]{state.progress * 100:.1f}%[/cyan]",
-        f"当前步骤: {state.current_step or '无'}",
-        f"创建时间: {state.created_at}",
-        f"更新时间: {state.updated_at}",
+        f"durum: [{status_color}]{emoji} {state.status.value}[/{status_color}]",
+        f"takvim: [cyan]{state.progress * 100:.1f}%[/cyan]",
+        f"geçerli adım: {state.current_step or 'hiçbiri'}",
+        f"yaratılış zamanı: {state.created_at}",
+        f"Güncelleme zamanı: {state.updated_at}",
     ]
 
     if state.error:
-        info_lines.append(f"错误: [red]{state.error}[/red]")
+        info_lines.append(f"hata: [red]{state.error}[/red]")
 
     if state.artifacts:
-        info_lines.append(f"产物数: [dim]{len(state.artifacts)}[/dim]")
+        info_lines.append(f"Ürün sayısı: [dim]{len(state.artifacts)}[/dim]")
 
     console.print(
         Panel(
             "\n".join(info_lines),
-            title="📋 任务详情",
+            title="📋Görev ayrıntıları",
             border_style="cyan",
         )
     )
 
     if verbose and state.steps:
-        console.print("\n[bold]执行步骤:[/bold]")
+        console.print("\n[bold]Yürütme adımları:[/bold]")
         for i, step in enumerate(state.steps, 1):
             console.print(f"  {i}. [{step.timestamp[11:19]}] {step.step}")
             if step.result:
@@ -182,92 +182,92 @@ def task_status(
 
 @app.command("pause")
 def task_pause(
-    task_id: str = typer.Argument(..., help="任务 ID"),
+    task_id: str = typer.Argument(..., help="GörevID"),
 ) -> None:
     """
-    暂停任务
+Görevi duraklat
 
-    示例:
+Örnek:
         omc task pause abc123
     """
     state = get_task(task_id)
     if state is None:
-        console.print(f"[red]❗ 任务不存在: {task_id}[/red]")
+        console.print(f"[red]❗Görev mevcut değil: {task_id}[/red]")
         raise typer.Exit(1)
 
     if state.status == TaskStatus.PAUSED:
-        console.print("[yellow]任务已经是暂停状态[/yellow]")
+        console.print("[yellow]Görev zaten askıya alındı[/yellow]")
         return
 
     if state.status not in (TaskStatus.RUNNING, TaskStatus.PENDING):
-        console.print(f"[red]❗ 无法暂停: 当前状态为 {state.status.value}[/red]")
+        console.print(f"[red]❗Duraklatamıyorum:Mevcut durum:{state.status.value}[/red]")
         raise typer.Exit(1)
 
     if pause_task(task_id):
-        console.print(f"[green]✓ 任务已暂停: {task_id}[/green]")
-        console.print(f"  当前步骤: {state.current_step or '无'}")
+        console.print(f"[green]✓Görev duraklatıldı: {task_id}[/green]")
+        console.print(f"geçerli adım: {state.current_step or 'hiçbiri'}")
     else:
-        console.print("[red]❗ 暂停失败[/red]")
+        console.print("[red]❗Askıya alma başarısız oldu[/red]")
         raise typer.Exit(1)
 
 
 @app.command("resume")
 def task_resume(
-    task_id: str = typer.Argument(..., help="任务 ID"),
+    task_id: str = typer.Argument(..., help="GörevID"),
 ) -> None:
     """
-    恢复任务
+kurtarma görevi
 
-    示例:
+Örnek:
         omc task resume abc123
     """
     state = get_task(task_id)
     if state is None:
-        console.print(f"[red]❗ 任务不存在: {task_id}[/red]")
+        console.print(f"[red]❗Görev mevcut değil: {task_id}[/red]")
         raise typer.Exit(1)
 
     if state.status != TaskStatus.PAUSED:
         console.print(
-            f"[yellow]任务不是暂停状态（当前: {state.status.value}）[/yellow]"
+            f"[yellow]Görev askıya alınmış durumda değil (şu anda: {state.status.value})[/yellow]"
         )
         return
 
     if resume_task(task_id):
-        console.print(f"[green]✓ 任务已恢复: {task_id}[/green]")
-        console.print(f"  从断点继续: {state.current_step or '任务开始'}")
+        console.print(f"[green]✓Görev devam ettirildi: {task_id}[/green]")
+        console.print(f"  Kesme noktasından devam: {state.current_step or 'Görev başlıyor'}")
     else:
-        console.print("[red]❗ 恢复失败[/red]")
+        console.print("[red]❗Kurtarma başarısız oldu[/red]")
         raise typer.Exit(1)
 
 
 @app.command("delete")
 def task_delete(
-    task_id: str = typer.Argument(..., help="任务 ID"),
-    force: bool = typer.Option(False, "--force", "-f", help="强制删除"),
+    task_id: str = typer.Argument(..., help="GörevID"),
+    force: bool = typer.Option(False, "--force", "-f", help="silmeye zorla"),
 ) -> None:
     """
-    删除任务
+Görevi sil
 
-    示例:
+Örnek:
         omc task delete abc123
         omc task delete abc123 -f
     """
     state = get_task(task_id)
     if state is None:
-        console.print(f"[red]❗ 任务不存在: {task_id}[/red]")
+        console.print(f"[red]❗Görev mevcut değil: {task_id}[/red]")
         raise typer.Exit(1)
 
     if not force:
         from rich.prompt import Confirm
 
         if not Confirm.ask(
-            f"确认删除任务 [cyan]{task_id}[/cyan]（状态: {state.status.value}）？"
+            f"Silme görevini onayla[cyan]{task_id}[/cyan](durum: {state.status.value})?"
         ):
-            console.print("[dim]已取消[/dim]")
+            console.print("[dim]İptal edildi[/dim]")
             return
 
     if delete_task(task_id):
-        console.print(f"[green]✓ 任务已删除: {task_id}[/green]")
+        console.print(f"[green]✓Fiyatı girin: {task_id}[/green]")
     else:
-        console.print("[red]❗ 删除失败[/red]")
+        console.print("[red]❗Silinemedi[/red]")
         raise typer.Exit(1)

@@ -1,20 +1,20 @@
 name: debug
-description: 调试修复流程：探索 → 调试 → 验证
+description: hata ayikladuzeltmeakis: kesfet → hata ayikla → dogrulama
 steps:
   - id: explore
     agent: explore
-    description: 探索代码库定位问题
+    description: kesfetkodkutuphanekonumsorun
     timeout: 300
     retry: 0
   - id: debugger
     agent: debugger
-    description: 调试并修复问题
+    description: hata ayiklaveduzeltmesorun
     dependencies: [explore]
     timeout: 600
     retry: 1
   - id: verifier
     agent: verifier
-    description: 验证修复正确性
+    description: dogrulamaduzeltmedogru
     dependencies: [debugger]
     timeout: 300
     retry: 0

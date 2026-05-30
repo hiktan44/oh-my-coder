@@ -4,13 +4,13 @@ from __future__ import annotations
 
 
 """
-omc share - 会话分享命令
+omc share - Oturum paylaşma komutu
 
-功能：
-1. 导出会话为 JSON（含配置+历史）
-2. 生成分享链接（简短 ID）
-3. 通过链接导入会话
-4. 列出和删除分享
+İşlev:
+1. Oturumu farklı dışa aktar JSON(yapılandırma dahil+tarih)
+2. Paylaşım bağlantısı oluştur (kısa ID)
+3. Oturumları bağlantı yoluyla içe aktarın
+4. Paylaşımları listeleme ve silme
 """
 
 
@@ -29,7 +29,7 @@ console = Console()
 
 app = typer.Typer(
     name="share",
-    help="会话分享 - 导出/导入/管理分享链接",
+    help="Konuşma paylaşımı - İhracat/içe aktarmak/Paylaşılan bağlantıları yönet",
     add_completion=False,
 )
 
@@ -41,17 +41,17 @@ SHARE_DIR = Path.home() / ".omc" / "shares"
 
 
 def _ensure_dir() -> None:
-    """确保分享目录存在"""
+    """Paylaşılan dizinin mevcut olduğundan emin olun"""
     SHARE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _generate_share_id() -> str:
-    """生成 8 位简短分享 ID"""
+    """oluşturmak 8 kısa paylaşım ID"""
     return uuid.uuid4().hex[:8]
 
 
 def _share_path(share_id: str) -> Path:
-    """获取分享文件路径"""
+    """Paylaşılan dosya yolunu al"""
     return SHARE_DIR / f"share_{share_id}.json"
 
 
@@ -68,54 +68,54 @@ def export_session(
     expires_hours: int = 0,
 ) -> dict[str, Any]:
     """
-    导出会话为分享记录。
+    Oturumları paylaşılan kayıtlar olarak dışa aktarın.
 
     Args:
-        task_id: 指定任务 ID，为空则导出最近一次
-        history_dir: 历史记录目录
-        include_config: 是否包含配置信息
-        tags: 标签
-        expires_hours: 过期时间（小时），0 表示永不过期
+        task_id: Görevleri belirtin ID, eğer boşsa, en son olanı dışa aktarın
+        history_dir: Geçmiş dizini
+        include_config: Yapılandırma bilgilerinin dahil edilip edilmeyeceği
+        tags: Etiket
+        expires_hours: Son kullanma süresi (saat),0 anlamı asla sona ermez
 
     Returns:
-        分享记录字典
+        Kayıt sözlüğünü paylaş
     """
     _ensure_dir()
 
     h_dir = history_dir or Path(".omc/history")
     if not h_dir.exists():
-        console.print("[red]❌ 历史记录目录不存在[/red]")
+        console.print("[red]❌ Geçmiş dizini mevcut değil[/red]")
         return {}
 
-    # 查找目标任务
+    # Hedef görevleri bulun
     target_file = None
     if task_id:
         target_file = h_dir / f"{task_id}.json"
         if not target_file.exists():
-            # 尝试 history_ 前缀
+            # denemek history_ önek
             target_file = h_dir / f"history_{task_id}.json"
         if not target_file.exists():
-            console.print(f"[red]❌ 找不到任务: {task_id}[/red]")
+            console.print(f"[red]❌ Görev bulunamadı: {task_id}[/red]")
             return {}
     else:
-        # 找最近的
+        # En yakın olanı bul
         json_files = sorted(
             h_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True
         )
         if not json_files:
-            console.print("[red]❌ 没有历史记录[/red]")
+            console.print("[red]❌ tarih yok[/red]")
             return {}
         target_file = json_files[0]
 
-    # 读取历史数据
+    # Geçmiş verileri okuyun
     try:
         with open(target_file, encoding="utf-8") as f:
             history_data = json.load(f)
     except (json.JSONDecodeError, OSError) as e:
-        console.print(f"[red]❌ 读取失败: {e}[/red]")
+        console.print(f"[red]❌ Okuma başarısız oldu: {e}[/red]")
         return {}
 
-    # 构建分享记录
+    # Paylaşım kayıtları oluşturun
     share_id = _generate_share_id()
     now = datetime.now().isoformat()
 
@@ -136,33 +136,33 @@ def export_session(
         },
     }
 
-    # 可选包含配置
+    # İsteğe bağlı yapılandırma dahil
     if include_config:
         config_path = Path.home() / ".omc" / "config.json"
         if config_path.exists():
             try:
                 with open(config_path, encoding="utf-8") as f:
                     config = json.load(f)
-                # 脱敏：移除 API Key
+                # Duyarsızlaştırma: kaldır API Key
                 safe_config = _sanitize_config(config)
                 share_record["session"]["config"] = safe_config
             except (json.JSONDecodeError, OSError):
                 pass
 
-    # 保存分享文件
+    # Paylaşılan dosyayı kaydet
     share_file = _share_path(share_id)
     with open(share_file, "w", encoding="utf-8") as f:
         json.dump(share_record, f, ensure_ascii=False, indent=2)
 
-    console.print("[green]✅ 分享已创建[/green]")
+    console.print("[green]✅ Paylaşım oluşturuldu[/green]")
     console.print(f"  Share ID: [bold cyan]{share_id}[/bold cyan]")
-    console.print(f"  文件: {share_file}")
+    console.print(f"  belge: {share_file}")
 
     return share_record
 
 
 def _sanitize_config(config: dict[str, Any]) -> dict[str, Any]:
-    """脱敏配置，移除 API Key"""
+    """Duyarsızlaştırma yapılandırması, kaldır API Key"""
     safe = {}
     for key, value in config.items():
         if isinstance(value, dict):
@@ -173,7 +173,7 @@ def _sanitize_config(config: dict[str, Any]) -> dict[str, Any]:
             or "secret" in key.lower()
             or "password" in key.lower()
         ):
-            # 保留前 4 位 + ****
+            # rezervasyondan önce 4 Biraz + ****
             safe[key] = value[:4] + "****" if len(value) > 4 else "****"
         else:
             safe[key] = value
@@ -182,48 +182,48 @@ def _sanitize_config(config: dict[str, Any]) -> dict[str, Any]:
 
 def import_session(share_id: str, target_dir: Optional[Path] = None) -> dict[str, Any]:
     """
-    通过分享 ID 导入会话。
+    paylaşarak ID Oturumu içe aktar.
 
     Args:
-        share_id: 分享 ID
-        target_dir: 导入目标目录
+        share_id: paylaşmak ID
+        target_dir: Hedef dizini içe aktar
 
     Returns:
-        导入的会话数据
+        İçe aktarılan oturum verileri
     """
     _ensure_dir()
 
     share_file = _share_path(share_id)
     if not share_file.exists():
-        console.print(f"[red]❌ 分享不存在: {share_id}[/red]")
+        console.print(f"[red]❌ Paylaşım mevcut değil: {share_id}[/red]")
         return {}
 
     try:
         with open(share_file, encoding="utf-8") as f:
             share_data = json.load(f)
     except (json.JSONDecodeError, OSError) as e:
-        console.print(f"[red]❌ 读取分享失败: {e}[/red]")
+        console.print(f"[red]❌ Paylaşım okunamadı: {e}[/red]")
         return {}
 
-    # 检查过期
+    # Çekin süresi dolmuş
     if share_data.get("expires_at"):
         expires = datetime.fromisoformat(share_data["expires_at"])
         if datetime.now() > expires:
-            console.print("[red]❌ 分享已过期[/red]")
+            console.print("[red]❌ Paylaşımın süresi doldu[/red]")
             return {}
 
-    # 导入历史记录
+    # İçe aktarma geçmişi
     session = share_data.get("session", {})
     history_data = session.get("history", {})
 
     if not history_data:
-        console.print("[red]❌ 分享中没有历史数据[/red]")
+        console.print("[red]❌ Paylaşımda geçmiş veri yok[/red]")
         return {}
 
     t_dir = target_dir or Path(".omc/history")
     t_dir.mkdir(parents=True, exist_ok=True)
 
-    # 生成新的历史 ID
+    # Yeni geçmiş oluştur ID
     history_id = history_data.get("history_id", str(uuid.uuid4())[:8])
     imported_id = f"{history_id}_imported_{share_id}"
 
@@ -231,21 +231,21 @@ def import_session(share_id: str, target_dir: Optional[Path] = None) -> dict[str
     history_data["imported_from"] = share_id
     history_data["imported_at"] = datetime.now().isoformat()
 
-    # 保存到目标目录
+    # Hedef dizine kaydet
     target_file = t_dir / f"history_{imported_id}.json"
     with open(target_file, "w", encoding="utf-8") as f:
         json.dump(history_data, f, ensure_ascii=False, indent=2)
 
-    console.print("[green]✅ 会话已导入[/green]")
+    console.print("[green]✅ Oturum içe aktarıldı[/green]")
     console.print(f"  History ID: [bold cyan]{imported_id}[/bold cyan]")
-    console.print(f"  来源分享: {share_id}")
-    console.print(f"  文件: {target_file}")
+    console.print(f"  Kaynak paylaşımı: {share_id}")
+    console.print(f"  belge: {target_file}")
 
     return history_data
 
 
 def list_shares() -> list[dict[str, Any]]:
-    """列出所有分享"""
+    """Tüm paylaşımları listele"""
     _ensure_dir()
 
     shares = []
@@ -253,7 +253,7 @@ def list_shares() -> list[dict[str, Any]]:
         try:
             with open(f, encoding="utf-8") as fh:
                 data = json.load(fh)
-            # 只返回摘要
+            # Yalnızca özeti döndür
             shares.append(
                 {
                     "share_id": data.get("share_id"),
@@ -276,19 +276,19 @@ def list_shares() -> list[dict[str, Any]]:
 
 
 def delete_share(share_id: str) -> bool:
-    """删除分享"""
+    """Paylaşımı sil"""
     share_file = _share_path(share_id)
     if not share_file.exists():
-        console.print(f"[red]❌ 分享不存在: {share_id}[/red]")
+        console.print(f"[red]❌ Paylaşım mevcut değil: {share_id}[/red]")
         return False
 
     share_file.unlink()
-    console.print(f"[green]✅ 分享已删除: {share_id}[/green]")
+    console.print(f"[green]✅ Paylaşım silindi: {share_id}[/green]")
     return True
 
 
 def get_share(share_id: str) -> Optional[dict[str, Any]]:
-    """获取分享详情"""
+    """Paylaşım ayrıntılarını alın"""
     share_file = _share_path(share_id)
     if not share_file.exists():
         return None
@@ -308,15 +308,15 @@ def get_share(share_id: str) -> Optional[dict[str, Any]]:
 @app.command("create")
 def share_create(
     task_id: Optional[str] = typer.Option(
-        None, "--task", "-t", help="指定任务 ID（空则导出最近一次）"
+        None, "--task", "-t", help="Görevleri belirtin ID(En sonuncuyu dışa aktarmak için boş)"
     ),
-    tags: Optional[str] = typer.Option(None, "--tags", help="标签，逗号分隔"),
-    no_config: bool = typer.Option(False, "--no-config", help="不包含配置信息"),
+    tags: Optional[str] = typer.Option(None, "--tags", help="etiketler, virgülle ayrılmış"),
+    no_config: bool = typer.Option(False, "--no-config", help="Yapılandırma bilgisi içermiyor"),
     expires: int = typer.Option(
-        0, "--expires", "-e", help="过期时间（小时），0=永不过期"
+        0, "--expires", "-e", help="Son kullanma süresi (saat),0=asla sona ermez"
     ),
 ) -> None:
-    """导出会话并生成分享链接"""
+    """Konuşmaları dışa aktarın ve paylaşım bağlantıları oluşturun"""
     tag_list = [t.strip() for t in tags.split(",")] if tags else []
     result = export_session(
         task_id=task_id,
@@ -328,10 +328,10 @@ def share_create(
         console.print(
             Panel(
                 f"Share ID: [bold cyan]{result['share_id']}[/bold cyan]\n"
-                f"创建时间: {result['created_at']}\n"
-                f"过期: {result.get('expires_at') or '永不过期'}\n"
-                f"标签: {', '.join(result.get('tags', [])) or '无'}",
-                title="📤 分享已创建",
+                f"yaratılış zamanı: {result['created_at']}\n"
+                f"Günü geçmiş: {result.get('expires_at') or 'asla sona ermez'}\n"
+                f"Etiket: {', '.join(result.get('tags', [])) or 'hiçbiri'}",
+                title="📤 Paylaşım oluşturuldu",
                 border_style="green",
             )
         )
@@ -339,16 +339,16 @@ def share_create(
 
 @app.command("import")
 def share_import(
-    share_id: str = typer.Argument(..., help="分享 ID"),
+    share_id: str = typer.Argument(..., help="paylaşmak ID"),
 ) -> None:
-    """通过分享 ID 导入会话"""
+    """paylaşarak ID Oturumu içe aktar"""
     result = import_session(share_id)
     if result:
         console.print(
             Panel(
                 f"History ID: [bold cyan]{result.get('history_id')}[/bold cyan]\n"
-                f"来源: {share_id}",
-                title="📥 会话已导入",
+                f"kaynak: {share_id}",
+                title="📥 Oturum içe aktarıldı",
                 border_style="green",
             )
         )
@@ -356,27 +356,27 @@ def share_import(
 
 @app.command("list")
 def share_list() -> None:
-    """列出所有分享"""
+    """Tüm paylaşımları listele"""
     shares = list_shares()
     if not shares:
-        console.print("[dim]暂无分享记录[/dim]")
+        console.print("[dim]Henüz paylaşım kaydı yok[/dim]")
         return
 
-    table = Table(title="📤 分享列表", show_lines=True)
+    table = Table(title="📤 paylaşım listesi", show_lines=True)
     table.add_column("Share ID", style="cyan")
-    table.add_column("任务描述", max_width=40)
-    table.add_column("步骤数", justify="right")
-    table.add_column("创建时间")
-    table.add_column("过期")
-    table.add_column("标签")
+    table.add_column("Görev açıklaması", max_width=40)
+    table.add_column("adım sayısı", justify="right")
+    table.add_column("yaratılış zamanı")
+    table.add_column("Günü geçmiş")
+    table.add_column("Etiket")
 
     for s in shares:
         expired = ""
         if s.get("expires_at"):
             exp = datetime.fromisoformat(s["expires_at"])
-            expired = "❌ 已过期" if datetime.now() > exp else "✅ 有效"
+            expired = "❌ Günü geçmiş" if datetime.now() > exp else "✅ verimli"
         else:
-            expired = "♾️ 永久"
+            expired = "♾️ kalıcı"
 
         table.add_row(
             s["share_id"],
@@ -392,20 +392,20 @@ def share_list() -> None:
 
 @app.command("delete")
 def share_delete(
-    share_id: str = typer.Argument(..., help="分享 ID"),
+    share_id: str = typer.Argument(..., help="paylaşmak ID"),
 ) -> None:
-    """删除分享"""
+    """Paylaşımı sil"""
     delete_share(share_id)
 
 
 @app.command("show")
 def share_show(
-    share_id: str = typer.Argument(..., help="分享 ID"),
+    share_id: str = typer.Argument(..., help="paylaşmak ID"),
 ) -> None:
-    """查看分享详情"""
+    """Paylaşım ayrıntılarını görüntüle"""
     data = get_share(share_id)
     if not data:
-        console.print(f"[red]❌ 分享不存在: {share_id}[/red]")
+        console.print(f"[red]❌ Paylaşım mevcut değil: {share_id}[/red]")
         return
 
     session = data.get("session", {})
@@ -414,18 +414,18 @@ def share_show(
     console.print(
         Panel(
             f"Share ID: [bold cyan]{data['share_id']}[/bold cyan]\n"
-            f"版本: v{data.get('version', 1)}\n"
-            f"创建: {data.get('created_at')}\n"
-            f"过期: {data.get('expires_at') or '永不过期'}\n"
-            f"标签: {', '.join(data.get('tags', [])) or '无'}\n"
+            f"Sürüm: v{data.get('version', 1)}\n"
+            f"yaratmak: {data.get('created_at')}\n"
+            f"Günü geçmiş: {data.get('expires_at') or 'asla sona ermez'}\n"
+            f"Etiket: {', '.join(data.get('tags', [])) or 'hiçbiri'}\n"
             f"---\n"
-            f"任务: {history.get('task_description', '-')}\n"
-            f"工作流: {history.get('workflow_name', '-')}\n"
-            f"步骤数: {len(history.get('steps', []))}\n"
-            f"总 Token: {history.get('total_tokens', 0)}\n"
-            f"总成本: ¥{history.get('total_cost', 0):.4f}\n"
-            f"含配置: {'是' if 'config' in session else '否'}",
-            title="📋 分享详情",
+            f"Görev: {history.get('task_description', '-')}\n"
+            f"İş akışı: {history.get('workflow_name', '-')}\n"
+            f"adım sayısı: {len(history.get('steps', []))}\n"
+            f"toplam Token: {history.get('total_tokens', 0)}\n"
+            f"toplam maliyet: ¥{history.get('total_cost', 0):.4f}\n"
+            f"Yapılandırma içerir: {'Evet' if 'config' in session else 'HAYIR'}",
+            title="📋 Ayrıntıları paylaş",
             border_style="cyan",
         )
     )

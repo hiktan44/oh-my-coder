@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 """
-LSP 集成 - AI 可读取 diagnostics
+LSPentegre- AIOkunabilirdiagnostics
 
-支持从 VSCode ESLint/Pylance 等 Language Server 获取代码诊断信息。
+DestekVSCode ESLint/PylanceBeklemekLanguage ServerKod tanılama bilgilerini alın.
 """
 
 
@@ -18,11 +18,11 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-app = typer.Typer(help="LSP 集成 - 读取代码诊断信息")
+app = typer.Typer(help="LSPentegre-Kod tanılama bilgilerini okuyun")
 console = Console()
 
 
-# LSP 诊断级别
+# LSPteşhis seviyesi
 class DiagnosticSeverity:
     ERROR = 1
     WARNING = 2
@@ -31,21 +31,21 @@ class DiagnosticSeverity:
 
 
 SEVERITY_NAMES = {
-    1: "[red]错误[/red]",
-    2: "[yellow]警告[/yellow]",
-    3: "[blue]信息[/blue]",
-    4: "[dim]提示[/dim]",
+    1: "[red]hata[/red]",
+    2: "[yellow]uyarmak[/yellow]",
+    3: "[blue]bilgi[/blue]",
+    4: "[dim]ipucu[/dim]",
 }
 
 
 def find_lsp_diagnostics(file_path: Optional[str] = None) -> list[dict[str, Any]]:
     """
-    查找 LSP 诊断信息
+BulmakLSPteşhis bilgileri
 
-    支持的诊断来源:
+Desteklenen teşhis kaynakları:
     1. VSCode .vscode/problems.json
-    2. ESLint JSON 格式输出
-    3. Pylance/ruff 等工具的 JSON 输出
+    2. ESLint JSONçıktı biçimi
+    3. Pylance/ruffAraçlar bekleniyorJSONçıktı
     """
     diagnostics = []
     root = Path.cwd()
@@ -72,7 +72,7 @@ def find_lsp_diagnostics(file_path: Optional[str] = None) -> list[dict[str, Any]
             except Exception:
                 pass
 
-    # 2. ESLint 检查结果
+    # 2. ESLintSonuçları kontrol edin
     eslint_output = root / ".eslint-results.json"
     if eslint_output.exists():
         try:
@@ -94,7 +94,7 @@ def find_lsp_diagnostics(file_path: Optional[str] = None) -> list[dict[str, Any]
         except Exception:
             pass
 
-    # 3. ruff 检查结果 (如果可用)
+    # 3. ruffSonuçları kontrol edin(eğer mevcutsa)
     try:
         result = subprocess.run(
             ["ruff", "check", "--output-format=json", "."],
@@ -112,7 +112,7 @@ def find_lsp_diagnostics(file_path: Optional[str] = None) -> list[dict[str, Any]
                         "file": issue.get("filename", ""),
                         "line": issue.get("location", {}).get("row", 0),
                         "column": issue.get("location", {}).get("column", 0),
-                        "severity": 2,  # ruff 默认是 warning
+                        "severity": 2,  # ruffVarsayılan:warning
                         "message": issue.get("message", ""),
                         "rule": issue.get("code", ""),
                     }
@@ -120,7 +120,7 @@ def find_lsp_diagnostics(file_path: Optional[str] = None) -> list[dict[str, Any]
     except Exception:
         pass
 
-    # 4. mypy 检查结果 (如果可用)
+    # 4. mypySonuçları kontrol edin(eğer mevcutsa)
     try:
         result = subprocess.run(
             ["mypy", "--output-format=json", "."],
@@ -146,24 +146,24 @@ def find_lsp_diagnostics(file_path: Optional[str] = None) -> list[dict[str, Any]
     except Exception:
         pass
 
-    # 过滤指定文件
+    #Belirtilen dosyaları filtrele
     if file_path:
         diagnostics = [d for d in diagnostics if file_path in d.get("file", "")]
 
-    # 按严重程度排序
+    #Önem derecesine göre sırala
     diagnostics.sort(key=lambda x: x.get("severity", 999))
 
     return diagnostics
 
 
 def format_diagnostics_for_ai(diagnostics: list[dict[str, Any]]) -> str:
-    """格式化诊断信息为 AI 可读的格式"""
+    """Tanılama bilgilerini şu şekilde biçimlendir:AIokunabilir format"""
     if not diagnostics:
-        return "✅ 未发现代码问题"
+        return "✅Kod sorunu bulunamadı"
 
-    lines = ["## 代码诊断报告\n"]
+    lines = ["##Kod Tanılama Raporu\n"]
 
-    # 按文件分组
+    #Dosyalara göre gruplandır
     by_file: dict[str, list[dict]] = {}
     for d in diagnostics:
         file_name = os.path.basename(d.get("file", "unknown"))
@@ -175,7 +175,7 @@ def format_diagnostics_for_ai(diagnostics: list[dict[str, Any]]) -> str:
         lines.append(f"\n### {file_name}\n")
 
         for issue in issues:
-            severity = SEVERITY_NAMES.get(issue.get("severity", 2), "[dim]未知[/dim]")
+            severity = SEVERITY_NAMES.get(issue.get("severity", 2), "[dim]bilinmiyor[/dim]")
             line = issue.get("line", 0)
             message = issue.get("message", "")
             rule = issue.get("rule", "")
@@ -183,41 +183,41 @@ def format_diagnostics_for_ai(diagnostics: list[dict[str, Any]]) -> str:
 
             lines.append(f"- {severity} **L{line}**: {message}")
             if rule:
-                lines.append(f"  - 规则: `{rule}` ({source})")
+                lines.append(f"  -kural: `{rule}` ({source})")
 
-    lines.append(f"\n---\n**总计**: {len(diagnostics)} 个问题")
+    lines.append(f"\n---\n**toplam**: {len(diagnostics)}kaydetmek")
 
-    # 统计
+    #istatistikler
     counts = {1: 0, 2: 0, 3: 0, 4: 0}
     for d in diagnostics:
         counts[d.get("severity", 2)] = counts.get(d.get("severity", 2), 0) + 1
 
-    lines.append(f"- 🔴 错误: {counts.get(1, 0)}")
-    lines.append(f"- 🟡 警告: {counts.get(2, 0)}")
-    lines.append(f"- 🔵 信息: {counts.get(3, 0)}")
+    lines.append(f"- 🔴hata: {counts.get(1, 0)}")
+    lines.append(f"- 🟡uyarmak: {counts.get(2, 0)}")
+    lines.append(f"- 🔵bilgi: {counts.get(3, 0)}")
 
     return "\n".join(lines)
 
 
 @app.command()
 def check(
-    file: Optional[str] = typer.Option(None, "--file", "-f", help="指定文件"),
+    file: Optional[str] = typer.Option(None, "--file", "-f", help="Dosyayı belirtin"),
     source: Optional[str] = typer.Option(
-        None, "--source", "-s", help="指定诊断来源 (ruff/mypy/eslint)"
+        None, "--source", "-s", help="Teşhis kaynağını belirtin(ruff/mypy/eslint)"
     ),
     format: str = typer.Option(
-        "table", "--format", "-o", help="输出格式 (table/ai/json)"
+        "table", "--format", "-o", help="Çıkış formatı(table/ai/json)"
     ),
 ):
     """
-    检查代码诊断信息
+Kod tanılama bilgilerini kontrol edin
 
-    示例:
+Örnek:
         omc lsp check
         omc lsp check --file src/main.py
         omc lsp check --source ruff --format ai
     """
-    console.print("\n[cyan]🔍 代码诊断检查[/cyan]\n")
+    console.print("\n[cyan]🔍Kod Teşhis Kontrolü[/cyan]\n")
 
     diagnostics = find_lsp_diagnostics(file)
 
@@ -227,27 +227,27 @@ def check(
         ]
 
     if not diagnostics:
-        console.print("[green]✅ 未发现代码问题[/green]")
+        console.print("[green]✅Kod sorunu bulunamadı[/green]")
         return
 
     if format == "ai":
-        # AI 友好的格式
+        # AIDostu format
         output = format_diagnostics_for_ai(diagnostics)
-        console.print(Panel.fit(output, title="诊断报告", border_style="cyan"))
+        console.print(Panel.fit(output, title="teşhis raporu", border_style="cyan"))
     elif format == "json":
-        # JSON 格式
+        # JSONBiçim
         console.print_json(data=diagnostics)
     else:
-        # 表格格式
-        table = Table(title=f"诊断结果 (共 {len(diagnostics)} 项)")
-        table.add_column("级别", style="cyan", width=10)
-        table.add_column("文件", style="white")
-        table.add_column("行", style="cyan", width=4)
-        table.add_column("消息", style="white")
-        table.add_column("规则", style="dim")
+        #tablo formatı
+        table = Table(title=f"Aynı anda yükle(yaygın{len(diagnostics)}öğe)")
+        table.add_column("seviye", style="cyan", width=10)
+        table.add_column("belge", style="white")
+        table.add_column("TAMAM", style="cyan", width=4)
+        table.add_column("bilgi", style="white")
+        table.add_column("kural", style="dim")
 
-        for d in diagnostics[:100]:  # 限制显示100条
-            severity = SEVERITY_NAMES.get(d.get("severity", 2), "未知")
+        for d in diagnostics[:100]:  #Gösterimi 100 öğeyle sınırla
+            severity = SEVERITY_NAMES.get(d.get("severity", 2), "bilinmiyor")
             file_name = os.path.basename(d.get("file", ""))
             line = str(d.get("line", ""))
             message = d.get("message", "")[:60]
@@ -258,47 +258,47 @@ def check(
         console.print(table)
 
         if len(diagnostics) > 100:
-            console.print(f"\n[dim]... 还有 {len(diagnostics) - 100} 条未显示[/dim]")
+            console.print(f"\n[dim]...Ayrıca{len(diagnostics) - 100}çubuk gösterilmiyor[/dim]")
 
-    # 统计
-    console.print("\n[bold]统计:[/bold]")
+    #istatistikler
+    console.print("\n[bold]istatistikler:[/bold]")
     counts = {1: 0, 2: 0, 3: 0, 4: 0}
     for d in diagnostics:
         sev = d.get("severity", 2)
         counts[sev] = counts.get(sev, 0) + 1
 
-    console.print(f"  🔴 错误: {counts.get(1, 0)}")
-    console.print(f"  🟡 警告: {counts.get(2, 0)}")
-    console.print(f"  🔵 信息: {counts.get(3, 0)}")
+    console.print(f"  🔴hata: {counts.get(1, 0)}")
+    console.print(f"  🟡uyarmak: {counts.get(2, 0)}")
+    console.print(f"  🔵bilgi: {counts.get(3, 0)}")
 
 
 @app.command()
 def fix(
     dry_run: bool = typer.Option(
-        True, "--dry-run/--no-dry-run", help="是否仅显示修复建议"
+        True, "--dry-run/--no-dry-run", help="Yalnızca onarım önerilerinin gösterilip gösterilmeyeceği"
     ),
-    source: Optional[str] = typer.Option(None, "--source", "-s", help="指定修复工具"),
+    source: Optional[str] = typer.Option(None, "--source", "-s", help="Onarım araçlarını belirtin"),
 ):
     """
-    自动修复代码问题
+Kod sorunlarını otomatik olarak düzeltin
 
-    示例:
-        omc lsp fix                    # 仅显示修复建议
-        omc lsp fix --no-dry-run       # 执行修复
-        omc lsp fix --source ruff      # 使用 ruff 修复
+Örnek:
+        omc lsp fix                    #Yalnızca düzeltme önerilerini göster
+        omc lsp fix --no-dry-run       #Onarım gerçekleştirin
+        omc lsp fix --source ruff      #kullanmakrufftamirat
     """
-    console.print("\n[cyan]🔧 代码修复[/cyan]\n")
+    console.print("\n[cyan]🔧kod düzeltme[/cyan]\n")
 
     if dry_run:
-        console.print("[yellow]Dry Run 模式 - 仅显示修复建议[/yellow]\n")
+        console.print("[yellow]Dry Runmodeli-Yalnızca düzeltme önerilerini göster[/yellow]\n")
 
-    # ruff 自动修复
+    # ruffLütfen bir eylem seçin
     if not source or source == "ruff":
-        console.print("[cyan]运行 ruff 检查...[/cyan]")
+        console.print("[cyan]koşmakruffincelemek...[/cyan]")
         try:
             cmd = ["ruff", "check", "."]
             if dry_run:
-                cmd.append("--preview")  # 预览模式
+                cmd.append("--preview")  #önizleme modu
 
             result = subprocess.run(
                 cmd,
@@ -312,8 +312,8 @@ def fix(
                 console.print(result.stdout)
 
             if not dry_run and result.returncode == 0:
-                # 执行自动修复
-                console.print("\n[cyan]执行自动修复...[/cyan]")
+                #Otomatik onarım gerçekleştirin
+                console.print("\n[cyan]Otomatik onarım gerçekleştirin...[/cyan]")
                 fix_result = subprocess.run(
                     ["ruff", "check", "--fix", "."],
                     capture_output=True,
@@ -322,27 +322,27 @@ def fix(
                     cwd=Path.cwd(),
                 )
                 if fix_result.returncode == 0:
-                    console.print("[green]✅ ruff 修复完成[/green]")
+                    console.print("[green]✅ ruffYapılandırma yönetimi komutları[/green]")
                 else:
-                    console.print(f"[red]修复失败: {fix_result.stderr}[/red]")
+                    console.print(f"[red]Onarım başarısız oldu: {fix_result.stderr}[/red]")
         except FileNotFoundError:
-            console.print("[yellow]ruff 未安装，跳过[/yellow]")
+            console.print("[yellow]ruffMod—yalnızca yürütme planını gösterir[/yellow]")
         except Exception as e:
-            console.print(f"[red]ruff 执行失败: {e}[/red]")
+            console.print(f"[red]ruffYürütme başarısız oldu: {e}[/red]")
 
 
 @app.command()
 def setup(
-    tool: str = typer.Argument(..., help="设置工具 (ruff/mypy/eslint)"),
+    tool: str = typer.Argument(..., help="Kurulum aracı(ruff/mypy/eslint)"),
 ):
     """
-    快速设置 LSP 工具
+Hızlı ayarlarLSPalet
 
-    示例:
+Örnek:
         omc lsp setup ruff
         omc lsp setup mypy
     """
-    console.print(f"\n[cyan]设置 {tool}[/cyan]\n")
+    console.print(f"\n[cyan]kurmak{tool}[/cyan]\n")
 
     if tool == "ruff":
         _setup_ruff()
@@ -351,19 +351,19 @@ def setup(
     elif tool == "eslint":
         _setup_eslint()
     else:
-        console.print(f"[red]不支持的工具: {tool}[/red]")
+        console.print(f"[red]Desteklenmeyen araçlar: {tool}[/red]")
 
 
 def _setup_ruff():
-    """设置 ruff"""
+    """kurmakruff"""
     try:
-        # 检查是否已安装
+        #Kurulu olup olmadığını kontrol edin
         subprocess.run(["ruff", "--version"], capture_output=True, check=True)
 
-        # 创建 ruff.toml
+        #yaratmakruff.toml
         config_file = Path.cwd() / "ruff.toml"
         if config_file.exists():
-            console.print("[yellow]ruff.toml 已存在[/yellow]")
+            console.print("[yellow]ruff.tomlZaten var[/yellow]")
         else:
             config_file.write_text(
                 """
@@ -379,27 +379,27 @@ ignore = ["E501"]
 known-first-party = ["src"]
 """
             )
-            console.print("[green]✅ 已创建 ruff.toml[/green]")
+            console.print("[green]✅Oluşturulduruff.toml[/green]")
 
-        console.print("\n[cyan]运行 ruff check --fix 自动修复...[/cyan]")
+        console.print("\n[cyan]koşmakruff check --fixLütfen bir eylem seçin...[/cyan]")
         subprocess.run(["ruff", "check", "--fix", "."], capture_output=True)
-        console.print("[green]✅ ruff 设置完成[/green]")
+        console.print("[green]✅ ruffKurulum tamamlandı[/green]")
 
     except FileNotFoundError:
-        console.print("[red]ruff 未安装[/red]")
-        console.print("安装方式:")
+        console.print("[red]ruffKurulu değil[/red]")
+        console.print("Kurulum yöntemi:")
         console.print("  pip install ruff")
         console.print("  omc pkg install ruff")
 
 
 def _setup_mypy():
-    """设置 mypy"""
+    """kurmakmypy"""
     try:
         subprocess.run(["mypy", "--version"], capture_output=True, check=True)
 
         config_file = Path.cwd() / "mypy.ini"
         if config_file.exists():
-            console.print("[yellow]mypy.ini 已存在[/yellow]")
+            console.print("[yellow]mypy.iniZaten var[/yellow]")
         else:
             config_file.write_text(
                 """
@@ -410,27 +410,27 @@ warn_unused_configs = True
 disallow_untyped_defs = False
 """
             )
-            console.print("[green]✅ 已创建 mypy.ini[/green]")
+            console.print("[green]✅Oluşturuldumypy.ini[/green]")
 
     except FileNotFoundError:
-        console.print("[red]mypy 未安装[/red]")
-        console.print("安装方式:")
+        console.print("[red]mypyKurulu değil[/red]")
+        console.print("Kurulum yöntemi:")
         console.print("  pip install mypy")
         console.print("  omc pkg install mypy")
 
 
 def _setup_eslint():
-    """设置 ESLint"""
+    """kurmakESLint"""
     try:
         subprocess.run(["npx", "eslint", "--version"], capture_output=True, check=True)
 
-        console.print("[green]✅ ESLint 已配置[/green]")
-        console.print("\n运行 ESLint:")
+        console.print("[green]✅ ESLintyapılandırılmış[/green]")
+        console.print("\nkoşmakESLint:")
         console.print("  npx eslint .")
 
     except FileNotFoundError:
-        console.print("[red]ESLint 未安装[/red]")
-        console.print("安装方式:")
+        console.print("[red]ESLintKurulu değil[/red]")
+        console.print("Kurulum yöntemi:")
         console.print("  npm install -g eslint")
         console.print("  omc pkg install eslint")
 

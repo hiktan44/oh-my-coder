@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 """
-MCP CLI 命令
+MCP CLIEmir
 
-omc mcp --start              # 启动 MCP Server（stdio 模式）
-omc mcp --install            # 生成 Claude Desktop / Cursor 的 MCP 配置
-omc mcp --list               # 列出可用工具
-omc mcp --status             # 查看 MCP 连接状态
+omc mcp --start              #başlatmakMCP ServerModel önerisistdiomodeli)
+omc mcp --install            #oluşturmakClaude Desktop / Cursorile ilgiliMCPYapılandırma
+omc mcp --list               #Mevcut araçları listele
+omc mcp --status             #Kontrol etmekMCPbağlantı durumu
 """
 
 
@@ -24,18 +24,18 @@ from src.mcp.tools import get_mcp_tools
 
 app = typer.Typer(
     name="mcp",
-    help="MCP（Model Context Protocol）支持 — 作为 Server 向外部暴露 Agent 能力",
+    help="MCPModel önerisiModel Context Protocol) destek — şu şekildeServerdışarıya maruzAgentyetenek",
 )
 console = Console()
 
 
 @app.command()
 def start(
-    workspace: Path = typer.Option(Path("."), "--workspace", "-w", help="工作区路径"),
+    workspace: Path = typer.Option(Path("."), "--workspace", "-w", help="çalışma alanı yolu"),
 ) -> None:
-    """启动 MCP Server（stdio 模式）"""
-    console.print("[dim]启动 oh-my-coder MCP Server...[/dim]")
-    console.print("[dim]按 Ctrl+C 退出[/dim]")
+    """başlatmakMCP ServerModel önerisistdiomodeli)"""
+    console.print("[dim]başlatmakoh-my-coder MCP Server...[/dim]")
+    console.print("[dim]buna göreCtrl+Cçıkış yapmak[/dim]")
     server = McpServer(workspace=workspace.resolve())
     with contextlib.suppress(KeyboardInterrupt):
         server.run()
@@ -47,12 +47,12 @@ def install(
         "claude-desktop",
         "--client",
         "-c",
-        help="客户端类型：claude-desktop（Claude Desktop）/ cursor（Cursor）/ dify（Dify）",
+        help="Müşteri türü:claude-desktopModel önerisiClaude Desktop)/ cursorModel önerisiCursor)/ difyModel önerisiDify)",
     ),
-    project_path: Path = typer.Option(Path("."), "--project", "-p", help="项目路径"),
-    yes: bool = typer.Option(False, "--yes", "-y", help="跳过确认直接覆盖"),
+    project_path: Path = typer.Option(Path("."), "--project", "-p", help="Proje yolu"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Onayı atla ve doğrudan üzerine yaz"),
 ) -> None:
-    """生成 MCP 客户端配置文件"""
+    """oluşturmakMCPİstemci yapılandırma dosyası"""
     config: dict = {}
 
     if client == "claude-desktop":
@@ -69,16 +69,16 @@ def install(
             }
         }
         config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2))
-        console.print(f"[green]✅ Dify MCP 配置已生成: {config_path}[/green]")
-        console.print(f"  在 Dify 中添加 MCP Server，使用配置: {config_path}")
+        console.print(f"[green]✅ Dify MCPYapılandırma oluşturuldu: {config_path}[/green]")
+        console.print(f"var olmakDifyEkleMCP Server, yapılandırmayı kullan: {config_path}")
         raise typer.Exit(0)
     else:
-        console.print(f"[red]❌ 不支持的客户端: {client}[/red]")
+        console.print(f"[red]❌Desteklenmeyen istemci: {client}[/red]")
         raise typer.Exit(1)
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 读取现有配置
+    #Mevcut yapılandırmayı oku
     existing = {}
     if config_path.exists():
         try:
@@ -89,7 +89,7 @@ def install(
     existing.setdefault("mcpServers", {})
     proj_abs = project_path.resolve()
 
-    # 填充 oh-my-coder 配置
+    #doldurmaoh-my-coderYapılandırma
     existing["mcpServers"]["oh-my-coder"] = {
         "command": sys.executable,
         "args": ["-m", "src.mcp.server", "--start"],
@@ -97,24 +97,24 @@ def install(
     }
 
     if not yes and config_path.exists():
-        console.print(f"[yellow]⚠️  配置文件已存在: {config_path}[/yellow]")
-        confirm = typer.prompt("覆盖现有配置？输入 'yes' 继续", default="no")
+        console.print(f"[yellow]⚠️Yapılandırma dosyası zaten mevcut: {config_path}[/yellow]")
+        confirm = typer.prompt("Mevcut yapılandırmanın üzerine yazılsın mı? girmek'yes'devam etmek", default="no")
         if confirm.lower() != "yes":
-            console.print("[dim]已取消[/dim]")
+            console.print("[dim]İptal edildi[/dim]")
             raise typer.Exit(0)
 
     config_path.write_text(
         json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    console.print(f"[green]✅ MCP 配置已写入: {config_path}[/green]")
-    console.print(f"  客户端: {client}")
-    console.print(f"  工作目录: {proj_abs}")
-    console.print(f"  重启 {client} 即可使用")
+    console.print(f"[green]✅ MCPYapılandırma yazıldı: {config_path}[/green]")
+    console.print(f"müşteri: {client}")
+    console.print(f"çalışma dizini: {proj_abs}")
+    console.print(f"Tekrar başlat{client}Kullanıma hazır")
 
 
 @app.command()
 def list() -> None:
-    """列出所有可用 MCP tools 和 resources"""
+    """Mevcut olanların hepsini listeleMCP toolsVeresources"""
     tools = get_mcp_tools()
     resources = get_mcp_resources()
 
@@ -122,8 +122,8 @@ def list() -> None:
 
     console.print("\n[bold cyan]🛠 MCP Tools[/bold cyan]")
     table = Table()
-    table.add_column("名称", style="green")
-    table.add_column("描述", style="white")
+    table.add_column("isim", style="green")
+    table.add_column("betimlemek", style="white")
     for t in tools:
         table.add_row(t["name"], t["description"][:60])
     console.print(table)
@@ -132,34 +132,34 @@ def list() -> None:
     for r in resources:
         console.print(f"  • [green]{r['uri']}[/green] — {r['description']}")
 
-    console.print(f"\n[dim]共 {len(tools)} tools · {len(resources)} resources[/dim]")
+    console.print(f"\n[dim]yaygın{len(tools)} tools · {len(resources)} resources[/dim]")
 
 
 @app.command()
 def status() -> None:
-    """查看 MCP 连接状态"""
-    # 检查 MCP SDK 是否可用
+    """Kontrol etmekMCPbağlantı durumu"""
+    #incelemekMCP SDKMevcut mu?
     try:
         import mcp
 
         sdk_version = getattr(mcp, "__version__", "unknown")
-        console.print(f"[green]✅ MCP SDK[/green] 已安装 (v{sdk_version})")
+        console.print(f"[green]✅ MCP SDK[/green]Yüklendi(v{sdk_version})")
     except Exception:
-        console.print("[yellow]⚠️  MCP SDK 未安装[/yellow]")
-        console.print("  本服务使用原生 JSON-RPC stdio 实现（Python 3.9 兼容）")
-        console.print("  如需 SDK（Python 3.10+）：pip install mcp")
+        console.print("[yellow]⚠️  MCP SDKKurulu değil[/yellow]")
+        console.print("Bu hizmet yerel kullanıyorJSON-RPC stdiosonuçlandırmak(Python 3.9 uyumlu)")
+        console.print("GerekirseSDKModel önerisiPython 3.10+):pip install mcp")
 
-    # 检查工作区
+    #Çalışma alanını kontrol edin
     workspace = Path.cwd()
     omc_dir = workspace / ".omc"
     if omc_dir.exists():
-        console.print(f"\n[green]✅ 工作区[/green] {workspace}")
-        console.print("  .omc/ 存在，checkpoint 和 skill 功能可用")
+        console.print(f"\n[green]✅çalışma alanı[/green] {workspace}")
+        console.print("  .omc/var olmak,checkpointVeskillFonksiyon mevcut")
     else:
-        console.print(f"\n[yellow]⚠️  工作区[/yellow] {workspace}")
-        console.print("  .omc/ 不存在，部分功能可能受限")
+        console.print(f"\n[yellow]⚠️çalışma alanı[/yellow] {workspace}")
+        console.print("  .omc/Mevcut değil, bazı işlevler sınırlı olabilir")
 
-    console.print("\n[bold]可用命令[/bold]")
-    console.print("  omc mcp --start      # 启动 Server")
-    console.print("  omc mcp --install    # 生成客户端配置")
-    console.print("  omc mcp --list       # 列出工具和资源")
+    console.print("\n[bold]Mevcut komutlar[/bold]")
+    console.print("  omc mcp --start      #başlatmakServer")
+    console.print("  omc mcp --install    #İstemci yapılandırması oluştur")
+    console.print("  omc mcp --list       #Araçları ve kaynakları listeleyin")

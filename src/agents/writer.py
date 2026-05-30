@@ -1,13 +1,13 @@
 """
-Writer Agent - 文档编写智能体
+Writer Agent - Belge yazma aracısı
 
-职责：
-1. 技术文档编写
-2. API 文档生成
-3. README 编写
-4. 迁移文档
+Sorumluluklar:
+1. Teknik belge yazımı
+2. API Belge oluşturma
+3. README yazmak
+4. Geçiş belgeleri
 
-模型层级：LOW（快速，对应 haiku）
+Modeli seviyesi:LOW(Hızlı, karşılık gelen haiku)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class WriterAgent(BaseAgent):
-    """文档编写 Agent - 技术文档和 API 文档"""
+    """Dokümantasyon Agent - teknik dokümantasyon ve API belge"""
 
     name = "writer"
-    description = "文档编写智能体 - 技术文档和 API 文档生成"
+    description = "Belge yazma aracısı - teknik dokümantasyon ve API Belge oluşturma"
     lane = AgentLane.DOMAIN
     default_tier = "low"
     icon = "📝"
@@ -34,49 +34,49 @@ class WriterAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个专业的技术文档撰写者。
+        return """Profesyonel bir teknik belge yazarısınız.
 
-## 角色
-你的职责是编写清晰、准确、易读的技术文档。
+## Rol
+Sizin sorumluluğunuz açık, doğru ve okunabilir teknik belgeler yazmaktır.
 
-## 能力
-1. API 文档 - 接口说明、参数、示例
-2. 用户文档 - 使用指南、教程
-3. 开发文档 - 架构说明、贡献指南
-4. 迁移文档 - 版本升级、变更说明
+## yetenek
+1. API belge - Arayüz açıklaması, parametreler, örnekler
+2. Kullanıcı belgeleri - Kullanım Kılavuzu, Öğretici
+3. Geliştirme belgeleri - Mimari Tanımı, Katkı Kuralları
+4. Geçiş belgeleri - Sürüm yükseltme ve değiştirme talimatları
 
-## 文档原则
-1. **清晰** - 简单易懂，避免歧义
-2. **准确** - 信息正确，及时更新
-3. **完整** - 覆盖所有必要内容
-4. **结构化** - 良好的组织和导航
+## Dokümantasyon ilkeleri
+1. **temizlemek** - Basit ve anlaşılması kolay olun, belirsizlikten kaçının
+2. **kesin** - Bilgilerin doğru ve zamanında güncellenmesi
+3. **tüm** - Gerekli tüm içeriği kapsayın
+4. **yapılandırılmış** - İyi organizasyon ve navigasyon
 
-## 输出格式
+## Çıkış formatı
 
-### API 文档模板
+### API Belge şablonu
 
 ````markdown
-# API 名称
+# API isim
 
-## 描述
-简要描述 API 功能
+## betimlemek
+kısa açıklama API İşlev
 
-## 端点
+## uç nokta
 `GET /api/resource`
 
-## 参数
-| 参数 | 类型 | 必需 | 描述 |
+## parametre
+| parametre | tip | gerekli | betimlemek |
 |------|------|------|------|
-| id | string | 是 | 资源ID |
+| id | string | Evet | kaynakID |
 
-## 请求示例
+## Örnek isteyin
 ```json
 {
   "key": "value"
 }
 ```
 
-## 响应示例
+## Yanıt örneği
 ```json
 {
   "code": 200,
@@ -84,43 +84,43 @@ class WriterAgent(BaseAgent):
 }
 ```
 
-## 错误码
-| 错误码 | 描述 |
+## hata kodu
+| hata kodu | betimlemek |
 |--------|------|
-| 400 | 参数错误 |
+| 400 | Parametre hatası |
 
-## 注意事项
+## Dikkat edilmesi gerekenler
 - ...
 ````
 
-### README 模板
+### README şablon
 
 ````markdown
-# 项目名称
+# Proje adı
 
-简短描述
+kısa açıklama
 
-## 特性
-- 特性1
-- 特性2
+## karakteristik
+- karakteristik1
+- karakteristik2
 
-## 快速开始
+## hızlı başlangıç
 
-### 安装
+### Düzenlemek
 ```bash
 npm install xxx
 ```
 
-### 使用
+### kullanmak
 ```javascript
 const x = require('xxx')
 ```
 
-## API 文档
-[链接](docs/api.md)
+## API belge
+[Bağlantı](docs/api.md)
 
-## 贡献指南
-[链接](CONTRIBUTING.md)
+## Katkı Kılavuzu
+[Bağlantı](CONTRIBUTING.md)
 
 ## License
 MIT
@@ -130,39 +130,39 @@ MIT
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行文档编写"""
+        """Belge yazımı gerçekleştirin"""
         doc_type = context.metadata.get("doc_type", "readme")
 
-        # 添加前序输出
+        # Ön sipariş çıktısı ekle
         if context.previous_outputs.get("executor"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 实现代码\n{context.previous_outputs['executor'].result}",
+                    "content": f"## Kodu uygulama\n{context.previous_outputs['executor'].result}",
                 }
             )
 
-        # 读取现有文档
+        # Mevcut belgeyi oku
         readme = context.project_path / "README.md"
         if readme.exists():
             with open(readme, encoding="utf-8") as f:
                 prompt.append(
-                    {"role": "user", "content": f"## 现有 README\n{f.read()[:2000]}"}
+                    {"role": "user", "content": f"## mevcut README\n{f.read()[:2000]}"}
                 )
 
-        # 文档提示
+        # Dokümantasyon ipuçları
         doc_hint = f"""
 
-请为项目编写{doc_type}文档：
-1. 项目简介
-2. 安装和使用方法
-3. API 文档
-4. 示例代码
-5. 注意事项
+Lütfen proje için yazın{doc_type}belge:
+1. Proje tanıtımı
+2. Kurulum ve kullanım talimatları
+3. API belge
+4. Örnek kod
+5. Dikkat edilmesi gerekenler
 """
         prompt.append({"role": "user", "content": doc_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -176,12 +176,12 @@ MIT
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "将文档保存到文件",
-                "定期更新文档",
+                "Belgeyi dosyaya kaydet",
+                "Belgeleri düzenli olarak güncelleyin",
             ],
         )

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 """
-MCP Server — JSON-RPC 2.0 stdio 协议实现
+MCP Server - JSON-RPC 2.0 stdio protokoluygula
 
-支持 Claude Desktop / Cursor / Dify 等 MCP 客户端。
-协议：每行一个 JSON-RPC 请求/响应。
+destek Claude Desktop / Cursor / Dify vb. MCP istemci. 
+protokol: hersatirbir JSON-RPC istek/yanit. 
 
-手动实现（无外部依赖，Python 3.9 兼容）。
-如已安装 MCP SDK（pip install mcp），自动优先使用。
+manueluygula (yokdisindakisimbagimlilik, Python 3.9 uyumlu) . 
+orneginkurulum MCP SDK (pip install mcp) , otomatikoncelikkullan. 
 """
 
 import json
@@ -21,15 +21,15 @@ from .tools import get_mcp_tools, get_tool_handler
 
 class McpServer:
     """
-    MCP Server（手动 stdio 实现，Python 3.9 兼容）
+    MCP Server (manuel stdio uygula, Python 3.9 uyumlu) 
 
-    支持的 JSON-RPC 方法：
-    - initialize          — 初始化，返回服务端能力
-    - tools/list          — 列出所有工具
-    - tools/call          — 调用工具
-    - resources/list      — 列出所有资源
-    - resources/read      — 读取资源内容
-    - ping                — 心跳检测
+    destek JSON-RPC yontem: 
+    - initialize          - baslat, donusservisucyetenek
+    - tools/list          - tumunu listelevararac
+    - tools/call          - cagriarac
+    - resources/list      - tumunu listelevarkaynak
+    - resources/read      - okukaynakicerik
+    - ping                - kalpatlaalgilama
     """
 
     VERSION = "0.2.0"
@@ -42,11 +42,11 @@ class McpServer:
         self._resources = get_mcp_resources()
 
     # ------------------------------------------------------------------
-    # JSON-RPC 协议处理
+    # JSON-RPC protokolisle
     # ------------------------------------------------------------------
 
     def _send_response(self, id: Any, result: Any) -> None:
-        """发送 JSON-RPC 响应"""
+        """gondergonder JSON-RPC yanit"""
         msg = {
             "jsonrpc": "2.0",
             "id": id,
@@ -55,7 +55,7 @@ class McpServer:
         print(json.dumps(msg, ensure_ascii=False), flush=True)
 
     def _send_error(self, id: Any, code: int, message: str) -> None:
-        """发送 JSON-RPC 错误"""
+        """gondergonder JSON-RPC hata"""
         msg = {
             "jsonrpc": "2.0",
             "id": id,
@@ -67,7 +67,7 @@ class McpServer:
         print(json.dumps(msg, ensure_ascii=False), flush=True)
 
     def _handle_request(self, req: dict[str, Any]) -> None:
-        """处理单个 JSON-RPC 请求"""
+        """isletekil JSON-RPC istek"""
         jsonrpc = req.get("jsonrpc")
         if jsonrpc != "2.0":
             self._send_error(req.get("id"), -32600, "Invalid Request")
@@ -77,7 +77,7 @@ class McpServer:
         params = req.get("params", {})
         req_id = req.get("id")
 
-        # 方法路由
+        # yontemyoltarafindan
         if method == "initialize":
             self._initialized = True
             self._send_response(req_id, self._capabilities())
@@ -98,11 +98,11 @@ class McpServer:
             self._send_error(req_id, -32601, f"Method not found: {method}")
 
     # ------------------------------------------------------------------
-    # 协议方法实现
+    # protokolyontemuygula
     # ------------------------------------------------------------------
 
     def _capabilities(self) -> dict[str, Any]:
-        """服务端能力声明"""
+        """servisucyetenekbildir"""
         return {
             "protocolVersion": self.PROTOCOL_VERSION,
             "serverInfo": {
@@ -116,7 +116,7 @@ class McpServer:
         }
 
     def _list_tools(self) -> dict[str, Any]:
-        """列出所有 MCP tools"""
+        """tumunu listelevar MCP tools"""
         tools = []
         for tool in self._tools:
             tools.append(
@@ -129,7 +129,7 @@ class McpServer:
         return {"tools": tools}
 
     def _handle_tool_call(self, req_id: Any, params: dict[str, Any]) -> None:
-        """调用工具"""
+        """cagriarac"""
         tool_name = params.get("name", "")
         arguments = params.get("arguments", {})
 
@@ -170,7 +170,7 @@ class McpServer:
             self._send_error(req_id, -32603, f"Tool execution error: {e}")
 
     def _list_resources(self) -> dict[str, Any]:
-        """列出所有 MCP resources"""
+        """tumunu listelevar MCP resources"""
         resources = []
         for res in self._resources:
             resources.append(
@@ -184,7 +184,7 @@ class McpServer:
         return {"resources": resources}
 
     def _handle_resource_read(self, req_id: Any, params: dict[str, Any]) -> None:
-        """读取资源内容"""
+        """okukaynakicerik"""
         uri = params.get("uri", "")
 
         for res in self._resources:
@@ -210,11 +210,11 @@ class McpServer:
         self._send_error(req_id, -32602, f"Resource not found: {uri}")
 
     # ------------------------------------------------------------------
-    # 主循环
+    # anadongu
     # ------------------------------------------------------------------
 
     def run(self) -> None:
-        """启动 stdio 主循环"""
+        """baslat stdio anadongu"""
         for line in sys.stdin:
             line = line.strip()
             if not line:
@@ -229,12 +229,12 @@ class McpServer:
 
 
 # ------------------------------------------------------------------
-# 入口点
+# girisnokta
 # ------------------------------------------------------------------
 
 
 def main() -> None:
-    """CLI 入口：python -m src.mcp.server"""
+    """CLI giris: python -m src.mcp.server"""
     import argparse
 
     parser = argparse.ArgumentParser(description="oh-my-coder MCP Server")
@@ -243,7 +243,7 @@ def main() -> None:
         "-w",
         type=Path,
         default=Path("."),
-        help="工作区路径（默认当前目录）",
+        help="isbolgeyol (varsayilanmevcutdizin) ",
     )
     args = parser.parse_args()
 

@@ -1,9 +1,9 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-Oh My Coder - 模型模块
+Oh My Coder - modelmodul
 
-支持多种 LLM 提供商，统一接口，灵活切换。
+destekcoktur LLM saglayici, birbaglanagiz, esnekyasagecis. 
 """
 
 import json
@@ -21,7 +21,7 @@ from .base import (
     Usage,
 )
 
-# 导出所有模型适配器
+# disa aktarvarmodeladaptor
 from .deepseek import DeepSeekAPIError, DeepSeekModel
 from .doubao import DoubaoAPIError, DoubaoModel
 from .glm import GLMAPIError, GLMModel
@@ -36,7 +36,7 @@ from .tongyi import TongyiAPIError, TongyiModel
 from .wenxin import WenxinAPIError, WenxinModel
 
 __all__ = [
-    # 基类
+    # temel sinif
     "BaseModel",
     "ModelConfig",
     "ModelProvider",
@@ -47,13 +47,13 @@ __all__ = [
     # DeepSeek
     "DeepSeekModel",
     "DeepSeekAPIError",
-    # 文心一言
+    # Wenxin
     "WenxinModel",
     "WenxinAPIError",
-    # 通义千问
+    # Tongyi
     "TongyiModel",
     "TongyiAPIError",
-    # 智谱 GLM
+    # Zhipu GLM
     "GLMModel",
     "GLMAPIError",
     # MiniMax
@@ -62,25 +62,25 @@ __all__ = [
     # Kimi
     "KimiModel",
     "KimiAPIError",
-    # 腾讯混元
+    # Tencent Hunyuan
     "HunyuanModel",
     "HunyuanAPIError",
-    # 字节豆包
+    # bytepaket
     "DoubaoModel",
     "DoubaoAPIError",
-    # 天工AI
+    # TiangongAI
     "TiangongModel",
     "TiangongAPIError",
-    # 讯飞星火
+    # iFlytek Spark
     "SparkModel",
     "SparkAPIError",
-    # 百川智能
+    # Baichuanedebilir
     "BaichuanModel",
     "BaichuanAPIError",
-    # 小米 MiMo
+    # kucukmetre MiMo
     "MimoModel",
     "MimoAPIError",
-    # Ollama 本地模型
+    # Ollama yerelmodel
     "OllamaModel",
     "create_ollama_model",
 ]

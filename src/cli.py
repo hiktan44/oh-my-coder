@@ -2,18 +2,18 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-Oh My Coder CLI - 命令行入口
+Oh My Coder CLI -Komut satırı girişi
 
-使用 typer 构建友好的 CLI 界面。
+kullanmaktyperDostça inşa edinCLIarayüz.
 
-主要命令：
-- omc run <task>         # 执行任务
-- omc explore            # 探索代码库
-- omc wiki               # 生成项目 Wiki
-- omc agents             # 列出所有 Agent
-- omc status             # 查看状态
-- omc --version          # 显示版本
-- omc --help             # 帮助信息
+Ana komutlar:
+- omc run <task>         #görevleri gerçekleştirmek
+- omc explore            #Kod tabanını keşfedin
+- omc wiki               #Proje oluşturWiki
+- omc agents             #hepsini listeleAgent
+- omc status             #Durumu görüntüle
+- omc --version          #sürümü göster
+- omc --help             #Yardım bilgileri
 """
 
 import asyncio
@@ -49,19 +49,19 @@ from .core.router import ModelRouter, RouterConfig
 from .quest import QuestStatus
 from .wiki import WikiGenerator
 
-# 版本信息
+#Sürüm bilgisi
 __version__ = "0.2.0"
 __author__ = "VOBC"
 __repo__ = "https://github.com/VOBC/oh-my-coder"
 
 app = typer.Typer(
     name="omc",
-    help=f"Oh My Coder v{__version__} - 多智能体 AI 编程助手",
+    help=f"Oh My Coder v{__version__} -çoklu ajanAIProgramlama Asistanı",
     add_completion=False,
     no_args_is_help=True,
 )
 
-# 注册子命令
+#Alt komutu kaydet
 app.add_typer(config_ext_app, name="agent-config")
 app.add_typer(task_app, name="task")
 app.add_typer(multiagent_app, name="multiagent")
@@ -69,54 +69,54 @@ app.add_typer(security_app, name="security")
 app.add_typer(checkpoint_app, name="checkpoint")
 app.add_typer(mcp_app, name="mcp")
 app.add_typer(
-    skill_app, name="skill", help="Skill 系统 - 内置和自定义 Skill 管理与执行"
+    skill_app, name="skill", help="Skillsistem-Yerleşik ve özelSkillYönetim ve Yürütme"
 )
-app.add_typer(usage_app, name="usage", help="用量统计与追踪 - stats/trace/memory")
-app.add_typer(migrate_app, name="migrate", help="记忆迁移 - 从 Claude/Gemini 导入配置")
-app.add_typer(tui_app, name="tui", help="TUI 交互界面 - 简易终端交互")
+app.add_typer(usage_app, name="usage", help="Kullanım istatistikleri ve izleme- stats/trace/memory")
+app.add_typer(migrate_app, name="migrate", help="hafıza aktarımı-itibarenClaude/Geminiçalışma alanı")
+app.add_typer(tui_app, name="tui", help="TUIEtkileşimli arayüz-Basit terminal etkileşimi")
 app.add_typer(
-    self_config_app, name="self-config", help="自配置 - 自然语言配置 API Key/模型/代理"
+    self_config_app, name="self-config", help="kendi kendini yapılandırma-Doğal dil yapılandırmasıAPI Key/Modeli/oyunculuk"
 )
-app.add_typer(commands_app, name="cmd", help="命令系统 - 运行自定义 Markdown 命令")
-app.add_typer(pkg_app, name="pkg", help="包管理器 - Homebrew/npm/scoop/winget/AUR")
-app.add_typer(lsp_app, name="lsp", help="LSP 集成 - 读取代码诊断信息")
-app.add_typer(search_app, name="search", help="代码搜索 - Sourcegraph 公开代码库搜索")
-app.add_typer(server_app, name="server", help="远程 Server - HTTP REST API 服务")
+app.add_typer(commands_app, name="cmd", help="komuta sistemi-Özel çalıştırMarkdownEmir")
+app.add_typer(pkg_app, name="pkg", help="Paket yöneticisi- Homebrew/npm/scoop/winget/AUR")
+app.add_typer(lsp_app, name="lsp", help="LSPentegre-Kod tanılama bilgilerini okuyun")
+app.add_typer(search_app, name="search", help="kod arama- SourcegraphGenel kod tabanı araması")
+app.add_typer(server_app, name="server", help="uzakServer - HTTP REST APISert")
 
-# 代码清理命令
+#kod temizleme komutları
 try:
     from .cli_clean import app as clean_app
 
-    app.add_typer(clean_app, name="clean", help="代码清理 - 检测和清理冗余代码")
+    app.add_typer(clean_app, name="clean", help="kod temizleme-Gereksiz kodu tespit edin ve temizleyin")
 except Exception:
     pass
 
-# model 子命令
+# modelalt komut
 from .commands.cli_model import app as model_app  # noqa: E402
 
-app.add_typer(model_app, name="model", help="模型管理 - 查看/切换默认模型，本地 Ollama 支持")
+app.add_typer(model_app, name="model", help="Mevcut tüm modelleri listeleyin (destekler)-Kontrol etmek/Varsayılan modeli değiştir, yerelOllamaDestek")
 
-# gateway 子命令（懒导入，避免 gateway 依赖缺失时报错）
+# gatewayalt komut (tembel içe aktarma, kaçınmagatewayBir bağımlılık eksik olduğunda bir hata oluşur)
 try:
     from .cli_gateway import app as gateway_app  # noqa: E402
 
-    app.add_typer(gateway_app, name="gateway", help="多平台网关 - Telegram / Discord")
+    app.add_typer(gateway_app, name="gateway", help="Çok platformlu ağ geçidi- Telegram / Discord")
 except Exception:
-    pass  # gateway 依赖缺失时跳过
+    pass  # gatewayBağımlılık eksikse atla
 
-# agent 子命令 - Agent 配置管理与自进化
+# agentalt komut- AgentKonfigürasyon yönetimi ve kişisel gelişim
 try:
     from .cli_agent import app as agent_app  # noqa: E402
 
-    app.add_typer(agent_app, name="agent", help="Agent 管理 - 导出/导入/进化")
+    app.add_typer(agent_app, name="agent", help="Agentüstesinden gelmek-İhracat/içe aktarmak/evrim")
 except Exception:
     pass
 
-# template 子命令 - 工作流模板
+# templatealt komut-İş akışı şablonu
 try:
     from .cli_template import app as template_app  # noqa: E402
 
-    app.add_typer(template_app, name="template", help="工作流模板 - 列出/使用模板")
+    app.add_typer(template_app, name="template", help="Mevcut durum:-Ekran miktarı/Şablonları kullanın")
 except Exception:
     pass
 
@@ -130,11 +130,11 @@ def main(
         None,
         "--version",
         "-v",
-        help="显示版本信息",
+        help="Sürüm bilgilerini göster",
         is_eager=True,
     ),
 ):
-    """Oh My Coder - 多智能体 AI 编程助手"""
+    """Oh My Coder -çoklu ajanAIProgramlama Asistanı"""
     if version:
         _print_version()
         raise typer.Exit(0)
@@ -142,9 +142,9 @@ def main(
         console.print(
             Panel.fit(
                 f"[bold cyan]Oh My Coder[/bold cyan] v{__version__}\n"
-                f"[dim]多智能体 AI 编程助手[/dim]\n\n"
-                f"[dim]使用 [bold]omc --help[/bold] 查看所有命令[/dim]\n"
-                f"[dim]仓库: {__repo__}[/dim]",
+                f"[dim]çoklu ajanAIProgramlama Asistanı[/dim]\n\n"
+                f"[dim]kullanmak[bold]omc --help[/bold]Tüm komutları görüntüle[/dim]\n"
+                f"[dim]depo: {__repo__}[/dim]",
                 border_style="cyan",
             )
         )
@@ -152,7 +152,7 @@ def main(
 
 
 def _print_version():
-    """打印版本信息"""
+    """Sürüm bilgilerini yazdır"""
     console.print(
         f"[bold cyan]oh-my-coder[/bold cyan] version [green]{__version__}[/green]"
     )
@@ -162,66 +162,66 @@ def _print_version():
 
 @app.command()
 def run(
-    task: str = typer.Argument(..., help="任务描述"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
-    model: str = typer.Option("deepseek", "--model", "-m", help="模型选择"),
+    task: str = typer.Argument(..., help="Görev açıklaması"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
+    model: str = typer.Option("deepseek", "--model", "-m", help="Model seçimi"),
     workflow: str = typer.Option(
         "build",
         "--workflow",
         "-w",
         help=(
-            "工作流名称：build（开发）/ review（审查）/ debug（调试）/ test（测试）"
-            " / autopilot（自动路由）/ pair（结对编程）/ refactor（重构）"
-            " / doc（文档生成）/ sequential（顺序执行编排）"
+            "İş akışı adı:build(gelişim)/ review(gözden geçirmek)/ debug(hata ayıklama)/ test(test)"
+            " / autopilot(otomatik yönlendirme)/ pair(çift programlama)/ refactor(yeniden düzenleme)"
+            " / doc(Belge oluşturma)/ sequential(Sıralı yürütme düzenlemesi)"
         ),
     ),
-    dry_run: bool = typer.Option(False, "--dry-run", help="仅预览执行计划，不实际运行"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Yalnızca yürütme planının ön izlemesini yapar, gerçekte çalıştırmaz"),
     notify: bool = typer.Option(
-        False, "--notify", "-n", help="完成后发送通知（桌面+钉钉）"
+        False, "--notify", "-n", help="Tamamlandığında bildirim gönder (masaüstü+DingTalk)"
     ),
     no_checkpoint: bool = typer.Option(
-        False, "--no-checkpoint", help="跳过自动快照（断点续传）"
+        False, "--no-checkpoint", help="Otomatik anlık görüntüyü atla (devam ettirilebilir yükleme)"
     ),
     cross_validate: bool = typer.Option(
         False,
         "--cross-validate",
-        help="工作流结束后执行 Agent 交叉验证（独立视角审视产出）",
+        help="İş akışı sona erdikten sonra yürütülürAgentÇapraz doğrulama (çıktıya bağımsız bir perspektiften bakmak)",
     ),
 ):
-    """执行编程任务"""
-    # 前置检查
+    """Programlama görevlerini gerçekleştirin"""
+    #ön kontrol
     if not _check_env():
         raise typer.Exit(1)
 
     console.print(
         Panel.fit(
             f"[bold green]Oh My Coder[/bold green]\n"
-            f"任务: {task}\n"
-            f"项目: {project_path}\n"
-            f"工作流: {workflow}",
-            title="🚀 启动",
+            f"Görev: {task}\n"
+            f"proje: {project_path}\n"
+            f"İş akışı: {workflow}",
+            title="🚀başlatmak",
         )
     )
 
-    # Dry-run 模式：只展示计划
+    # Dry-runMod: Yalnızca planları göster
     if dry_run:
         console.print(
             Panel.fit(
-                "[yellow]🔍 Dry-run 模式 — 仅展示执行计划[/yellow]\n\n"
-                "[bold]工作流:[/bold] "
+                "[yellow]🔍 Dry-runMod—yalnızca yürütme planını gösterir[/yellow]\n\n"
+                "[bold]İş akışı:[/bold] "
                 + workflow
-                + "\n[bold]任务:[/bold] "
+                + "\n[bold]Görev:[/bold] "
                 + task
-                + "\n[bold]项目:[/bold] "
+                + "\n[bold]proje:[/bold] "
                 + str(project_path.absolute())
-                + "\n\n[dim]实际执行请去掉 --dry-run 参数[/dim]",
-                title="📋 执行计划预览",
+                + "\n\n[dim]Lütfen gerçek uygulamayı kaldırın--dry-runparametre[/dim]",
+                title="📋Model yapılandırmasını topluluk dizininde paylaşın",
                 border_style="yellow",
             )
         )
         raise typer.Exit(0)
 
-    # 初始化路由器和编排器
+    #Yönlendiriciyi ve orkestratörü başlatın
     try:
         router = _init_router()
     except SystemExit:
@@ -229,13 +229,13 @@ def run(
 
     orchestrator = Orchestrator(router, state_dir=project_path / ".omc" / "state")
 
-    # 执行工作流
+    #İş akışını yürütün
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
-        progress.add_task("执行工作流...", total=None)
+        progress.add_task("İş akışını yürütün...", total=None)
 
         try:
             result = asyncio.run(
@@ -249,12 +249,12 @@ def run(
                 )
             )
 
-            # 显示结果
+            #Sonuçları göster
             _display_result(result)
 
-            # ---- 交叉验证：独立视角审视工作流产出 ----
+            # ----Çapraz doğrulama: iş akışı çıktısına bağımsız bir bakış----
             if cross_validate:
-                cv_progress = progress.add_task("🔍 交叉验证...", total=None)
+                cv_progress = progress.add_task("🔍çapraz doğrulama...", total=None)
                 try:
                     cv_layer = CrossValidationLayer(
                         model_router=router,
@@ -265,26 +265,26 @@ def run(
                     )
                     progress.remove_task(cv_progress)
 
-                    # 显示验证摘要
+                    #Doğrulama özetini göster
                     _display_cross_validation_result(cv_result)
 
-                    # 验证失败时以非零退出码结束
+                    #Doğrulama sıfır olmayan bir çıkış koduyla başarısız oluyor.
                     if cv_result.status.value in ("fail", "need_fix"):
                         console.print(
                             Panel.fit(
-                                "[yellow]⚠️  交叉验证发现问题，建议修复后重试[/yellow]\n"
-                                "[dim]验证报告已保存至 .omc/state/cross_validation/[/dim]",
-                                title="⚠️  验证提醒",
+                                "[yellow]⚠️Çapraz doğrulamada bir sorun bulundu; sorunu düzeltip tekrar denemeniz önerilir.[/yellow]\n"
+                                "[dim]Doğrulama raporu şuraya kaydedildi:.omc/state/cross_validation/[/dim]",
+                                title="⚠️Doğrulama hatırlatıcısı",
                                 border_style="yellow",
                             )
                         )
                 except Exception as cv_err:
                     progress.remove_task(cv_progress)
                     console.print(
-                        f"[yellow]⚠️  交叉验证出错（不影响主流程）: {cv_err}[/yellow]"
+                        f"[yellow]⚠️Çapraz doğrulama hatası (ana işlemi etkilemez): {cv_err}[/yellow]"
                     )
 
-            # 发送通知
+            #Bildirim gönder
             if notify:
                 from src.core.orchestrator import WorkflowStatus
 
@@ -301,33 +301,33 @@ def run(
                 steps = len(result.steps) if hasattr(result, "steps") else 1
                 exec_time = getattr(result, "execution_time", 0.0)
 
-                # 桌面通知
+                #Masaüstü bildirimleri
                 notify_workflow_complete(workflow, status, steps, exec_time)
-                # 钉钉通知
+                #DingTalk bildirimleri
                 notify_workflow_complete_dingtalk(
                     None, workflow, status, steps, exec_time, str(project_path)
                 )
 
         except Exception as e:
             _print_fatal(
-                f"工作流执行出错: {e}",
-                hint="可尝试以下方法：\n"
-                "  1. 检查网络连接\n"
-                "  2. 确认 API Key 有效：omc status\n"
-                "  3. 查看详细日志",
+                f"İş akışı yürütme hatası: {e}",
+                hint="Aşağıdaki yöntemleri deneyebilirsiniz:\n"
+                "  1.Ağ bağlantısını kontrol edin\n"
+                "  2.onaylamakAPI Keyverimli:omc status\n"
+                "  3.Ayrıntılı günlüğü görüntüle",
             )
             raise typer.Exit(1)
 
 
 @app.command()
 def explore(
-    project_path: Path = typer.Argument(".", help="项目路径"),
+    project_path: Path = typer.Argument(".", help="Proje yolu"),
 ):
-    """探索代码库"""
+    """Kod tabanını keşfedin"""
     if not _check_env():
         raise typer.Exit(1)
 
-    console.print(f"[bold]🔍 探索项目: {project_path}[/bold]")
+    console.print(f"[bold]🔍Projeleri keşfedin: {project_path}[/bold]")
 
     try:
         router = _init_router()
@@ -342,46 +342,46 @@ def explore(
                 "explore",
                 {
                     "project_path": str(project_path.absolute()),
-                    "task": "探索代码库并生成项目地图",
+                    "task": "Kod tabanını keşfedin ve bir proje haritası oluşturun",
                 },
             )
         )
 
         if result.result:
-            console.print(Panel(result.result, title="项目地图"))
+            console.print(Panel(result.result, title="proje haritası"))
         else:
-            _print_fatal(f"探索失败: {result.error}")
+            _print_fatal(f"Keşif başarısız oldu: {result.error}")
 
     except Exception as e:
-        _print_fatal(f"探索出错: {e}", hint="确认项目路径存在且可读")
+        _print_fatal(f"Keşif hatası: {e}", hint="Proje yolunun var olduğunu ve okunabilir olduğunu doğrulayın")
         raise typer.Exit(1)
 
 
 @app.command()
 def wiki(
-    project_path: Path = typer.Argument(".", help="项目路径"),
+    project_path: Path = typer.Argument(".", help="Proje yolu"),
     output: Path = typer.Option(
-        None, "--output", "-o", help="输出文件路径，默认 REPO_WIKI.md"
+        None, "--output", "-o", help="Çıkış dosyası yolu, varsayılanREPO_WIKI.md"
     ),
 ):
-    """生成项目 Wiki 文档"""
+    """Proje oluşturWikibelge"""
     project_path = project_path.resolve()
 
     if not project_path.exists():
-        _print_fatal(f"项目路径不存在: {project_path}")
+        _print_fatal(f"Proje yolu mevcut değil: {project_path}")
         raise typer.Exit(1)
 
-    # 确定输出路径
+    #Çıkış yolunu belirleyin
     if output is None:
         output = project_path / "REPO_WIKI.md"
 
-    console.print(f"[bold]📝 生成 Wiki: {project_path}[/bold]")
+    console.print(f"[bold]📝oluşturmakWiki: {project_path}[/bold]")
 
     try:
-        # 从 pyproject.toml 或目录名获取项目名
+        #itibarenpyproject.tomlVeya proje adını almak için dizin adı
         project_name = _detect_project_name(project_path)
 
-        # 生成 Wiki
+        #oluşturmakWiki
         generator = WikiGenerator(
             project_name=project_name,
             project_path=project_path,
@@ -392,26 +392,26 @@ def wiki(
             TextColumn("[progress.description]{task.description}"),
             console=console,
         ) as progress:
-            progress.add_task("解析代码...", total=None)
+            progress.add_task("ayrıştırma kodu...", total=None)
             generator.generate(output)
 
         console.print(
             Panel.fit(
-                f"[green]✓ Wiki 已生成[/green]\n\n"
-                f"文件: [cyan]{output}[/cyan]\n\n"
-                f"[dim]使用 `omc wiki` 重新生成[/dim]",
+                f"[green]✓ WikiOluşturuldu[/green]\n\n"
+                f"belge: [cyan]{output}[/cyan]\n\n"
+                f"[dim]kullanmak`omc wiki`Yenile[/dim]",
                 title="📚 Wiki",
             )
         )
 
     except Exception as e:
-        _print_fatal(f"Wiki 生成失败: {e}")
+        _print_fatal(f"WikiDerleme başarısız oldu: {e}")
         raise typer.Exit(1)
 
 
 def _detect_project_name(project_path: Path) -> str:
-    """检测项目名称"""
-    # 尝试从 pyproject.toml 读取
+    """Test öğesi adı"""
+    #baştan başlamayı denepyproject.tomlOkumak
     pyproject = project_path / "pyproject.toml"
     if pyproject.exists():
         try:
@@ -424,7 +424,7 @@ def _detect_project_name(project_path: Path) -> str:
         except Exception:
             pass
 
-    # 尝试从 setup.py 读取
+    #baştan başlamayı denesetup.pyOkumak
     setup_py = project_path / "setup.py"
     if setup_py.exists():
         try:
@@ -437,65 +437,65 @@ def _detect_project_name(project_path: Path) -> str:
         except Exception:
             pass
 
-    # 默认使用目录名
+    #Başarı modelinin dahil edilmesi durumunda da tasarruf sağlar
     return project_path.name
 
 
 # ============================================================
-# Quest Mode - 异步自主编程
+# Quest Mode -Asenkron otonom programlama
 # ============================================================
 
 
 @app.command()
 def quest(
     ctx: typer.Context,
-    description: str = typer.Argument(..., help="任务描述（自然语言）"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
-    title: str = typer.Option(None, "--title", "-t", help="任务标题（可选）"),
-    skip_spec: bool = typer.Option(False, "--skip-spec", help="跳过 SPEC 生成直接执行"),
-    auto_confirm: bool = typer.Option(False, "--yes", "-y", help="自动确认并执行"),
+    description: str = typer.Argument(..., help="Görev açıklaması (doğal dil)"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
+    title: str = typer.Option(None, "--title", "-t", help="Görev başlığı (isteğe bağlı)"),
+    skip_spec: bool = typer.Option(False, "--skip-spec", help="SPEC üretimini atla, doğrudan çalıştır"),
+    auto_confirm: bool = typer.Option(False, "--yes", "-y", help="Otomatik olarak onayla ve yürüt"),
 ):
     """
-    🧙 Quest Mode - 异步自主编程
+    🧙 Quest Mode -Asenkron otonom programlama
 
-    将需求交给 AI，自动生成 SPEC 文档，后台执行，完成后通知验收。
+Gereksinimleri verinAI, otomatik olarak oluşturulmuşSPECBelge arka planda yürütülür ve tamamlandıktan sonra kabul bilgisi verilir.
 
-    示例:
-      omc quest "实现用户认证模块，支持 JWT"
-      omc quest "添加缓存层" -p myproject/
-      omc quest "重构数据库访问层" --skip-spec
+Örnek:
+      omc quest "Desteklemek için kullanıcı kimlik doğrulama modülünü uygulayınJWT"
+      omc quest "Önbelleğe alma katmanı ekle" -p myproject/
+      omc quest "Veritabanı erişim katmanını yeniden düzenleyin" --skip-spec
     """
     import asyncio
 
     project_path = project_path.resolve()
     if not project_path.exists():
-        _print_fatal(f"项目路径不存在: {project_path}")
+        _print_fatal(f"Proje yolu mevcut değil: {project_path}")
         raise typer.Exit(1)
 
     console.print(
         Panel.fit(
             f"[bold magenta]🧙 Quest Mode[/bold magenta]\n\n"
-            f"[cyan]需求:[/cyan] {description}\n"
-            f"[cyan]项目:[/cyan] {project_path}",
-            title="🚀 启动",
+            f"[cyan]ihtiyaç:[/cyan] {description}\n"
+            f"[cyan]proje:[/cyan] {project_path}",
+            title="🚀başlatmak",
             border_style="magenta",
         )
     )
 
     from .quest import QuestManager
 
-    # 步骤验收回调（交互式）
+    #Adım doğrulama geri araması (etkileşimli)
     async def review_callback(quest_id: str, step_id: str, preview: str) -> str:
-        console.print(f"\n[bold cyan]📋 步骤验收: {step_id}[/bold cyan]")
+        console.print(f"\n[bold cyan]📋Adım kabulü: {step_id}[/bold cyan]")
         if preview:
             console.print(
-                Panel.fit(preview[:500], title="执行结果预览", border_style="dim")
+                Panel.fit(preview[:500], title="kod incelemesi", border_style="dim")
             )
 
         from rich.prompt import Prompt
 
         choice = Prompt.ask(
-            "请选择",
+            "Lütfen seçin",
             choices=["p", "r", "s"],
             default="p",
             show_choices=True,
@@ -506,22 +506,22 @@ def quest(
     manager = QuestManager(project_path, review_callback=review_callback)
 
     async def run():
-        # 1. 创建 Quest
+        # 1.yaratmakQuest
         quest_obj = await manager.create_quest(description, title=title)
-        console.print(f"[dim]📋 Quest 已创建: {quest_obj.id[:8]}[/dim]")
+        console.print(f"[dim]📋 QuestOluşturuldu: {quest_obj.id[:8]}[/dim]")
 
-        # 2. 生成 SPEC
+        # 2.oluşturmakSPEC
         if not skip_spec:
-            console.print("[yellow]⏳ 正在生成 SPEC...[/yellow]")
+            console.print("[yellow]⏳ÜretiliyorSPEC...[/yellow]")
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
                 console=console,
             ) as progress:
-                progress.add_task("生成 SPEC 规格文档...", total=None)
+                progress.add_task("oluşturmakSPECŞartname belgesi...", total=None)
                 quest_obj = await manager.generate_spec(quest_obj)
 
-            # 显示 SPEC
+            #göstermekSPEC
             spec = quest_obj.spec
             if spec:
                 spec_content = spec.to_markdown()
@@ -529,67 +529,67 @@ def quest(
                     Panel.fit(
                         spec_content[:3000]
                         + ("\n..." if len(spec_content) > 3000 else ""),
-                        title="📄 SPEC 规格文档",
+                        title="📄 SPECŞartname belgesi",
                         border_style="cyan",
                     )
                 )
 
             if not auto_confirm:
-                console.print("\n[yellow]⚠️ 审查 SPEC 后，运行以下命令执行:[/yellow]")
+                console.print("\n[yellow]⚠️gözden geçirmekSPECBundan sonra, yürütmek için aşağıdaki komutu çalıştırın:[/yellow]")
                 console.print(f"  [green]omc quest exec {quest_obj.id}[/green]")
-                console.print("  [dim]或使用 [green]-y[/dim] 自动确认[/dim]")
+                console.print("  [dim]veya kullanın[green]-y[/dim]otomatik onay[/dim]")
                 raise typer.Exit(0)
 
-        # 3. 开始执行
-        console.print("[yellow]⏳ 后台执行中...[/yellow]")
-        console.print("[dim]使用 [green]omc quest status[/dim] 查看进度[/dim]")
-        console.print("[dim]使用 [green]omc quest log {id}[/dim] 查看详细日志[/dim]")
+        # 3.Yürütmeyi başlat
+        console.print("[yellow]⏳Arka planda yürütülüyor...[/yellow]")
+        console.print("[dim]kullanmak[green]omc quest status[/dim]İlerlemeyi görüntüle[/dim]")
+        console.print("[dim]kullanmak[green]omc quest log {id}[/dim]Ayrıntılı günlüğü görüntüle[/dim]")
 
         manager.confirm_and_execute(quest_obj.id)
-        console.print(f"[green]✅ Quest 已启动 (ID: {quest_obj.id[:8]})[/green]")
-        console.print("[dim]完成时会收到通知[/dim]")
+        console.print(f"[green]✅ QuestBaşlatıldı(ID: {quest_obj.id[:8]})[/green]")
+        console.print("[dim]Tamamlandığında bildirim alın[/dim]")
 
     try:
         asyncio.run(run())
     except SystemExit:
         raise
     except Exception as e:
-        _print_fatal(f"Quest 执行出错: {e}")
+        _print_fatal(f"QuestYürütme hatası: {e}")
         raise typer.Exit(1)
 
 
 @app.command("quest-list")
 def quest_list(
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
     status_filter: str = typer.Option(
-        None, "--status", "-s", help="按状态筛选 (pending/executing/completed/failed)"
+        None, "--status", "-s", help="Duruma göre filtrele(pending/executing/completed/failed)"
     ),
-    all_quests: bool = typer.Option(False, "--all", "-a", help="显示所有 Quest"),
+    all_quests: bool = typer.Option(False, "--all", "-a", help="Tümünü gösterQuest"),
 ):
     """
-    📋 查看 Quest 列表
+    📋Kontrol etmekQuestliste
     """
     from .quest import QuestManager, QuestStatus
 
     project_path = project_path.resolve()
     manager = QuestManager(project_path)
 
-    # 解析状态筛选
+    #Durum filtresini ayrıştır
     sf = None
     if status_filter:
         try:
             sf = QuestStatus(status_filter)
         except ValueError:
-            _print_fatal(f"未知状态: {status_filter}")
+            _print_fatal(f"bilinmeyen durum: {status_filter}")
             raise typer.Exit(1)
 
     quests = manager.list_quests(status_filter=sf)
 
     if not quests:
-        console.print("[dim]暂无 Quest[/dim]")
+        console.print("[dim]HiçbiriQuest[/dim]")
         return
 
-    # 状态颜色
+    #durum rengi
     status_colors = {
         QuestStatus.PENDING: "dim",
         QuestStatus.SPEC_GENERATING: "yellow",
@@ -601,13 +601,13 @@ def quest_list(
         QuestStatus.PAUSED: "yellow",
     }
 
-    table = Table(title=f"Quest 列表 ({len(quests)})")
+    table = Table(title=f"Questliste({len(quests)})")
     table.add_column("ID", style="cyan", width=8)
-    table.add_column("标题", style="white")
-    table.add_column("状态", width=14)
-    table.add_column("进度", width=12)
-    table.add_column("耗时", width=8)
-    table.add_column("创建时间", style="dim")
+    table.add_column("başlık", style="white")
+    table.add_column("durum", width=14)
+    table.add_column("takvim", width=12)
+    table.add_column("zaman tükeniyor", width=8)
+    table.add_column("yaratılış zamanı", style="dim")
 
     for q in quests:
         color = status_colors.get(q.status, "white")
@@ -628,10 +628,10 @@ def quest_list(
 @app.command("quest-status")
 def quest_status(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    📊 查看 Quest 详细状态
+    📊Kontrol etmekQuestayrıntılı durum
     """
     from .quest import QuestManager
 
@@ -640,10 +640,10 @@ def quest_status(
 
     quest = manager.get_quest(quest_id)
     if quest is None:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
-    # 状态颜色
+    #durum rengi
     status_color = {
         QuestStatus.PENDING: "dim",
         QuestStatus.SPEC_GENERATING: "yellow",
@@ -658,35 +658,35 @@ def quest_status(
 
     lines = [
         f"[cyan]ID:[/cyan]     {quest.id}",
-        f"[cyan]标题:[/cyan]   {quest.title}",
-        f"[cyan]状态:[/cyan]   [{sc}]{quest.status.value}[/{sc}]",
-        f"[cyan]进度:[/cyan]   {int(quest.progress() * 100)}%",
+        f"[cyan]başlık:[/cyan]   {quest.title}",
+        f"[cyan]durum:[/cyan]   [{sc}]{quest.status.value}[/{sc}]",
+        f"[cyan]takvim:[/cyan]   {int(quest.progress() * 100)}%",
     ]
 
     if quest.duration():
-        lines.append(f"[cyan]耗时:[/cyan]   {quest.duration():.1f}s")
+        lines.append(f"[cyan]zaman tükeniyor:[/cyan]   {quest.duration():.1f}s")
 
     if quest.spec_path:
         lines.append(f"[cyan]SPEC:[/cyan]  {quest.spec_path}")
 
     if quest.error_message:
-        lines.append(f"[red]错误:[/red]   {quest.error_message}")
+        lines.append(f"[red]hata:[/red]   {quest.error_message}")
 
     if quest.result_summary:
-        lines.append(f"[green]结果:[/green]  {quest.result_summary}")
+        lines.append(f"[green]sonuç:[/green]  {quest.result_summary}")
 
     console.print(
         Panel("\n".join(lines), title=f"Quest {quest.id[:8]}", border_style="cyan")
     )
 
-    # 显示步骤
+    #Adımları göster
     if quest.steps:
-        console.print("\n[bold]📌 执行步骤:[/bold]")
+        console.print("\n[bold]📌Yürütme adımları:[/bold]")
         step_table = Table()
         step_table.add_column("ID", width=4)
-        step_table.add_column("步骤", width=20)
+        step_table.add_column("adım", width=20)
         step_table.add_column("Agent", width=15)
-        step_table.add_column("状态", width=12)
+        step_table.add_column("durum", width=12)
 
         step_colors = {
             QuestStatus.PENDING: "dim",
@@ -710,10 +710,10 @@ def quest_status(
 @app.command("quest-exec")
 def quest_exec(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    ▶️ 执行已就绪的 Quest
+    ▶️İnfaz hazırQuest
     """
     from .quest import QuestManager
 
@@ -722,22 +722,22 @@ def quest_exec(
 
     quest = manager.get_quest(quest_id)
     if quest is None:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
     if quest.status != QuestStatus.SPEC_READY:
-        _print_fatal(f"Quest 状态为 {quest.status}，需要 SPEC_READY 状态")
-        console.print("[dim]使用 [green]omc quest[/green] 创建新 Quest[/dim]")
+        _print_fatal(f"QuestDurum:{quest.status},ihtiyaçSPEC_READYdurum")
+        console.print("[dim]kullanmak[green]omc quest[/green]Yol korumalı alan kapsamını aşıyorQuest[/dim]")
         raise typer.Exit(1)
 
     manager.confirm_and_execute(quest_id)
     console.print(
         Panel.fit(
-            f"[green]✅ Quest 已启动[/green]\n\n"
+            f"[green]✅ QuestBaşlatıldı[/green]\n\n"
             f"ID: {quest.id[:8]}\n"
-            f"标题: {quest.title}\n\n"
-            "[dim]使用 [green]omc quest status {id}[/green] 查看进度[/dim]",
-            title="🚀 启动成功",
+            f"başlık: {quest.title}\n\n"
+            "[dim]kullanmak[green]omc quest status {id}[/green]İlerlemeyi görüntüle[/dim]",
+            title="🚀Başarıyla başlatıldı",
             border_style="green",
         )
     )
@@ -746,10 +746,10 @@ def quest_exec(
 @app.command("quest-cancel")
 def quest_cancel(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    ⏹️ 取消 Quest
+    ⏹️İptal etmekQuest
     """
     from .quest import QuestManager
 
@@ -757,19 +757,19 @@ def quest_cancel(
     manager = QuestManager(project_path)
 
     if manager.cancel(quest_id):
-        console.print(f"[yellow]⏹️ Quest {quest_id[:8]} 已取消[/yellow]")
+        console.print(f"[yellow]⏹️ Quest {quest_id[:8]}İptal edildi[/yellow]")
     else:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
 
 @app.command("quest-pause")
 def quest_pause(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    ⏸️ 暂停 Quest（在当前步骤完成后暂停）
+    ⏸️duraklatmaQuest(Geçerli adım tamamlandıktan sonra duraklatın)
     """
     from .quest import QuestManager
 
@@ -777,20 +777,20 @@ def quest_pause(
     manager = QuestManager(project_path)
 
     if manager.pause(quest_id):
-        console.print(f"[yellow]⏸️ Quest {quest_id[:8]} 已暂停[/yellow]")
-        console.print("[dim]使用 [green]omc quest resume {id}[/dim] 恢复[/dim]")
+        console.print(f"[yellow]⏸️ Quest {quest_id[:8]}yaygın[/yellow]")
+        console.print("[dim]kullanmak[green]omc quest resume {id}[/dim]iyileşmek[/dim]")
     else:
-        _print_fatal(f"Quest {quest_id} 不存在或无法暂停")
+        _print_fatal(f"Quest {quest_id}Mevcut değil veya duraklatılamaz")
         raise typer.Exit(1)
 
 
 @app.command("quest-resume")
 def quest_resume(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    ▶️ 恢复已暂停的 Quest（从断点继续）
+    ▶️Duraklatılmış bir işlemi devam ettirQuest(kesme noktasından devam edin)
     """
     from .quest import QuestManager
 
@@ -799,21 +799,21 @@ def quest_resume(
 
     quest = manager.resume(quest_id)
     if quest:
-        console.print(f"[green]▶️ Quest {quest_id[:8]} 已恢复[/green]")
-        console.print("[dim]使用 [green]omc quest status {id}[/dim] 查看进度[/dim]")
+        console.print(f"[green]▶️ Quest {quest_id[:8]}Geri yüklendi[/green]")
+        console.print("[dim]kullanmak[green]omc quest status {id}[/dim]İlerlemeyi görüntüle[/dim]")
     else:
-        _print_fatal(f"Quest {quest_id} 不存在或未处于暂停状态")
+        _print_fatal(f"Quest {quest_id}Mevcut değil veya beklemede değil")
         raise typer.Exit(1)
 
 
 @app.command("quest-notify")
 def quest_notify(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
     dingtalk_webhook: str = typer.Option(
-        None, "--dingtalk", "-d", help="钉钉 Webhook URL"
+        None, "--dingtalk", "-d", help="DingTalkWebhook URL"
     ),
-    dingtalk_secret: str = typer.Option(None, "--secret", "-s", help="钉钉加签密钥"),
+    dingtalk_secret: str = typer.Option(None, "--secret", "-s", help="DingTalk imzalama anahtarı"),
     telegram_bot_token: str = typer.Option(
         None, "--telegram-bot-token", help="Telegram Bot Token"
     ),
@@ -828,13 +828,13 @@ def quest_notify(
         None, "--teams", help="Microsoft Teams Webhook URL"
     ),
     feishu_webhook: str = typer.Option(
-        None, "--feishu", help="飞书（Lark）Webhook URL"
+        None, "--feishu", help="Feishu (Lark)Webhook URL"
     ),
-    wecom_webhook: str = typer.Option(None, "--wecom", help="企业微信 Webhook URL"),
+    wecom_webhook: str = typer.Option(None, "--wecom", help="Kurumsal WeChatWebhook URL"),
     pushplus_token: str = typer.Option(None, "--pushplus", help="PushPlus Token"),
 ):
     """
-    🔔 订阅 Quest 通知（桌面 + 多种 Webhook 渠道）
+    🔔abonelikQuestBildirimler (Masaüstü+ÇeşitliWebhookkanal)
     """
     import asyncio
 
@@ -845,10 +845,10 @@ def quest_notify(
 
     quest = manager.get_quest(quest_id)
     if quest is None:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
-    # 配置通知
+    #Bildirimleri yapılandırma
     config = NotificationConfig(
         desktop=True,
         dingtalk_webhook=dingtalk_webhook,
@@ -865,7 +865,7 @@ def quest_notify(
     notifier = NotificationManager(config)
 
     def on_progress(title: str, body: str, level: str) -> None:
-        """实时显示进度（控制台回调）"""
+        """İlerlemeyi gerçek zamanlı olarak görüntüleyin (konsol geri araması)"""
         color_map = {
             "info": "cyan",
             "success": "green",
@@ -875,18 +875,18 @@ def quest_notify(
         color = color_map.get(level, "white")
         console.print(f"[{color}]{title}[/{color}]: {body}")
 
-    # 添加控制台回调渠道
+    #Konsol geri çağırma kanalı ekle
     from .quest.notifications import ConsoleNotificationChannel
 
     notifier._channels.append(ConsoleNotificationChannel(callback=on_progress))
 
-    # 跟踪进度直到完成
+    #Tamamlanana kadar ilerlemeyi takip edin
     last_status = quest.status.value
     last_step = -1
 
     async def watch():
         nonlocal last_status, last_step
-        console.print(f"[dim]⏳ 监控 Quest {quest_id[:8]}，按 Ctrl+C 退出...[/dim]\n")
+        console.print(f"[dim]⏳monitörQuest {quest_id[:8]},buna göreCtrl+Cçıkış yapmak...[/dim]\n")
         try:
             while True:
                 await asyncio.sleep(5)
@@ -894,7 +894,7 @@ def quest_notify(
                 if fresh is None:
                     break
 
-                # 实时进度（步骤变化时输出）
+                #Gerçek zamanlı ilerleme (adımlar değiştiğinde çıktı)
                 if fresh.steps:
                     completed = sum(
                         1 for s in fresh.steps if s.status == QuestStatus.COMPLETED
@@ -905,10 +905,10 @@ def quest_notify(
                         bar = "█" * completed + "░" * (total - completed)
                         console.print(
                             f"  [{fresh.status.value:12}] "
-                            f"{bar} {completed}/{total} 步骤"
+                            f"{bar} {completed}/{total}adım"
                         )
 
-                # 状态变化时发送桌面/钉钉通知
+                #Durum değiştiğinde masaüstünü gönder/DingTalk bildirimleri
                 if fresh.status.value != last_status:
                     last_status = fresh.status.value
                     if fresh.status.value == "completed":
@@ -918,20 +918,20 @@ def quest_notify(
                     elif fresh.status.value == "failed":
                         notifier.notify_failed(
                             fresh.title,
-                            fresh.error_message or "未知错误",
+                            fresh.error_message or "bilinmeyen hata",
                             fresh.id,
                         )
                     elif fresh.status.value == "paused":
                         notifier.send(
-                            "⏸️ Quest 已暂停",
+                            "⏸️ Questyaygın",
                             fresh.title,
                             event="paused",
                             quest_id=fresh.id,
                         )
 
-                # 完成或终止
+                #tamamlamak veya sonlandırmak
                 if fresh.status.value in ("completed", "failed", "cancelled"):
-                    console.print(f"\n[bold]最终状态: {fresh.status.value}[/bold]")
+                    console.print(f"\n[bold]son durum: {fresh.status.value}[/bold]")
                     break
         except asyncio.CancelledError:
             pass
@@ -939,19 +939,19 @@ def quest_notify(
     try:
         asyncio.run(watch())
     except KeyboardInterrupt:
-        console.print("\n[dim]监控已退出[/dim]")
+        console.print("\n[dim]bomba[/dim]")
 
 
 @app.command("quest-wait")
 def quest_wait(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
-    timeout: int = typer.Option(0, "--timeout", "-t", help="超时秒数（0=无限）"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
+    timeout: int = typer.Option(0, "--timeout", "-t", help="Zaman aşımı saniyeleri (0=sınırsız)"),
 ):
     """
-    ⏳ 阻塞等待 Quest 完成并展示验收结果
+    ⏳beklemeyi engelleQuestKabul sonuçlarını tamamlayın ve sunun
 
-    完成后展示详细验收报告，包括各步骤通过情况、结果摘要。
+Tamamlandıktan sonra, her adımın geçme durumunu ve sonuçların özetini içeren ayrıntılı bir kabul raporu görüntülenecektir.
     """
     import asyncio
 
@@ -962,10 +962,10 @@ def quest_wait(
 
     quest = manager.get_quest(quest_id)
     if quest is None:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
-    # 已完成的情况直接显示结果
+    #Tamamlanan durumlar sonuçları doğrudan görüntüler
     if quest.status in (
         QuestStatus.COMPLETED,
         QuestStatus.FAILED,
@@ -974,7 +974,7 @@ def quest_wait(
         _show_acceptance_report(quest, console)
         return
 
-    # 实时跟踪直到完成
+    #Tamamlanana kadar gerçek zamanlı olarak takip edin
     elapsed = 0
 
     async def watch():
@@ -987,7 +987,7 @@ def quest_wait(
                 if fresh is None:
                     break
 
-                # 实时进度
+                #Komut listesi:
                 if fresh.steps:
                     completed = sum(
                         1 for s in fresh.steps if s.status == QuestStatus.COMPLETED
@@ -1006,12 +1006,12 @@ def quest_wait(
                     QuestStatus.FAILED,
                     QuestStatus.CANCELLED,
                 ):
-                    console.print()  # 换行
+                    console.print()  #yeni satır
                     _show_acceptance_report(fresh, console)
                     break
 
                 if timeout > 0 and elapsed >= timeout:
-                    console.print(f"\n[yellow]⏰ 超时（{timeout}s）[/yellow]")
+                    console.print(f"\n[yellow]⏰zaman aşımı({timeout}s)[/yellow]")
                     break
         except asyncio.CancelledError:
             console.print()
@@ -1019,11 +1019,11 @@ def quest_wait(
     try:
         asyncio.run(watch())
     except KeyboardInterrupt:
-        console.print("\n[dim]等待已中断[/dim]")
+        console.print("\n[dim]Bekleme kesintiye uğradı[/dim]")
 
 
 def _show_acceptance_report(quest, console):
-    """展示 Quest 验收报告"""
+    """sergilemekQuestKabul raporu"""
     from rich.panel import Panel
     from rich.table import Table
 
@@ -1038,7 +1038,7 @@ def _show_acceptance_report(quest, console):
     }
     sc = status_color_map.get(quest.status, "white")
 
-    # 标题
+    #başlık
     emoji = {
         QuestStatus.COMPLETED: "✅",
         QuestStatus.FAILED: "❌",
@@ -1047,35 +1047,35 @@ def _show_acceptance_report(quest, console):
     console.print(
         Panel.fit(
             f"[bold]{emoji} {quest.title}[/bold]",
-            title=f"验收报告 — {quest.status.value}",
+            title=f"Kabul Raporu —{quest.status.value}",
             border_style=sc.value if hasattr(sc, "value") else "green",
         )
     )
 
-    # 基本信息
+    #Temel bilgiler
     duration = quest.duration()
     duration_str = f"{duration:.1f}s" if duration else "—"
     console.print(
         f"  [cyan]ID:[/cyan]     {quest.id[:8]}\n"
-        f"  [cyan]耗时:[/cyan]   {duration_str}\n"
+        f"  [cyan]zaman tükeniyor:[/cyan]   {duration_str}\n"
         + (
-            f"  [cyan]摘要:[/cyan]  {quest.result_summary}\n"
+            f"  [cyan]özet:[/cyan]  {quest.result_summary}\n"
             if quest.result_summary
             else ""
         )
         + (
-            f"  [red]错误:[/red]   {quest.error_message}\n"
+            f"  [red]hata:[/red]   {quest.error_message}\n"
             if quest.error_message
             else ""
         )
     )
 
-    # 步骤验收表格
+    #adım kabul formu
     if quest.steps:
-        table = Table(title="📋 步骤验收", show_header=True)
-        table.add_column("步骤", width=6)
-        table.add_column("标题", width=30)
-        table.add_column("状态", width=12)
+        table = Table(title="📋Adım kabulü", show_header=True)
+        table.add_column("adım", width=6)
+        table.add_column("başlık", width=30)
+        table.add_column("durum", width=12)
 
         step_sc_map = {
             QuestStatus.PENDING: "dim",
@@ -1100,23 +1100,23 @@ def _show_acceptance_report(quest, console):
 
         console.print(table)
 
-        # 失败步骤详情
+        #Başarısız adım ayrıntıları
         failed_steps = [s for s in quest.steps if s.status == QuestStatus.FAILED]
         if failed_steps:
-            console.print("\n[bold red]❌ 失败详情:[/bold red]")
+            console.print("\n[bold red]❌Arıza ayrıntıları:[/bold red]")
             for s in failed_steps:
                 console.print(f"  [{s.step_id}] {s.title}: {s.error}")
 
 
 @app.command()
 def agents():
-    """列出所有可用 Agent"""
-    table = Table(title="可用智能体")
-    table.add_column("名称", style="cyan")
-    table.add_column("描述")
-    table.add_column("层级", style="green")
+    """Mevcut olanların hepsini listeleAgent"""
+    table = Table(title="Mevcut acenteler")
+    table.add_column("isim", style="cyan")
+    table.add_column("betimlemek")
+    table.add_column("Hiyerarşi", style="green")
 
-    # 导入所有 Agent
+    #Tümünü içe aktarAgent
     from .agents import (
         AnalystAgent,
         APIAgent,
@@ -1212,63 +1212,63 @@ def agents():
 
     console.print(table)
 
-    console.print(f"\n[dim]共 {len(agents_list)} 个智能体[/dim]")
+    console.print(f"\n[dim]yaygın{len(agents_list)}Modele göre yapılandırın:[/dim]")
 
 
 @app.command()
 def status():
-    """查看系统状态"""
-    console.print("[bold]系统状态[/bold]\n")
+    """Sistem durumunu görüntüle"""
+    console.print("[bold]Sistem durumu[/bold]\n")
 
-    # 检查 API Key
+    #incelemekAPI Key
     api_keys = {
-        "DEEPSEEK_API_KEY": "🟢 生产就绪",
-        "KIMI_API_KEY": "🟢 生产就绪",
-        "DOUBAO_API_KEY": "🟢 生产就绪",
+        "DEEPSEEK_API_KEY": "🟢üretime hazır",
+        "KIMI_API_KEY": "🟢üretime hazır",
+        "DOUBAO_API_KEY": "🟢üretime hazır",
         "MINIMAX_API_KEY": "🟡 Beta",
         "ZHIPUAI_API_KEY": "🟡 Beta",
         "TONGYI_API_KEY": "🟡 Beta",
-        "WENXIN_API_KEY": "🔴 待完善",
-        "HUNYUAN_API_KEY": "🔴 待完善",
+        "WENXIN_API_KEY": "🔴Geliştirilecek",
+        "HUNYUAN_API_KEY": "🔴Geliştirilecek",
     }
 
-    console.print("[bold]模型支持状态:[/bold]")
+    console.print("[bold]Model destek durumu:[/bold]")
     for key, status_label in api_keys.items():
         value = os.getenv(key)
         if value:
-            console.print(f"  {key}: [{status_label}] 已配置")
+            console.print(f"  {key}: [{status_label}]yapılandırılmış")
         else:
-            console.print(f"  {key}: [red]✗ 未配置[/red]")
+            console.print(f"  {key}: [red]✗Yapılandırılmadı[/red]")
 
-    # 检查路由器
+    #Yönlendiriciyi kontrol edin
     console.print()
     try:
         router = _init_router()
         stats = router.get_stats()
         console.print(
             Panel(
-                f"[green]✓ 路由器就绪[/green]\n"
-                f"总请求数: [cyan]{stats['total_requests']}[/cyan]\n"
-                f"总成本:   [cyan]¥{stats['total_cost']:.4f}[/cyan]",
-                title="路由器",
+                f"[green]✓Yönlendirici hazır[/green]\n"
+                f"Toplam istek: [cyan]{stats['total_requests']}[/cyan]\n"
+                f"var olmak,:   [cyan]¥{stats['total_cost']:.4f}[/cyan]",
+                title="yönlendirici",
                 border_style="green",
             )
         )
     except Exception as e:
         console.print(
             Panel(
-                f"[red]✗ 路由器初始化失败[/red]\n\n{e}",
-                title="路由器",
+                f"[red]✗Proje yapısını ve kod organizasyonunu anlayın[/red]\n\n{e}",
+                title="yönlendirici",
                 border_style="red",
             )
         )
 
 
 def _init_router() -> ModelRouter:
-    """初始化模型路由器，失败时给出友好提示"""
+    """Model yönlendiriciyi başlatın ve başarısız olduğunda kolay uyarılar verin."""
     config = RouterConfig()
 
-    # 只检查当前默认模型的 key，不强制要求 DeepSeek
+    #Yalnızca geçerli varsayılan modeli kontrol ederkey, gerekli değilDeepSeek
     config_check = _check_env()
     if not config_check:
         raise typer.Exit(1)
@@ -1276,24 +1276,24 @@ def _init_router() -> ModelRouter:
     try:
         return ModelRouter(config)
     except Exception as e:
-        _print_fatal(f"路由器初始化失败: {e}")
+        _print_fatal(f"Çalışma dizini taraması: {e}")
 
 
 def _print_missing_key_hint(key: str, reason: str = ""):
-    """打印缺失 API Key 的友好提示"""
+    """Eksik baskıAPI KeyDostça ipuçları"""
 
     console.print()
     console.print(
         Panel(
-            f"[bold red]✗ 未找到 {key}[/bold red]\n\n"
-            f"[yellow]请先配置 API Key[/yellow]\n\n"
-            f"[dim]推荐:[/dim] DeepSeek — {reason}\n\n"
-            f"[cyan]方法一:[/cyan] 设置环境变量\n"
+            f"[bold red]✗bulunamadı{key}[/bold red]\n\n"
+            f"[yellow]Lütfen önce yapılandırınAPI Key[/yellow]\n\n"
+            f"[dim]tavsiye etmek:[/dim] DeepSeek — {reason}\n\n"
+            f"[cyan]Birinci yöntem:[/cyan]Ortam değişkenlerini ayarlama\n"
             f"  [green]export {key}=your_key_here[green]\n\n"
-            f"[cyan]方法二:[/cyan] 写入 .env 文件\n"
+            f"[cyan]İkinci yöntem:[/cyan]yazmak.envbelge\n"
             f"  [green]echo '{key}=your_key_here' >> .env[green]\n\n"
-            f"[dim]获取地址:[/dim] https://platform.deepseek.com/",
-            title="⚠️ 缺少 API Key",
+            f"[dim]Adresi al:[/dim] https://platform.deepseek.com/",
+            title="⚠️EksiklikAPI Key",
             border_style="red",
         )
     )
@@ -1301,14 +1301,14 @@ def _print_missing_key_hint(key: str, reason: str = ""):
 
 
 def _print_fatal(msg: str, hint: str = ""):
-    """打印致命错误并退出"""
+    """Önemli hatayı yazdırın ve çıkın"""
 
     console.print()
     console.print(
         Panel(
             f"[bold red]✗ {msg}[/bold red]"
-            + (f"\n\n[cyan]提示:[/cyan] {hint}" if hint else ""),
-            title="❌ 执行失败",
+            + (f"\n\n[cyan]ipucu:[/cyan] {hint}" if hint else ""),
+            title="❌Yürütme başarısız oldu",
             border_style="red",
         )
     )
@@ -1316,16 +1316,16 @@ def _print_fatal(msg: str, hint: str = ""):
 
 
 def _resolve_default_model(config: dict) -> str:
-    """解析默认模型：环境变量 > config.json > 第一个有 api_key 的模型 > deepseek"""
-    # 1. 环境变量
+    """Varsayılan modeli ayrıştırma: ortam değişkenleri> config.json >İlki varapi_keymodeli> deepseek"""
+    # 1.ortam değişkenleri
     env_model = os.getenv("OMC_DEFAULT_MODEL")
     if env_model:
         return env_model
-    # 2. config.json 显式设置
+    # 2. config.jsonaçık ayar
     cfg_model = config.get("default_model")
     if cfg_model:
         return cfg_model
-    # 3. 找第一个有 api_key 的模型
+    # 3.İlkini bulapi_keymodeli
     models = config.get("models", {})
     if isinstance(models, dict):
         for name, mcfg in models.items():
@@ -1335,17 +1335,17 @@ def _resolve_default_model(config: dict) -> str:
 
 
 def _check_env() -> bool:
-    """检查当前默认模型的 API Key 是否就绪（读 config.json），返回 True 表示就绪"""
+    """Mevcut varsayılan modeli kontrol edinAPI KeyHazır mı (okuconfig.json),geri dönmekTruehazır demektir"""
     config = _load_config()
     default_model = _resolve_default_model(config)
 
-    # 优先从 config.json 的 models[default_model].api_key 读取
+    #Öncelik verconfig.jsonile ilgilimodels[default_model].api_keyOkumak
     models = config.get("models", {})
     if isinstance(models, dict):
         model_cfg = models.get(default_model, {}) or models.get(default_model.replace("-", "_"), {})
         if model_cfg and model_cfg.get("api_key"):
             return True
-    # 回退：检查环境变量
+    #Geri dönüş: Ortam değişkenlerini kontrol edin
     key_map = {
         "deepseek": "DEEPSEEK_API_KEY",
         "kimi": "KIMI_API_KEY",
@@ -1361,13 +1361,13 @@ def _check_env() -> bool:
     }
     key_var = key_map.get(default_model, "DEEPSEEK_API_KEY")
     if not os.getenv(key_var):
-        _print_missing_key_hint(key_var, f"当前默认模型: {default_model}")
+        _print_missing_key_hint(key_var, f"Mevcut varsayılan model: {default_model}")
         return False
     return True
 
 
 def _load_config() -> dict:
-    """从 ~/.omc/config.json 读取配置"""
+    """itibaren~/.omc/config.jsonYapılandırmayı oku"""
     config_path = Path.home() / ".omc" / "config.json"
     if not config_path.exists():
         return {}
@@ -1377,28 +1377,28 @@ def _load_config() -> dict:
 
 
 def _display_result(result):
-    """显示工作流结果"""
-    console.print(f"\n[bold]工作流 {result.workflow_id}[/bold]")
-    console.print(f"状态: {_status_color(result.status.value)}")
-    console.print(f"执行时间: {result.execution_time:.2f}s")
-    console.print(f"Token 使用: {result.total_tokens:,}")
+    """İş akışı sonuçlarını göster"""
+    console.print(f"\n[bold]İş akışı{result.workflow_id}[/bold]")
+    console.print(f"durum: {_status_color(result.status.value)}")
+    console.print(f"Yürütme süresi: {result.execution_time:.2f}s")
+    console.print(f"Tokenkullanmak: {result.total_tokens:,}")
 
     if result.steps_completed:
-        console.print("\n[green]✓ 已完成步骤:[/green]")
+        console.print("\n[green]✓Tamamlanan adımlar:[/green]")
         for step in result.steps_completed:
             console.print(f"  - {step}")
 
     if result.steps_failed:
-        console.print("\n[red]✗ 失败步骤:[/red]")
+        console.print("\n[red]✗başarısız adım:[/red]")
         for step in result.steps_failed:
             console.print(f"  - {step}")
 
     if result.error:
-        console.print(f"\n[red]错误: {result.error}[/red]")
+        console.print(f"\n[red]hata: {result.error}[/red]")
 
 
 def _display_cross_validation_result(result):
-    """显示交叉验证结果"""
+    """Çapraz doğrulama sonuçlarını göster"""
 
     status_color = {
         "pass": "green",
@@ -1422,16 +1422,16 @@ def _display_cross_validation_result(result):
     }.get(result.status.value, "white")
 
     lines = [
-        f"**验证 ID**: `{result.validation_id}`",
-        f"**工作流**: `{result.workflow_name}` (`{result.workflow_id}`)",
-        f"**状态**: [{status_color}]{result.status.value.upper()}[/{status_color}]",
-        f"**发现的问题**: {len(result.issues)} 个",
-        f"**验证耗时**: {result.execution_time:.1f}s",
+        f"**tanımID**: `{result.validation_id}`",
+        f"**İş akışı**: `{result.workflow_name}` (`{result.workflow_id}`)",
+        f"**durum**: [{status_color}]{result.status.value.upper()}[/{status_color}]",
+        f"**Bulunan sorunlar**: {len(result.issues)}bireysel",
+        f"**Doğrulama zaman alır**: {result.execution_time:.1f}s",
     ]
 
     if result.issues:
         lines.append("")
-        lines.append("[bold]问题列表:[/bold]")
+        lines.append("[bold]Soru listesi:[/bold]")
         for i, issue in enumerate(result.issues, 1):
             severity_icon = {
                 "critical": "🔴",
@@ -1448,7 +1448,7 @@ def _display_cross_validation_result(result):
             if issue.suggestion:
                 lines.append(f"   💡 {issue.suggestion}")
 
-    panel_title = f"{status_icon} 交叉验证结果"
+    panel_title = f"{status_icon}Çapraz doğrulama sonuçları"
 
     console.print(
         Panel.fit("\n".join(lines), title=panel_title, border_style=panel_color)
@@ -1459,18 +1459,18 @@ def _display_cross_validation_result(result):
 def config(
     action: str = typer.Argument(
         "show",
-        help="操作: show（查看）/ set（设置）/ list（列出可用配置项）",
+        help="işletmek: show(Kontrol etmek)/ set(kurmak)/ list(Mevcut yapılandırma öğelerini listeleyin)",
     ),
-    key: str = typer.Option(None, "--key", "-k", help="配置项名称"),
-    value: str = typer.Option(None, "--value", "-v", help="配置值"),
+    key: str = typer.Option(None, "--key", "-k", help="Yapılandırma öğesi adı"),
+    value: str = typer.Option(None, "--value", "-v", help="konfigürasyon değeri"),
 ):
     """
-    ⚙️ 管理配置
+    ⚙️Yönetim yapılandırması
 
-    用法:
-      omc config show          # 查看当前配置
-      omc config list         # 列出所有配置项
-      omc config set -k DEEPSEEK_API_KEY -v xxx   # 设置配置项
+kullanım:
+      omc config show          #Mevcut yapılandırmayı görüntüle
+      omc config list         #Tüm yapılandırma öğelerini listeleyin
+      omc config set -k DEEPSEEK_API_KEY -v xxx   #Yapılandırma öğelerini ayarlayın
     """
     import os
     from pathlib import Path
@@ -1482,16 +1482,16 @@ def config(
         load_dotenv(config_path)
 
     if action == "list":
-        console.print("[bold]可用配置项:[/bold]\n")
+        console.print("[bold]Mevcut konfigürasyon öğeleri:[/bold]\n")
         items = [
-            ("DEEPSEEK_API_KEY", "DeepSeek API Key（推荐，性价比高）"),
-            ("DEEPSEEK_BASE_URL", "DeepSeek API 地址（默认官方）"),
+            ("DEEPSEEK_API_KEY", "DeepSeek API Key(Önerilen, uygun maliyetli)"),
+            ("DEEPSEEK_BASE_URL", "DeepSeek APIAdres (varsayılan resmi)"),
             ("KIMI_API_KEY", "KIMI API Key"),
-            ("DOUBAO_API_KEY", "豆包 API Key"),
-            ("DINGTALK_WEBHOOK_URL", "钉钉 Webhook URL（Quest 通知）"),
-            ("DINGTALK_SECRET", "钉钉加签密钥"),
-            ("DEFAULT_MODEL", "默认模型（默认 deepseek）"),
-            ("DEFAULT_WORKFLOW", "默认工作流（默认 build）"),
+            ("DOUBAO_API_KEY", "Doubao API Key"),
+            ("DINGTALK_WEBHOOK_URL", "DingTalkWebhook URLModel önerisiQuestbildir)"),
+            ("DINGTALK_SECRET", "DingTalk imzalama anahtarı"),
+            ("DEFAULT_MODEL", "Varsayılan model (varsayılandeepseek)"),
+            ("DEFAULT_WORKFLOW", "Varsayılan iş akışı (varsayılanbuild)"),
         ]
         for k, desc in items:
             val = os.getenv(k, "")
@@ -1500,12 +1500,12 @@ def config(
             console.print(f"  {status} [cyan]{k}[/cyan]")
             console.print(f"       [dim]{desc}[/dim]")
             if val:
-                console.print(f"       当前值: {masked}")
+                console.print(f"mevcut değer: {masked}")
             console.print()
         return
 
     if action == "show":
-        console.print("[bold]当前配置:[/bold]\n")
+        console.print("[bold]Mevcut yapılandırma:[/bold]\n")
         keys_to_show = [
             "DEEPSEEK_API_KEY",
             "DEEPSEEK_BASE_URL",
@@ -1526,12 +1526,12 @@ def config(
     if action == "set":
         if not key or not value:
             console.print(
-                "[red]❗ 需要同时提供 --key 和 --value[/red]\n"
-                "示例: [green]omc config set -k DEFAULT_MODEL -v kimi[/green]"
+                "[red]❗Aynı anda sağlanması gerekiyor--keyVe--value[/red]\n"
+                "kategoriye göre: [green]omc config set -k DEFAULT_MODEL -v kimi[/green]"
             )
             raise typer.Exit(1)
 
-        # 写到 .env 文件
+        #yazmak.envbelge
         env_path = Path(".env")
         env_vars: dict[str, str] = {}
         if env_path.exists():
@@ -1544,17 +1544,17 @@ def config(
         lines = [f"{k}={v}" for k, v in env_vars.items()]
         env_path.write_text("\n".join(lines) + "\n")
         console.print(
-            f"[green]✓ 已设置[/green] [cyan]{key}[/cyan] = {_mask_secret(value)}"
+            f"[green]✓Zaten ayarlandı[/green] [cyan]{key}[/cyan] = {_mask_secret(value)}"
         )
-        console.print("[dim]已写入 .env 文件[/dim]")
+        console.print("[dim]Gerçek entegrasyon sırasında içe aktarılması gerekiyor.envbelge[/dim]")
         return
 
-    console.print("[red]未知操作[/red]，可用: show / list / set")
+    console.print("[red]Bilinmeyen işlem[/red], mevcut: show / list / set")
     raise typer.Exit(1)
 
 
 def _mask_secret(value: str) -> str:
-    """脱敏显示密钥"""
+    """Hassasiyeti azaltılmış ekran tuşu"""
     if not value:
         return ""
     if len(value) <= 8:
@@ -1563,18 +1563,18 @@ def _mask_secret(value: str) -> str:
 
 
 def _status_color(status: str) -> str:
-    """给状态上色"""
+    """Durumu renklendir"""
     colors = {
-        "completed": "[green]已完成[/green]",
-        "failed": "[red]失败[/red]",
-        "running": "[yellow]运行中[/yellow]",
-        "pending": "[dim]等待中[/dim]",
+        "completed": "[green]Tamamlanmış[/green]",
+        "failed": "[red]hata[/red]",
+        "running": "[yellow]Koşma[/yellow]",
+        "pending": "[dim]Beklemek[/dim]",
     }
     return colors.get(status, status)
 
 
-# 注册子命令
-app.add_typer(cap_app, name="cap", help="能力包管理 - 导出、导入和分享 Agent 配置")
+#Alt komutu kaydet
+app.add_typer(cap_app, name="cap", help="Yetenek paketi yönetimi-Dışa aktarın, içe aktarın ve paylaşınAgentYapılandırma")
 
 if __name__ == "__main__":
     app()

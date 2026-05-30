@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 """
-GEPRegistry - 能力注册表
+GEPRegistry - yetenekkayittablo
 
 register / discover / resolve / export_event
 """
@@ -14,21 +14,21 @@ from .gene import Gene
 
 class GEPRegistry:
     """
-    GEP 能力注册表
+    GEP yetenekkayittablo
 
-    本地内存注册表，支持注册、发现、解析和事件导出。
+    yerelicindekaydetkayittablo, destekkayit, kesfet, ayristirveolaydisa aktar. 
     """
 
     def __init__(self) -> None:
         self._store: dict[str, Capsule] = {}  # gene_id -> Capsule
 
-    # --- 核心 API ---
+    # --- cekirdek API ---
 
     def register(self, capsule: Capsule) -> str:
         """
-        注册一个 Capsule，返回 Gene ID。
+        kayitbir Capsule, donus Gene ID. 
 
-        如果 gene.id 已存在则覆盖。
+        eger gene.id kaydeticindekuraluzerine yaz. 
         """
         gene_id = capsule.gene.id
         self._store[gene_id] = capsule
@@ -36,10 +36,10 @@ class GEPRegistry:
 
     def discover(self, query: str) -> list[Gene]:
         """
-        按关键词发现能力。
+        goreanahtar kelimekesfetyetenek. 
 
-        搜索范围：name / description / tags / capabilities。
-        匹配规则：大小写不敏感，支持空格分隔的多个关键词（AND 逻辑）。
+        araaralik: name / description / tags / capabilities. 
+        eslestirkural: buyukkucukyazhayirhassas, destekbospuanayircokanahtar kelime (AND mantik) . 
         """
         keywords = [k.lower() for k in query.strip().split() if k]
         if not keywords:
@@ -64,12 +64,12 @@ class GEPRegistry:
         return results
 
     def resolve(self, gene_id: str) -> Optional[Capsule]:
-        """根据 Gene ID 获取 Capsule，不存在返回 None"""
+        """gore Gene ID al Capsule, mevcut degildonus None"""
         return self._store.get(gene_id)
 
     def export_event(self, gene_id: str) -> Optional[dict]:
         """
-        导出 GEP Event 格式。
+        disa aktar GEP Event format. 
 
         {
             "type": "GEP/Register",
@@ -87,14 +87,14 @@ class GEPRegistry:
             "payload": capsule.to_dict(),
         }
 
-    # --- 辅助 ---
+    # --- yardimci ---
 
     def list_all(self) -> list[Gene]:
-        """列出所有已注册的 Gene"""
+        """tumunu listelevarkayit Gene"""
         return [c.gene for c in self._store.values()]
 
     def unregister(self, gene_id: str) -> bool:
-        """移除注册，返回是否成功"""
+        """kaldirkayit, donusbasarili mi"""
         if gene_id in self._store:
             del self._store[gene_id]
             return True

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 
 """
-多 Agent 协作调度器
+cok Agent isbirligiyapayarderece
 
-功能：
-- 创建和调度子 Agent
-- 并行任务分发
-- 自动汇总结果
-- omc multiagent status 查看协作状态
+Islev:
+- olusturveayarderecealt Agent
+- vesatirgorevpuangonder
+- otomatiktoplatoplamsonuc
+- omc multiagent status goruntuleisbirligiyapdurum
 """
 
 
@@ -23,12 +23,12 @@ from enum import Enum
 from typing import Any, Optional
 
 # ─────────────────────────────────────────────────────────────
-# 数据模型
+# sayigoremodel
 # ─────────────────────────────────────────────────────────────
 
 
 class AgentRole(Enum):
-    """Agent 角色"""
+    """Agent rol"""
 
     CODER = "coder"
     REVIEWER = "reviewer"
@@ -40,7 +40,7 @@ class AgentRole(Enum):
 
 
 class SubAgentStatus(Enum):
-    """子 Agent 状态"""
+    """alt Agent durum"""
 
     IDLE = "idle"
     RUNNING = "running"
@@ -50,7 +50,7 @@ class SubAgentStatus(Enum):
 
 @dataclass
 class SubAgent:
-    """子 Agent"""
+    """alt Agent"""
 
     agent_id: str
     name: str
@@ -76,7 +76,7 @@ class SubAgent:
 
 @dataclass
 class TaskResult:
-    """任务执行结果"""
+    """gorevyurutme sonucu"""
 
     agent_id: str
     role: str
@@ -104,7 +104,7 @@ class TaskResult:
 
 @dataclass
 class CoordinationResult:
-    """协作任务结果"""
+    """isbirligiyapgorevsonuc"""
 
     task_id: str
     results: list[TaskResult]
@@ -123,7 +123,7 @@ class CoordinationResult:
 
 
 # ─────────────────────────────────────────────────────────────
-# 调度器
+# ayarderece
 # ─────────────────────────────────────────────────────────────
 
 
@@ -131,7 +131,7 @@ AgentRunner = Callable[[SubAgent, str], Any]
 
 
 class MultiAgentCoordinator:
-    """多 Agent 协作调度器"""
+    """cok Agent isbirligiyapayarderece"""
 
     def __init__(self) -> None:
         self.agents: dict[str, SubAgent] = {}
@@ -141,10 +141,10 @@ class MultiAgentCoordinator:
 
     def set_runner(self, runner: AgentRunner) -> None:
         """
-        设置 Agent 执行器
+        ayarlaayar Agent yurut
 
         Args:
-            runner: 异步函数 (agent: SubAgent, task: str) -> Any
+            runner: asenkronfonksiyon (agent: SubAgent, task: str) -> Any
         """
         self._runner = runner
 
@@ -155,15 +155,15 @@ class MultiAgentCoordinator:
         metadata: Optional[dict[str, Any]] = None,
     ) -> SubAgent:
         """
-        创建子 Agent
+        olusturalt Agent
 
         Args:
-            role: 角色（coder/reviewer/tester/...）
-            name: Agent 名称
-            metadata: 元数据
+            role: rol (coder/reviewer/tester/...) 
+            name: Agent ad
+            metadata: ogresayigore
 
         Returns:
-            SubAgent 实例
+            SubAgent ornek
         """
         agent = SubAgent(
             agent_id=str(uuid.uuid4())[:8],
@@ -182,15 +182,15 @@ class MultiAgentCoordinator:
         task_id: Optional[str] = None,
     ) -> CoordinationResult:
         """
-        分发任务给多个 Agent（并行执行）
+        puangondergorevvercok Agent (vesatiryurut) 
 
         Args:
-            task: 任务描述
-            agents: 目标 Agent 列表
-            task_id: 任务 ID（可选，自动生成）
+            task: gorev aciklamasi
+            agents: hedefisaret Agent liste
+            task_id: gorev ID (olabilirsec, otomatikolustur) 
 
         Returns:
-            协作结果
+            isbirligiyapsonuc
         """
         if task_id is None:
             task_id = str(uuid.uuid4())[:8]
@@ -198,7 +198,7 @@ class MultiAgentCoordinator:
         started_at = datetime.now().isoformat()
         self.tasks[task_id] = [a.agent_id for a in agents]
 
-        # 并行执行
+        # vesatiryurut
         results: list[TaskResult] = []
         coroutines = [self._run_agent(agent, task) for agent in agents]
         task_results = await asyncio.gather(*coroutines, return_exceptions=True)
@@ -234,15 +234,15 @@ class MultiAgentCoordinator:
         task_id: Optional[str] = None,
     ) -> CoordinationResult:
         """
-        分发任务给多个 Agent（顺序执行）
+        puangondergorevvercok Agent (sirayurut) 
 
         Args:
-            task: 任务描述
-            agents: 目标 Agent 列表
-            task_id: 任务 ID（可选，自动生成）
+            task: gorev aciklamasi
+            agents: hedefisaret Agent liste
+            task_id: gorev ID (olabilirsec, otomatikolustur) 
 
         Returns:
-            协作结果
+            isbirligiyapsonuc
         """
         if task_id is None:
             task_id = str(uuid.uuid4())[:8]
@@ -258,9 +258,9 @@ class MultiAgentCoordinator:
             results.append(result)
             if not result.success:
                 break
-            # 将前一个 Agent 的输出作为下一个 Agent 的输入
+            # oncebir Agent ciktiyapicinaltbir Agent girdi
             if result.output:
-                context = f"{context}\n\n上一Agent输出:\n{result.output}"
+                context = f"{context}\n\nustbirAgentcikti:\n{result.output}"
 
         coordination = CoordinationResult(
             task_id=task_id,
@@ -273,7 +273,7 @@ class MultiAgentCoordinator:
         return coordination
 
     async def _run_agent(self, agent: SubAgent, task: str) -> TaskResult:
-        """运行单个 Agent"""
+        """satirtekil Agent"""
         import time
 
         agent.status = SubAgentStatus.RUNNING
@@ -283,7 +283,7 @@ class MultiAgentCoordinator:
             if self._runner is not None:
                 output = await self._runner(agent, task)
             else:
-                output = f"[模拟] {agent.name} 执行任务: {task[:50]}..."
+                output = f"[simule] {agent.name} yurutgorev: {task[:50]}..."
 
             agent.status = SubAgentStatus.COMPLETED
             return TaskResult(
@@ -305,7 +305,7 @@ class MultiAgentCoordinator:
             )
 
     def get_status(self) -> dict[str, Any]:
-        """获取所有 Agent 状态"""
+        """tumunu al Agent durum"""
         return {
             "agents": [a.to_dict() for a in self.agents.values()],
             "active_tasks": len(self.tasks),
@@ -325,23 +325,23 @@ class MultiAgentCoordinator:
         }
 
     def get_agent(self, agent_id: str) -> Optional[SubAgent]:
-        """获取指定 Agent"""
+        """albelirt Agent"""
         return self.agents.get(agent_id)
 
     def remove_agent(self, agent_id: str) -> bool:
-        """移除 Agent"""
+        """kaldir Agent"""
         if agent_id in self.agents:
             del self.agents[agent_id]
             return True
         return False
 
     def clear_agents(self) -> None:
-        """清空所有 Agent"""
+        """temizlebosvar Agent"""
         self.agents.clear()
         self.tasks.clear()
 
     def _summarize(self, results: list[TaskResult]) -> str:
-        """汇总结果"""
+        """toplatoplamsonuc"""
         total = len(results)
         success = sum(1 for r in results if r.success)
         failed = total - success
@@ -354,15 +354,15 @@ class MultiAgentCoordinator:
             else:
                 role_summary[r.role]["failed"] += 1
 
-        lines = [f"总任务: {total}, 成功: {success}, 失败: {failed}"]
+        lines = [f"toplamgorev: {total}, basarili: {success}, basarisiz: {failed}"]
         for role, counts in role_summary.items():
-            lines.append(f"  {role}: 成功 {counts['success']}, 失败 {counts['failed']}")
+            lines.append(f"  {role}: basarili {counts['success']}, basarisiz {counts['failed']}")
 
         return "\n".join(lines)
 
 
 # ─────────────────────────────────────────────────────────────
-# 全局单例
+# globaltekilornek
 # ─────────────────────────────────────────────────────────────
 
 
@@ -370,7 +370,7 @@ _coordinator: Optional[MultiAgentCoordinator] = None
 
 
 def get_coordinator() -> MultiAgentCoordinator:
-    """获取全局协调器实例"""
+    """alglobalisbirligiayarornek"""
     global _coordinator
     if _coordinator is None:
         _coordinator = MultiAgentCoordinator()

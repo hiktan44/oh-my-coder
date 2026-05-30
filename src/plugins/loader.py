@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Optional
 
 """
-插件加载器
+eklentiyukle
 
-负责插件发现、加载和依赖排序。
+sorumlueklentikesfet, yuklevebagimliliksirala. 
 """
 
 import importlib
@@ -24,24 +24,24 @@ from src.plugins.registry import (
 
 
 class PluginLoaderError(Exception):
-    """插件加载异常"""
+    """eklentiyuklefarklisik"""
 
 
 class PluginLoader:
     """
-    插件加载器
+    eklentiyukle
 
-    扫描指定目录下的 .py 文件，发现并加载插件。
-    支持按依赖拓扑排序加载。
+    tarabelirtdizinalt .py dosya, kesfetveyukleeklenti. 
+    destekgorebagimliliktopolojisiralayukle. 
 
     Example::
 
         loader = PluginLoader(registry=get_registry())
-        loader.discover()  # 扫描 src/plugins/ 下 .py 文件
-        loader.load_all()  # 按依赖顺序加载
+        loader.discover()  # tara src/plugins/ alt .py dosya
+        loader.load_all()  # gorebagimliliksirayukle
     """
 
-    # 跳过的模块名
+    # atlamodulisim
     SKIP_MODULES = {"__init__", "registry", "loader"}
 
     def __init__(
@@ -51,8 +51,8 @@ class PluginLoader:
     ) -> None:
         """
         Args:
-            registry: 插件注册表，默认使用全局注册表
-            plugin_dir: 插件扫描目录，默认为 src/plugins/
+            registry: eklentikayittablo, varsayilankullanglobalkayittablo
+            plugin_dir: eklentitaradizin, varsayilanicin src/plugins/
         """
         self.registry = registry or get_registry()
         self.plugin_dir = plugin_dir or self._default_plugin_dir()
@@ -60,21 +60,21 @@ class PluginLoader:
 
     @staticmethod
     def _default_plugin_dir() -> Path:
-        """默认插件目录 = src/plugins/"""
+        """varsayilaneklentidizin = src/plugins/"""
         return Path(__file__).parent
 
-    # ---- 发现 ----
+    # ---- kesfet ----
 
     def discover(self) -> list[PluginMetadata]:
         """
-        扫描 plugin_dir 下所有 .py 文件，发现可用插件。
+        tara plugin_dir altvar .py dosya, kesfetolabilirkullaneklenti. 
 
-        跳过 __init__.py、registry.py、loader.py 等框架文件。
-        对每个 .py 文件动态导入，查找被 @register 装饰的 PluginBase 子类
-        或直接定义的 PluginBase 子类。
+        atla __init__.py, registry.py, loader.py vb.iskeletdosya. 
+        icinher .py dosyadinamikiceri aktar, ara @register dekoratif PluginBase altsinif
+        veyadogrubaglantanim PluginBase altsinif. 
 
         Returns:
-            发现的插件元信息列表
+            kesfeteklentiogrebilgiliste
         """
         discovered: list[PluginMetadata] = []
 
@@ -91,8 +91,8 @@ class PluginLoader:
             except Exception:
                 continue
 
-        # 导入后注册表中就有了 @register 装饰的插件
-        # 再扫描模块，查找未注册但有 PluginBase 子类的
+        # iceri aktarsonrakayittabloicindeisevar @register dekoratifeklenti
+        # tekrartaramodul, arahenuzkayitancakvar PluginBase altsinif
         for py_file in sorted(self.plugin_dir.glob("*.py")):
             module_name = py_file.stem
             if module_name in self.SKIP_MODULES:
@@ -103,7 +103,7 @@ class PluginLoader:
                 if mod is None:
                     continue
 
-                # 查找模块中所有 PluginBase 子类
+                # aramodulicindevar PluginBase altsinif
                 for attr_name in dir(mod):
                     attr = getattr(mod, attr_name)
                     if (
@@ -111,7 +111,7 @@ class PluginLoader:
                         and issubclass(attr, PluginBase)
                         and attr is not PluginBase
                     ):
-                        # 检查是否已在注册表
+                        # kontrololup olmadigiicindekayittablo
                         try:
                             temp = attr()
                             meta = temp.metadata
@@ -124,7 +124,7 @@ class PluginLoader:
             except Exception:
                 continue
 
-        # 合并已通过 @register 注册的
+        # birlestirvearaciligiyla @register kayit
         for plugin in self.registry.list_plugins():
             if plugin.metadata not in discovered:
                 discovered.append(plugin.metadata)
@@ -132,41 +132,41 @@ class PluginLoader:
         return discovered
 
     def _import_module(self, py_file: Path, module_name: str) -> object:
-        """动态导入单个 .py 文件为模块"""
+        """dinamikiceri aktartekil .py dosyaicinmodul"""
         full_name = f"src.plugins.{module_name}"
 
-        # 如果已导入，先卸载以支持热重载
+        # egericeri aktar, oncekaldiryukleiledesteksicaktekraryukle
         if full_name in sys.modules:
             del sys.modules[full_name]
 
         spec = importlib.util.spec_from_file_location(full_name, str(py_file))
         if spec is None or spec.loader is None:
-            raise PluginLoaderError(f"无法创建模块 spec: {py_file}")
+            raise PluginLoaderError(f"yokyontemolusturmodul spec: {py_file}")
 
         module = importlib.util.module_from_spec(spec)
         sys.modules[full_name] = module
         spec.loader.exec_module(module)
         return module
 
-    # ---- 依赖排序 ----
+    # ---- bagimliliksirala ----
 
     def _topological_sort(self, plugins: list[PluginMetadata]) -> list[PluginMetadata]:
         """
-        按依赖拓扑排序，被依赖的插件先加载。
+        gorebagimliliktopolojisirala, bagimlilikeklentionceyukle. 
 
         Args:
-            plugins: 待排序的插件元信息列表
+            plugins: beklesiralaeklentiogrebilgiliste
 
         Returns:
-            排序后的列表
+            siralasonraliste
 
         Raises:
-            PluginLoaderError: 检测到循环依赖
+            PluginLoaderError: algilamakadardongubagimlilik
         """
         name_map: dict[str, PluginMetadata] = {p.name: p for p in plugins}
         plugin_names = set(name_map.keys())
 
-        # 构建邻接表：name -> 依赖它的插件（反向边）
+        # olusturkomsubaglantablo: name -> bagimlilikoeklenti (tersyonkenar) 
         dependents: dict[str, list[str]] = {n: [] for n in plugin_names}
         in_degree: dict[str, int] = dict.fromkeys(plugin_names, 0)
 
@@ -175,14 +175,14 @@ class PluginLoader:
                 if req in plugin_names:
                     dependents[req].append(p.name)
                     in_degree[p.name] += 1
-                # 外部依赖跳过（不阻塞加载，由运行时校验）
+                # disindakisimbagimlilikatla (hayirbloklayukle, tarafindansatirzamankontroldogrula) 
 
-        # Kahn 算法
+        # Kahn hesaplayontem
         queue: list[str] = [n for n in plugin_names if in_degree[n] == 0]
         sorted_names: list[str] = []
 
         while queue:
-            # 字母序稳定排序
+            # harfanasirakararliayarlasirala
             queue.sort()
             name = queue.pop(0)
             sorted_names.append(name)
@@ -192,21 +192,21 @@ class PluginLoader:
                     queue.append(dep_name)
 
         if len(sorted_names) != len(plugins):
-            raise PluginLoaderError("检测到循环依赖，无法确定加载顺序")
+            raise PluginLoaderError("algilamakadardongubagimlilik, yokyontemkesinyuklesira")
 
         return [name_map[n] for n in sorted_names]
 
-    # ---- 加载 ----
+    # ---- yukle ----
 
     def load(self, name: str) -> Optional[Plugin]:
         """
-        加载单个插件。
+        yukletekileklenti. 
 
         Args:
-            name: 插件名称
+            name: eklentiad
 
         Returns:
-            加载后的 Plugin 实例，失败返回 None
+            yuklesonra Plugin ornek, basarisizdonus None
         """
         plugin = self.registry.get(name)
         if plugin is None:
@@ -219,12 +219,12 @@ class PluginLoader:
             plugin.status = PluginStatus.LOADING
 
             if plugin.instance is None:
-                raise PluginLoaderError(f"插件 {name} 没有实例")
+                raise PluginLoaderError(f"eklenti {name} yokvarornek")
 
-            # 调用 on_load
+            # cagri on_load
             plugin.instance.on_load()
 
-            # 注册资源
+            # kayitkaynak
             self.registry._register_agents(plugin.instance.register_agents())
             self.registry._register_skills(plugin.instance.register_skills())
             self.registry._register_hooks(plugin.instance.register_hooks())
@@ -240,17 +240,17 @@ class PluginLoader:
 
     def load_all(self) -> list[str]:
         """
-        发现所有插件，按依赖顺序加载。
+        kesfetvareklenti, gorebagimliliksirayukle. 
 
-        同时处理已通过 @register 或 register_plugin 手动注册
-        但尚未加载的插件。
+        aynizamanislearaciligiyla @register veya register_plugin manuelkayit
+        ancakhenuzhenuzyukleeklenti. 
 
         Returns:
-            成功加载的插件名列表
+            basariliyukleeklentiisimliste
         """
         discovered = self.discover()
 
-        # 合并注册表中已注册但未在 discovered 中的插件
+        # birlestirvekayittabloicindekayitancakhenuzicinde discovered icindeeklenti
         registered = self.registry.list_plugins()
         registered_metas = [p.metadata for p in registered]
         for meta in registered_metas:
@@ -268,7 +268,7 @@ class PluginLoader:
         return list(self._loaded)
 
     def enable(self, name: str) -> bool:
-        """启用插件"""
+        """baslatkullaneklenti"""
         plugin = self.registry.get(name)
         if not plugin or plugin.status == PluginStatus.ERROR:
             return False
@@ -284,7 +284,7 @@ class PluginLoader:
             return False
 
     def disable(self, name: str) -> bool:
-        """禁用插件"""
+        """yasakkullaneklenti"""
         plugin = self.registry.get(name)
         if not plugin:
             return False
@@ -299,13 +299,13 @@ class PluginLoader:
 
     def unload(self, name: str) -> bool:
         """
-        卸载插件。
+        kaldiryukleeklenti. 
 
         Args:
-            name: 插件名称
+            name: eklentiad
 
         Returns:
-            是否成功
+            basarili mi
         """
         plugin = self.registry.get(name)
         if not plugin:
@@ -324,13 +324,13 @@ class PluginLoader:
             return False
 
 
-# ---- 全局加载器 ----
+# ---- globalyukle ----
 
 _loader: Optional[PluginLoader] = None
 
 
 def get_loader() -> PluginLoader:
-    """获取全局插件加载器"""
+    """alglobaleklentiyukle"""
     global _loader
     if _loader is None:
         _loader = PluginLoader()

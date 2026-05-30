@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Optional
 
 """
-安全/权限 CLI 命令
+Emniyet/İzinlerCLIEmir
 
-omc security check <command>  - 预检命令是否安全
-omc security list             - 列出内置危险模式
-omc security sandbox-test     - 测试沙箱路径限制
+omc security check <command>  -Ön kontrol komutu güvenli mi?
+omc security list             -Yerleşik tehlikeli kalıpları listeleyin
+omc security sandbox-test     -Korumalı alan yolu kısıtlamalarını test edin
 """
 
 
@@ -23,7 +23,7 @@ from src.security.permissions import (
 
 app = typer.Typer(
     name="security",
-    help="安全检查 - 权限验证、危险命令拦截、沙箱测试",
+    help="güvenlik kontrolü-İzin doğrulama, tehlikeli komut müdahalesi, korumalı alan testi",
     add_completion=False,
 )
 console = Console()
@@ -31,18 +31,18 @@ console = Console()
 
 @app.command("check")
 def security_check(
-    command: str = typer.Argument(..., help="要检查的命令"),
+    command: str = typer.Argument(..., help="kontrol etme komutu"),
     config_file: str = typer.Option(
         None,
         "--config",
         "-c",
-        help="权限规则文件 (.yaml/.json)",
+        help="İzin kuralları dosyası(.yaml/.json)",
     ),
 ) -> None:
     """
-    预检命令是否安全
+Ön kontrol komutu güvenli mi?
 
-    示例:
+Örnek:
         omc security check "git status"
         omc security check "rm -rf /tmp/test"
         omc security check "dd if=/dev/zero of=/dev/sda"
@@ -56,7 +56,7 @@ def security_check(
             config = load_config_file(config_file)
             guard = PermissionGuard.from_agent_config(config.to_dict())
         except Exception as e:
-            console.print(f"[yellow]加载配置失败，使用默认规则: {e}[/yellow]")
+            console.print(f"[yellow]Varsayılan kurallar kullanılarak yapılandırma yüklenemedi: {e}[/yellow]")
             guard = PermissionGuard()
     else:
         guard = PermissionGuard()
@@ -68,29 +68,29 @@ def security_check(
         if needs_appr:
             console.print(
                 Panel(
-                    f"[yellow]⚠️  命令允许执行，但需要审批[/yellow]\n\n"
-                    f"命令: [cyan]{command}[/cyan]\n"
-                    f"原因: {result.reason or '匹配 require_approval 规则'}",
-                    title="🔒 安全检查",
+                    f"[yellow]⚠️Komutun yürütülmesine izin veriliyor ancak onay gerekiyor[/yellow]\n\n"
+                    f"Emir: [cyan]{command}[/cyan]\n"
+                    f"sebep: {result.reason or 'kibritrequire_approvalkural'}",
+                    title="🔒güvenlik kontrolü",
                     border_style="yellow",
                 )
             )
         else:
             console.print(
                 Panel.fit(
-                    f"[green]✅ 命令安全[/green]\n\n命令: [cyan]{command}[/cyan]",
-                    title="🔒 安全检查",
+                    f"[green]✅komut güvenliği[/green]\n\nEmir: [cyan]{command}[/cyan]",
+                    title="🔒güvenlik kontrolü",
                     border_style="green",
                 )
             )
     else:
         console.print(
             Panel(
-                f"[red]❌ 命令被拦截[/red]\n\n"
-                f"命令: [cyan]{command}[/cyan]\n"
-                f"原因: {result.reason}\n"
-                f"匹配: [dim]{result.matched_pattern}[/dim]",
-                title="🔒 安全检查",
+                f"[red]❌Komut ele geçirildi[/red]\n\n"
+                f"Emir: [cyan]{command}[/cyan]\n"
+                f"sebep: {result.reason}\n"
+                f"kibrit: [dim]{result.matched_pattern}[/dim]",
+                title="🔒güvenlik kontrolü",
                 border_style="red",
             )
         )
@@ -100,32 +100,32 @@ def security_check(
 @app.command("list")
 def security_list() -> None:
     """
-    列出内置危险命令模式
+Yerleşik tehlikeli komut modellerini listeleyin
 
-    示例:
+Örnek:
         omc security list
     """
     console.print(
         Panel.fit(
-            "[bold]内置危险命令模式（即使未配置也会拦截）[/bold]\n",
-            title="🔒 内置危险模式",
+            "[bold]Yerleşik tehlikeli komut modu (yapılandırılmamış olsa bile engellenir)[/bold]\n",
+            title="🔒Dahili tehlike modu",
             border_style="red",
         )
     )
 
     patterns = [
-        ("rm -rf /", "递归删除根目录"),
-        ("rm -rf /{dir}", "递归删除系统目录"),
-        ("Fork Bomb", "Fork 炸弹"),
-        ("> /dev/sd[a-z]", "直接写磁盘设备"),
-        ("dd if=... of=/dev/", "直接写设备文件"),
-        ("mkfs", "格式化文件系统"),
-        (":(){ :|:& };:", "Fork 炸弹变体"),
+        ("rm -rf /", "Kök dizini yinelemeli olarak sil"),
+        ("rm -rf /{dir}", "Sistem dizinlerini yinelemeli olarak silme"),
+        ("Fork Bomb", "ForkÖnerilen modelleri göster"),
+        ("> /dev/sd[a-z]", "Doğrudan disk cihazına yaz"),
+        ("dd if=... of=/dev/", "Cihaz dosyalarını doğrudan yazın"),
+        ("mkfs", "Dosya sistemini biçimlendir"),
+        (":(){ :|:& };:", "Forkbomba çeşidi"),
     ]
 
     table = Table()
-    table.add_column("模式", style="red")
-    table.add_column("说明", style="white")
+    table.add_column("modeli", style="red")
+    table.add_column("göstermek", style="white")
 
     for pattern, desc in patterns:
         table.add_row(pattern, desc)
@@ -135,12 +135,12 @@ def security_list() -> None:
 
 @app.command("sandbox-test")
 def sandbox_test(
-    path: str = typer.Argument(".", help="测试路径"),
+    path: str = typer.Argument(".", help="test yolu"),
 ) -> None:
     """
-    测试沙箱路径限制
+Korumalı alan yolu kısıtlamalarını test edin
 
-    示例:
+Örnek:
         omc security sandbox-test "/tmp/test"
         omc security sandbox-test "~/.ssh/id_rsa"
         omc security sandbox-test "/etc/passwd"
@@ -152,19 +152,19 @@ def sandbox_test(
     if allowed:
         console.print(
             Panel.fit(
-                f"[green]✅ 路径在允许范围内[/green]\n\n路径: [cyan]{path}[/cyan]\n"
-                f"允许目录: {', '.join(sandbox.get_allowed_dirs())}",
-                title="🛡️ 沙箱测试",
+                f"[green]✅Yol izin verilen aralıkta[/green]\n\nyol: [cyan]{path}[/cyan]\n"
+                f"Dizine izin ver: {', '.join(sandbox.get_allowed_dirs())}",
+                title="🛡️korumalı alan testi",
                 border_style="green",
             )
         )
     else:
         console.print(
             Panel(
-                f"[red]❌ 路径超出沙箱范围[/red]\n\n"
-                f"路径: [cyan]{path}[/cyan]\n"
-                f"允许目录: {', '.join(sandbox.get_allowed_dirs())}",
-                title="🛡️ 沙箱测试",
+                f"[red]❌Yol korumalı alan kapsamını aşıyor[/red]\n\n"
+                f"yol: [cyan]{path}[/cyan]\n"
+                f"Dizine izin ver: {', '.join(sandbox.get_allowed_dirs())}",
+                title="🛡️korumalı alan testi",
                 border_style="red",
             )
         )
@@ -173,19 +173,19 @@ def sandbox_test(
 
 @app.command("run")
 def security_run(
-    command: str = typer.Argument(..., help="在沙箱中执行的命令"),
-    timeout: int = typer.Option(30, "--timeout", "-t", help="超时秒数"),
+    command: str = typer.Argument(..., help="Korumalı alanda yürütülen komutlar"),
+    timeout: int = typer.Option(30, "--timeout", "-t", help="Zaman aşımı saniyeleri"),
 ) -> None:
     """
-    在沙箱中安全执行命令
+Komutları sanal alanda güvenle yürütün
 
-    示例:
+Örnek:
         omc security run "ls ~/.omc"
         omc security run "git status" -t 10
     """
     sandbox = Sandbox()
 
-    console.print(f"[dim]在沙箱中执行: {command}[/dim]")
+    console.print(f"[dim]Korumalı alanda yürüt: {command}[/dim]")
 
     try:
         result = sandbox.run_command(command, timeout=timeout)
@@ -196,16 +196,16 @@ def security_run(
             console.print(f"[red]{result.stderr}[/red]")
 
         if result.returncode == 0:
-            console.print(f"\n[green]✓ 执行成功（返回 {result.returncode}）[/green]")
+            console.print(f"\n[green]✓Yürütme başarılı (dönüş{result.returncode})[/green]")
         else:
-            console.print(f"\n[yellow]执行完成（返回 {result.returncode}）[/yellow]")
+            console.print(f"\n[yellow]Yürütme tamamlandı (dönüş{result.returncode})[/yellow]")
 
     except PermissionError as e:
-        console.print(f"[red]❌ 沙箱拒绝: {e}[/red]")
+        console.print(f"[red]❌yapılandırılmış: {e}[/red]")
         raise typer.Exit(1)
     except TimeoutError:
-        console.print(f"[red]❌ 命令执行超时（{timeout}秒）[/red]")
+        console.print(f"[red]❌Komut yürütme zaman aşımı ({timeout}Saniye)[/red]")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ 执行失败: {e}[/red]")
+        console.print(f"[red]❌Yürütme başarısız oldu: {e}[/red]")
         raise typer.Exit(1)

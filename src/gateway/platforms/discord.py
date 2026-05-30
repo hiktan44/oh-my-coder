@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 """
-Discord Bot 平台处理器
+Discord Bot platform isleyicisi
 
-使用 discord.py 库实现。
-支持：消息接收、消息发送、回复。
+kullan discord.py kutuphaneuygula. 
+destek: mesajbaglanal, mesajgondergonder, geritekrar. 
 """
 
 
@@ -16,7 +16,7 @@ from ..base import IncomingMessage, OutgoingMessage, Platform, PlatformHandler
 
 logger = logging.getLogger(__name__)
 
-# 尝试导入 discord.py
+# deneiceri aktar discord.py
 try:
     import discord
 
@@ -28,9 +28,9 @@ except ImportError:
 
 
 def _get_discord_client():
-    """延迟导入 discord.Client，避免模块级依赖"""
+    """gecikmeiceri aktar discord.Client, kacinmodulseviyebagimlilik"""
     if not _HAS_DISCORD:
-        raise RuntimeError("discord.py 未安装")
+        raise RuntimeError("discord.py kurulu degil")
     import discord
 
     return discord.Client
@@ -48,7 +48,7 @@ def _get_intents():
 
 class DiscordHandler(PlatformHandler):
     """
-    Discord Bot 处理器
+    Discord Bot isleyici
     """
 
     name = Platform.DISCORD
@@ -62,18 +62,18 @@ class DiscordHandler(PlatformHandler):
         """
         Args:
             bot_token: Discord Bot Token
-            allowed_guild_ids: 允许的服务器 ID（None = 不限制）
+            allowed_guild_ids: izin verservis ID (None = hayirsinir) 
         """
         super().__init__(**kwargs)
         self.bot_token = bot_token
         self.allowed_guild_ids = set(allowed_guild_ids or [])
         self._bot: Optional[Any] = None
 
-    # ---- PlatformHandler 实现 ----
+    # ---- PlatformHandler uygula ----
 
     async def start(self) -> None:
         if not _HAS_DISCORD:
-            raise RuntimeError("discord.py 未安装。运行: pip install discord.py")
+            raise RuntimeError("discord.py kurulu degil. Calistirin: pip install discord.py")
 
         import discord
 
@@ -150,8 +150,8 @@ class DiscordHandler(PlatformHandler):
 
 
 def check_discord_dependencies() -> bool:
-    """检查 Discord 依赖是否满足"""
+    """kontrol Discord bagimlilikolup olmadigidoluyeterli"""
     if not _HAS_DISCORD:
-        logger.error("discord.py 未安装")
+        logger.error("discord.py kurulu degil")
         return False
     return True

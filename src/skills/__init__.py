@@ -1,6 +1,6 @@
-"""Skills 系统 - 插件化 Skill 框架
+"""Skills sistem - eklenti Skill iskelet
 
-支持内置 Skill 和用户自定义 Skill（~/.omc/skills/）。
+destekicindeayar Skill vekullaniciozel Skill (~/.omc/skills/) . 
 """
 
 from .registry import Skill, SkillRegistry, SkillResult, get_registry

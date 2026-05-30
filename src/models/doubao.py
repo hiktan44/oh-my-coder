@@ -4,15 +4,15 @@ from __future__ import annotations
 from typing import Optional
 
 """
-字节豆包 (Doubao) 模型适配器
+bytepaket (Doubao) modeladaptor
 
 API: https://ark.cn-beijing.volces.com/api/v3
-文档: https://www.volcengine.com/docs/82379/1263482
+dokumantasyon: https://www.volcengine.com/docs/82379/1263482
 
-特点：
-- 字节跳动自研大模型
-- 性价比高
-- 支持长上下文
+Ozellikler:
+- byteatlahareketkendiarastirbuyukmodel
+- fiyat/performans yüksek
+- destekuzun bağlam
 """
 
 import json
@@ -31,7 +31,7 @@ from .base import (
     Usage,
 )
 
-# 豆包模型配置
+# paketmodelyapilandirma
 DOUBAO_MODELS = {
     "low": {
         "name": "doubao-pro-4k",
@@ -53,9 +53,9 @@ DOUBAO_MODELS = {
 
 class DoubaoModel(BaseModel):
     """
-    字节豆包 (Doubao) 模型适配器
+    bytepaket (Doubao) modeladaptor
 
-    兼容 OpenAI 格式，base URL: https://ark.cn-beijing.volces.com/api/v3
+    uyumlu OpenAI format, base URL: https://ark.cn-beijing.volces.com/api/v3
     """
 
     def __init__(
@@ -105,9 +105,9 @@ class DoubaoModel(BaseModel):
             item: dict[str, str] = {"role": msg.role, "content": msg.content}
             if msg.name:
                 item["name"] = msg.name
-            if msg.tool_calls:  # assistant 消息的工具调用
+            if msg.tool_calls:  # assistant mesaj aracligicagri
                 item["tool_calls"] = msg.tool_calls  # type: ignore
-            if msg.tool_call_id:  # tool 消息的工具调用 ID
+            if msg.tool_call_id:  # tool mesaj aracligicagri ID
                 item["tool_call_id"] = msg.tool_call_id
             formatted.append(item)
         return formatted
@@ -163,9 +163,9 @@ class DoubaoModel(BaseModel):
             )
 
         except httpx.HTTPStatusError as e:
-            raise DoubaoAPIError(f"豆包 API 错误 ({e.response.status_code}): {e}")
+            raise DoubaoAPIError(f"paket API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise DoubaoAPIError(f"网络请求失败: {e}")
+            raise DoubaoAPIError(f"ag istegibasarisiz: {e}")
 
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
         client = await self._get_client()
@@ -200,10 +200,10 @@ class DoubaoModel(BaseModel):
                         continue
 
         except httpx.HTTPStatusError as e:
-            raise DoubaoAPIError(f"豆包 API 错误 ({e.response.status_code}): {e}")
+            raise DoubaoAPIError(f"paket API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise DoubaoAPIError(f"网络请求失败: {e}")
+            raise DoubaoAPIError(f"ag istegibasarisiz: {e}")
 
 
 class DoubaoAPIError(Exception):
-    """字节豆包 API 错误"""
+    """bytepaket API hata"""

@@ -4,16 +4,16 @@ from __future__ import annotations
 
 
 """
-百川智能 (Baichuan) 模型适配器
+Baichuanedebilir (Baichuan) modeladaptor
 
-API 地址：https://api.baichuan-ai.com
-文档：https://platform.baichuan-ai.com/docs
+API adres: https://api.baichuan-ai.com
+Dokumantasyon:https://platform.baichuan-ai.com/docs
 
-特点：
-- 王小川创办
-- 中文能力出色
-- 支持超长上下文
-- 兼容 OpenAI 格式
+Ozellikler:
+- kralkucukkur
+- icindemetinyetenekrenk
+- destekasiriuzun bağlam
+- uyumlu OpenAI format
 """
 
 import json
@@ -33,7 +33,7 @@ from .base import (
     Usage,
 )
 
-# 百川智能模型配置
+# Baichuanedebilirmodelyapilandirma
 BAICHUAN_MODELS = {
     ModelTier.LOW: {
         "name": "Baichuan4",
@@ -54,7 +54,7 @@ BAICHUAN_MODELS = {
 
 
 class BaichuanModel(BaseModel):
-    """百川智能模型适配器，兼容 OpenAI 格式"""
+    """Baichuanedebilirmodeladaptor, uyumlu OpenAI format"""
 
     def __init__(
         self,
@@ -102,9 +102,9 @@ class BaichuanModel(BaseModel):
             item = {"role": msg.role, "content": msg.content}
             if msg.name:
                 item["name"] = msg.name
-            if msg.tool_calls:  # assistant 消息的工具调用
+            if msg.tool_calls:  # assistant mesaj aracligicagri
                 item["tool_calls"] = msg.tool_calls
-            if msg.tool_call_id:  # tool 消息的工具调用 ID
+            if msg.tool_call_id:  # tool mesaj aracligicagri ID
                 item["tool_call_id"] = msg.tool_call_id
             formatted.append(item)
         return formatted
@@ -161,9 +161,9 @@ class BaichuanModel(BaseModel):
             )
 
         except httpx.HTTPStatusError as e:
-            raise BaichuanAPIError(f"百川智能 API 错误 ({e.response.status_code}): {e}")
+            raise BaichuanAPIError(f"Baichuanedebilir API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise BaichuanAPIError(f"网络请求失败: {e}")
+            raise BaichuanAPIError(f"ag istegibasarisiz: {e}")
 
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
         client = await self._get_client()
@@ -198,10 +198,10 @@ class BaichuanModel(BaseModel):
                         continue
 
         except httpx.HTTPStatusError as e:
-            raise BaichuanAPIError(f"百川智能 API 错误 ({e.response.status_code}): {e}")
+            raise BaichuanAPIError(f"Baichuanedebilir API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise BaichuanAPIError(f"网络请求失败: {e}")
+            raise BaichuanAPIError(f"ag istegibasarisiz: {e}")
 
 
 class BaichuanAPIError(Exception):
-    """百川智能 API 错误"""
+    """Baichuanedebilir API hata"""

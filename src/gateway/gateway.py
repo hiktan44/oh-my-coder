@@ -4,15 +4,15 @@ from __future__ import annotations
 
 
 """
-Gateway - 多平台统一消息网关
+Gateway - cokplatformbirmesajag gecidi
 
-职责：
-1. 管理所有平台处理器（Telegram/Discord/WhatsApp）
-2. 接收来自各平台的消息，统一转为 IncomingMessage
-3. 转发给 Orchestrator 处理
-4. 返回结果到对应平台
+Sorumluluk:
+1. yonetvarplatform isleyicisi (Telegram/Discord/WhatsApp) 
+2. baglanalgelkendiherplatformmesaj, birdonusturicin IncomingMessage
+3. donusturgonderver Orchestrator isle
+4. donussonuckadarkarsilik gelenplatform
 
-用法：
+kullanyontem: 
 ```python
 gateway = Gateway(
     orchestrator=orch,
@@ -20,10 +20,10 @@ gateway = Gateway(
     discord_token=os.getenv("DISCORD_BOT_TOKEN"),
 )
 
-# 方式 1：命令行启动
+# yontem 1: komutsatirbaslat
 await gateway.start_all()
 
-# 方式 2：Flask/FastAPI 集成
+# yontem 2: Flask/FastAPI setol
 @app.post("/webhook/telegram")
 async def telegram_webhook(request: Request):
     await gateway.handle_telegram_update(await request.json())
@@ -54,13 +54,13 @@ logger = logging.getLogger(__name__)
 
 class Gateway:
     """
-    多平台消息网关
+    cokplatformmesajag gecidi
 
-    生命周期：
-    1. __init__: 配置各平台
-    2. start_all(): 启动所有已配置平台
-    3. on_platform_message(): 接收消息 → Orchestrator → 回复
-    4. stop_all(): 停止所有平台
+    yaratkomuthaftadonem: 
+    1. __init__: yapilandirmaherplatform
+    2. start_all(): baslatvaryapilandirmaplatform
+    3. on_platform_message(): baglanalmesaj → Orchestrator → geritekrar
+    4. stop_all(): durdurvarplatform
     """
 
     def __init__(
@@ -91,11 +91,11 @@ class Gateway:
     ):
         """
         Args:
-            orchestrator: Orchestrator 实例（用于处理消息）
+            orchestrator: Orchestrator ornek (kullandeislemesaj) 
             telegram_token: Telegram Bot Token
             discord_token: Discord Bot Token
-            allowed_user_ids: 各平台的白名单用户 ID
-            plugins_dir: 插件目录（预留）
+            allowed_user_ids: herplatformbeyazisimtekilkullanici ID
+            plugins_dir: eklentidizin (onkal) 
         """
         self.orchestrator = orchestrator
         self._handlers: dict[Platform, PlatformHandler] = {}
@@ -138,7 +138,7 @@ class Gateway:
                 platform=Platform.WHATSAPP, on_message=self._noop_handler
             )
 
-        # ---- 飞书 ----
+        # ---- Feishu ----
         if feishu_app_id and feishu_app_secret:
             self._register_feishu(feishu_app_id, feishu_app_secret, feishu_encrypt_key)
         else:
@@ -146,7 +146,7 @@ class Gateway:
                 platform=Platform.FEISHU, on_message=self._noop_handler
             )
 
-        # ---- 企业微信 ----
+        # ---- WeCom ----
         if wecom_corp_id and wecom_agent_id and wecom_corp_secret:
             self._register_wecom(
                 wecom_corp_id,
@@ -160,7 +160,7 @@ class Gateway:
                 platform=Platform.WECOM, on_message=self._noop_handler
             )
 
-        # ---- 钉钉 ----
+        # ---- DingTalk ----
         if dingtalk_app_key and dingtalk_app_secret:
             self._register_dingtalk(
                 dingtalk_app_key,
@@ -181,13 +181,13 @@ class Gateway:
                 platform=Platform.SLACK, on_message=self._noop_handler
             )
 
-    # ---- 平台注册 ----
+    # ---- platformkayit ----
 
     def _register_telegram(self, token: str, allowed_user_ids: list[str]) -> None:
         from .platforms.telegram import TelegramHandler, check_telegram_dependencies
 
         if not check_telegram_dependencies():
-            logger.warning("[gateway] Telegram 依赖缺失，跳过注册")
+            logger.warning("[gateway] Telegram bagimlilikeksik, atlakayit")
             return
 
         self._handlers[Platform.TELEGRAM] = TelegramHandler(
@@ -202,7 +202,7 @@ class Gateway:
         from .platforms.discord import DiscordHandler, check_discord_dependencies
 
         if not check_discord_dependencies():
-            logger.warning("[gateway] Discord 依赖缺失，跳过注册")
+            logger.warning("[gateway] Discord bagimlilikeksik, atlakayit")
             return
 
         self._handlers[Platform.DISCORD] = DiscordHandler(
@@ -223,7 +223,7 @@ class Gateway:
         from .platforms.whatsapp import WhatsAppHandler, check_whatsapp_dependencies
 
         if not check_whatsapp_dependencies():
-            logger.warning("[gateway] WhatsApp 依赖缺失，跳过注册")
+            logger.warning("[gateway] WhatsApp bagimlilikeksik, atlakayit")
             return
 
         self._handlers[Platform.WHATSAPP] = WhatsAppHandler(
@@ -242,7 +242,7 @@ class Gateway:
         from .platforms.feishu import FeishuHandler, check_feishu_dependencies
 
         if not check_feishu_dependencies():
-            logger.warning("[gateway] 飞书依赖缺失，跳过注册")
+            logger.warning("[gateway] Feishubagimlilikeksik, atlakayit")
             return
 
         self._handlers[Platform.FEISHU] = FeishuHandler(
@@ -252,7 +252,7 @@ class Gateway:
             on_message=self.on_platform_message,
             on_error=lambda e: logger.error(f"[gateway/feishu] {e}"),
         )
-        logger.info("[gateway] 飞书 handler registered")
+        logger.info("[gateway] Feishu handler registered")
 
     def _register_wecom(
         self,
@@ -265,7 +265,7 @@ class Gateway:
         from .platforms.wecom import WeComHandler, check_wecom_dependencies
 
         if not check_wecom_dependencies():
-            logger.warning("[gateway] 企业微信依赖缺失，跳过注册")
+            logger.warning("[gateway] WeCombagimlilikeksik, atlakayit")
             return
 
         self._handlers[Platform.WECOM] = WeComHandler(
@@ -277,7 +277,7 @@ class Gateway:
             on_message=self.on_platform_message,
             on_error=lambda e: logger.error(f"[gateway/wecom] {e}"),
         )
-        logger.info("[gateway] 企业微信 handler registered")
+        logger.info("[gateway] WeCom handler registered")
 
     def _register_dingtalk(
         self,
@@ -289,7 +289,7 @@ class Gateway:
         from .platforms.dingtalk import DingTalkHandler, check_dingtalk_dependencies
 
         if not check_dingtalk_dependencies():
-            logger.warning("[gateway] 钉钉依赖缺失，跳过注册")
+            logger.warning("[gateway] DingTalkbagimlilikeksik, atlakayit")
             return
 
         self._handlers[Platform.DINGTALK] = DingTalkHandler(
@@ -300,13 +300,13 @@ class Gateway:
             on_message=self.on_platform_message,
             on_error=lambda e: logger.error(f"[gateway/dingtalk] {e}"),
         )
-        logger.info("[gateway] 钉钉 handler registered")
+        logger.info("[gateway] DingTalk handler registered")
 
     def _register_slack(self, bot_token: str, signing_secret: str) -> None:
         from .platforms.slack import SlackHandler, check_slack_dependencies
 
         if not check_slack_dependencies():
-            logger.warning("[gateway] Slack 依赖缺失，跳过注册")
+            logger.warning("[gateway] Slack bagimlilikeksik, atlakayit")
             return
 
         self._handlers[Platform.SLACK] = SlackHandler(
@@ -317,17 +317,17 @@ class Gateway:
         )
         logger.info("[gateway] Slack handler registered")
 
-    # ---- 消息处理 ----
+    # ---- mesajisle ----
 
     def on_platform_message(self, message: IncomingMessage) -> None:
         """
-        收到各平台消息时的回调。
+        alkadarherplatformmesajzamangeri arama. 
 
-        默认实现：打印日志。
-        子类/外部可覆盖此方法接入真实 Orchestrator。
+        varsayilanuygula: yazdirlog. 
+        altsinif/disindakisimolabiliruzerine yazbuyontembaglangirisgercek Orchestrator. 
 
         Args:
-            message: 统一格式的收件消息
+            message: birformatalogremesaj
         """
         logger.info(
             f"[gateway] [{message.platform.value}] {message.user_id}: {message.text[:80]}"
@@ -337,16 +337,16 @@ class Gateway:
             logger.debug("[gateway] No orchestrator configured, skipping processing")
             return
 
-        # 异步处理（不阻塞平台回调）
+        # asenkronisle (hayirbloklaplatformgeri arama) 
         asyncio.create_task(self._process_message(message))
 
     async def _process_message(self, message: IncomingMessage) -> None:
-        """处理消息 → Orchestrator → 回复"""
+        """islemesaj → Orchestrator → geritekrar"""
         try:
             if self.orchestrator is None:
                 return
 
-            # 构建 context
+            # olustur context
             context = {
                 "task": message.text,
                 "project_path": str(Path.cwd()),
@@ -355,16 +355,16 @@ class Gateway:
                 "_chat_id": message.chat_id,
             }
 
-            # 执行工作流
+            # yurutis akisi
             result = await self.orchestrator.execute_workflow(
                 "autopilot",
                 context,
             )
 
-            # 提取结果文本
+            # cikarsonucmetin
             response_text = self._extract_response(result)
 
-            # 发回平台
+            # gondergeriplatform
             reply = OutgoingMessage(
                 platform=message.platform,
                 chat_id=message.chat_id,
@@ -377,12 +377,12 @@ class Gateway:
 
         except Exception as e:
             logger.exception(f"[gateway] _process_message error: {e}")
-            # 尝试发错误回复
+            # denegonderhatageritekrar
             try:
                 error_reply = OutgoingMessage(
                     platform=message.platform,
                     chat_id=message.chat_id,
-                    text=f"⚠️ 处理失败: {type(e).__name__}",
+                    text=f"⚠️ islebasarisiz: {type(e).__name__}",
                 )
                 handler = self._handlers.get(message.platform)
                 if handler and handler.is_started:
@@ -392,11 +392,11 @@ class Gateway:
 
     @staticmethod
     def _extract_response(result: Any) -> str:
-        """从 WorkflowResult 提取响应文本"""
+        """ WorkflowResult cikaryanitmetin"""
         if result is None:
-            return "（无结果）"
+            return " (yoksonuc) "
 
-        # 尝试 outputs
+        # dene outputs
         if hasattr(result, "outputs") and result.outputs:
             parts = []
             for agent_name, output in result.outputs.items():
@@ -406,13 +406,13 @@ class Gateway:
             if parts:
                 return "\n\n".join(parts)
 
-        # 降级：直接 str
+        # dusurseviye: dogrubaglan str
         return str(result)[:1000]
 
-    # ---- 生命周期 ----
+    # ---- yaratkomuthaftadonem ----
 
     async def start_all(self) -> None:
-        """启动所有已配置的平台"""
+        """baslatvaryapilandirmaplatform"""
         async with self._lock:
             tasks = []
             for platform, handler in self._handlers.items():
@@ -435,7 +435,7 @@ class Gateway:
             logger.exception(f"[gateway] Failed to start {platform.value}: {e}")
 
     async def stop_all(self) -> None:
-        """停止所有平台"""
+        """durdurvarplatform"""
         async with self._lock:
             tasks = []
             for platform, handler in self._handlers.items():
@@ -458,10 +458,10 @@ class Gateway:
         except Exception as e:
             logger.exception(f"[gateway] Error stopping {platform.value}: {e}")
 
-    # ---- 状态查询 ----
+    # ---- durumsorgu ----
 
     def status(self) -> dict[str, Any]:
-        """返回网关状态"""
+        """donusag gecididurum"""
         handlers_info = {
             platform.value: {
                 "configured": handler.__class__ != NoopHandler,
@@ -479,15 +479,15 @@ class Gateway:
         return self._handlers.get(platform)
 
     def _noop_handler(self, message: IncomingMessage) -> None:
-        """NoopHandler 的 on_message 回调"""
+        """NoopHandler  on_message geri arama"""
 
-    # ---- Webhook 支持（供 FastAPI 集成）----
+    # ---- Webhook destek (saglar FastAPI setol) ----
 
     async def handle_telegram_update(self, update: dict[str, Any]) -> None:
         """
-        处理 Telegram Webhook 更新。
+        isle Telegram Webhook guncelle. 
 
-        用于 FastAPI 路由：
+        kullande FastAPI yoltarafindan: 
         @app.post("/webhook/telegram")
         async def telegram_webhook(request: Request):
             await gateway.handle_telegram_update(await request.json())
@@ -497,7 +497,7 @@ class Gateway:
             logger.warning("[gateway] Telegram not configured")
             return
 
-        # Telegram Webhook 需要从 Update 提取 message
+        # Telegram Webhook gerekister Update cikar message
         message_data = update.get("message", {})
         if not message_data:
             return

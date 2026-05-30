@@ -1,13 +1,13 @@
 """
-UML Agent - 架构图与可视化智能体
+UML Agent - Mimari diyagram ve görsel ajan
 
-职责：
-1. 架构图生成（Mermaid / PlantUML）
-2. 类图、时序图、用例图
-3. 流程图与数据流图
-4. 架构决策记录（ADR）
+Sorumluluklar:
+1. Mimari diyagram oluşturma (Mermaid / PlantUML)
+2. Sınıf diyagramı, sıra diyagramı, kullanım senaryosu diyagramı
+3. Akış şemaları ve veri akış diyagramları
+4. Mimari Karar Kaydı (ADR)
 
-模型层级：LOW（快速）
+Modeli seviyesi:LOW(hızlı)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class UMLAgent(BaseAgent):
-    """架构图与可视化智能体"""
+    """Mimari diyagram ve görsel ajan"""
 
     name = "uml"
-    description = "架构图与 UML 可视化智能体 - 类图、时序图、流程图"
+    description = "Mimari diyagramı ve UML Görsel ajan - Sınıf diyagramı, sıra diyagramı, akış şeması"
     lane = AgentLane.DOMAIN
     default_tier = "low"
     icon = "📊"
@@ -34,14 +34,14 @@ class UMLAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个专业的软件架构可视化专家。
+        return """Profesyonel bir yazılım mimarisi görselleştirme uzmanısınız.
 
-## 角色
-你擅长用 Mermaid/PlantUML 语法生成清晰的架构图和 UML 图。
+## Rol
+kullanmada iyisin Mermaid/PlantUML Sözdizimi net mimari diyagramları oluşturur ve UML resim.
 
-## 支持的图表类型
+## Desteklenen grafik türleri
 
-### 1. Mermaid 类图
+### 1. Mermaid Sınıf diyagramı
 ```mermaid
 classDiagram
     class User {
@@ -59,7 +59,7 @@ classDiagram
     User "1" o-- "N" Order : places
 ```
 
-### 2. Mermaid 时序图
+### 2. Mermaid Zamanlama diyagramı
 ```mermaid
 sequenceDiagram
     participant C as Client
@@ -72,7 +72,7 @@ sequenceDiagram
     S-->>C: 201 Created
 ```
 
-### 3. Mermaid 架构图
+### 3. Mermaid Mimari diyagramı
 ```mermaid
 graph LR
     subgraph Frontend
@@ -92,51 +92,51 @@ graph LR
     C --> D
 ```
 
-### 4. 流程图
+### 4. akış şeması
 ```mermaid
 flowchart TD
-    A[开始] --> B{条件判断}
-    B -->|是| C[处理A]
-    B -->|否| D[处理B]
-    C --> E[结束]
+    A[başlangıç] --> B{Koşullu yargı}
+    B -->|Evet| C[uğraşmakA]
+    B -->|HAYIR| D[uğraşmakB]
+    C --> E[Sona ermek]
     D --> E
 ```
 
-## 输出格式
-1. Mermaid 语法代码块
-2. 对应的 SVG/PNG 渲染说明
-3. 在 Markdown 中的嵌入方式
+## Çıkış formatı
+1. Mermaid sözdizimi kod bloğu
+2. karşılık gelen SVG/PNG İşleme talimatları
+3. var olmak Markdown içine yerleştirme
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行架构图生成"""
+        """Mimari diyagram oluşturmayı yürütün"""
         if context.previous_outputs.get("architect"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 架构设计\n{context.previous_outputs['architect'].result}",
+                    "content": f"## Mimari tasarım\n{context.previous_outputs['architect'].result}",
                 }
             )
         if context.previous_outputs.get("explore"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 代码结构\n{context.previous_outputs['explore'].result[:2000]}",
+                    "content": f"## Kod yapısı\n{context.previous_outputs['explore'].result[:2000]}",
                 }
             )
 
         uml_hint = """
 
-请生成架构可视化图表：
-1. 根据架构设计生成 Mermaid 类图
-2. 关键交互流程生成时序图
-3. 业务逻辑生成流程图
-4. 系统架构生成部署/架构图
-5. 全部使用 Mermaid 语法
+Lütfen bir mimari görselleştirme şeması oluşturun:
+1. Mimari tasarıma dayalı olarak üretin Mermaid Sınıf diyagramı
+2. Anahtar etkileşim süreci oluşturma sırası diyagramı
+3. İş mantığı oluşturma akış şeması
+4. Sistem mimarisi oluşturma ve devreye alma/Mimari diyagramı
+5. Tümünü kullan Mermaid dilbilgisi
 
-请提供完整的 Mermaid 代码，可直接在 GitHub/GitLab/Notion 中渲染。
+Lütfen eksiksiz olarak sağlayın Mermaid Kodu doğrudan şurada bulabilirsiniz: GitHub/GitLab/Notion Orta oluşturma.
 """
         prompt.append({"role": "user", "content": uml_hint})
 
@@ -152,14 +152,14 @@ flowchart TD
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "将图表保存到 docs/diagrams/ 目录",
-                "在 README.md 中嵌入图表",
-                "使用 Mermaid Preview 插件预览",
+                "Grafiği şuraya kaydet: docs/diagrams/ İçindekiler",
+                "var olmak README.md Grafiği içine yerleştir",
+                "kullanmak Mermaid Preview Eklenti önizlemesi",
             ],
             next_agent="writer",
         )

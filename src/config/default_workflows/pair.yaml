@@ -1,26 +1,26 @@
 name: pair
-description: 结对编程：Explorer + Critic 交替协作进行实时代码审查
+description: icinduzenlesurec: Explorer + Critic almasikisbirligiyapilerlesatirzamankodinceleme
 steps:
   - id: explore
     agent: explore
-    description: 探索代码库
+    description: kesfetkodkutuphane
     timeout: 300
     retry: 0
   - id: critic1
     agent: critic
-    description: 代码审查（结对，第一轮）
+    description: kodinceleme (icin, incibirtur) 
     dependencies: [explore]
     timeout: 600
     retry: 0
   - id: explorer1
     agent: explorer
-    description: 问题澄清（探索者，第一轮）
+    description: sorunberraktemizle (kesfet, incibirtur) 
     dependencies: [critic1]
     timeout: 600
     retry: 0
   - id: critic2
     agent: critic
-    description: 确认修复（评审者，第二轮）
+    description: onayladuzeltme (inceleme, inciikitur) 
     dependencies: [explorer1]
     timeout: 600
     retry: 0

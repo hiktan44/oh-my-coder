@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 """
-团队统计模块
+takimistatistikmodul
 
-记录和查询团队使用数据。
+kayitvesorgutakimkullansayigore. 
 """
 
 import sqlite3
@@ -15,7 +15,7 @@ from typing import Any, Optional
 
 @dataclass
 class UsageRecord:
-    """使用记录"""
+    """kullankayit"""
 
     record_id: str
     team_id: str
@@ -25,7 +25,7 @@ class UsageRecord:
     model: str
     tokens_used: int
     cost: float
-    execution_time: float  # 秒
+    execution_time: float  # saniye
     status: str  # success, failed
     created_at: datetime = field(default_factory=datetime.now)
 
@@ -47,7 +47,7 @@ class UsageRecord:
 
 @dataclass
 class TeamStats:
-    """团队统计数据"""
+    """takimistatistiksayigore"""
 
     team_id: str
     period: str  # day, week, month
@@ -84,7 +84,7 @@ class TeamStats:
 
 @dataclass
 class UserStats:
-    """用户统计数据"""
+    """kullaniciistatistiksayigore"""
 
     user_id: str
     team_id: str
@@ -117,20 +117,20 @@ class UserStats:
 
 class TeamStatistics:
     """
-    团队统计管理器
+    takimistatistikyonet
 
-    使用 SQLite 存储使用记录，支持：
-    - 记录使用数据
-    - 查询团队/用户统计
-    - 数据自动清理（保留30天）
+    kullan SQLite depolamakullankayit, destek: 
+    - kayitkullansayigore
+    - sorgutakim/kullaniciistatistik
+    - sayigoreotomatiktemizle (koru30gun) 
     """
 
     def __init__(self, db_path: Optional[str] = None):
         """
-        初始化
+        baslat
 
         Args:
-            db_path: 数据库文件路径，默认在 .omc 目录下
+            db_path: veritabanidosyayol, varsayilanicinde .omc dizinalt
         """
         if db_path:
             self.db_path = Path(db_path)
@@ -141,11 +141,11 @@ class TeamStatistics:
         self._init_db()
 
     def _init_db(self) -> None:
-        """初始化数据库"""
+        """baslatveritabani"""
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
 
-        # 创建使用记录表
+        # olusturkullankayittablo
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS usage_records (
@@ -164,7 +164,7 @@ class TeamStatistics:
         """
         )
 
-        # 创建索引
+        # olusturindeks
         cursor.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_team_created
@@ -195,22 +195,22 @@ class TeamStatistics:
         status: str = "success",
     ) -> UsageRecord:
         """
-        记录使用数据
+        kayitkullansayigore
 
         Args:
-            record_id: 记录 ID
-            team_id: 团队 ID
-            user_id: 用户 ID
-            task_id: 任务 ID
-            task_type: 任务类型
-            model: 使用的模型
-            tokens_used: 消耗的 Token 数
-            cost: 成本
-            execution_time: 执行时间（秒）
-            status: 状态
+            record_id: kayit ID
+            team_id: takim ID
+            user_id: kullanici ID
+            task_id: gorev ID
+            task_type: gorevtip
+            model: kullanmodel
+            tokens_used: tuket Token sayi
+            cost: ol
+            execution_time: yurutzamanarasinda (saniye) 
+            status: durum
 
         Returns:
-            UsageRecord: 创建的记录
+            UsageRecord: olusturkayit
         """
         record = UsageRecord(
             record_id=record_id,
@@ -257,16 +257,16 @@ class TeamStatistics:
 
     def get_team_stats(self, team_id: str, period: str = "week") -> TeamStats:
         """
-        获取团队统计
+        altakimistatistik
 
         Args:
-            team_id: 团队 ID
-            period: 统计周期（day/week/month）
+            team_id: takim ID
+            period: istatistikhaftadonem (day/week/month) 
 
         Returns:
-            TeamStats: 统计数据
+            TeamStats: istatistiksayigore
         """
-        # 计算时间范围
+        # hesaplazamanarasindaaralik
         now = datetime.now()
         if period == "day":
             start_date = now - timedelta(days=1)
@@ -278,7 +278,7 @@ class TeamStatistics:
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
 
-        # 查询基本统计
+        # sorgutemelistatistik
         cursor.execute(
             """
             SELECT
@@ -296,7 +296,7 @@ class TeamStatistics:
 
         row = cursor.fetchone()
 
-        # 查询模型使用排名
+        # sorgumodelkullansiralaisim
         cursor.execute(
             """
             SELECT model, COUNT(*) as count, SUM(tokens_used) as tokens
@@ -313,7 +313,7 @@ class TeamStatistics:
             {"model": r[0], "count": r[1], "tokens": r[2]} for r in cursor.fetchall()
         ]
 
-        # 查询用户使用排名
+        # sorgukullanicikullansiralaisim
         cursor.execute(
             """
             SELECT user_id, COUNT(*) as count, SUM(cost) as total_cost
@@ -330,7 +330,7 @@ class TeamStatistics:
             {"user_id": r[0], "count": r[1], "cost": r[2]} for r in cursor.fetchall()
         ]
 
-        # 查询每日分布
+        # sorguhergunpuan
         cursor.execute(
             """
             SELECT
@@ -371,15 +371,15 @@ class TeamStatistics:
         self, user_id: str, team_id: str, period: str = "week"
     ) -> UserStats:
         """
-        获取用户统计
+        alkullaniciistatistik
 
         Args:
-            user_id: 用户 ID
-            team_id: 团队 ID
-            period: 统计周期
+            user_id: kullanici ID
+            team_id: takim ID
+            period: istatistikhaftadonem
 
         Returns:
-            UserStats: 统计数据
+            UserStats: istatistiksayigore
         """
         now = datetime.now()
         if period == "day":
@@ -408,7 +408,7 @@ class TeamStatistics:
 
         row = cursor.fetchone()
 
-        # 查询最常用模型
+        # sorguensikkullanmodel
         cursor.execute(
             """
             SELECT model, COUNT(*) as count
@@ -440,13 +440,13 @@ class TeamStatistics:
 
     def cleanup_old_records(self, days: int = 30) -> int:
         """
-        清理旧记录
+        temizleeskikayit
 
         Args:
-            days: 保留天数
+            days: korugunsayi
 
         Returns:
-            int: 删除的记录数
+            int: silkayitsayi
         """
         cutoff = datetime.now() - timedelta(days=days)
 
@@ -467,7 +467,7 @@ class TeamStatistics:
         return deleted
 
     def get_all_teams(self) -> list[str]:
-        """获取所有团队 ID"""
+        """tumunu altakim ID"""
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
 
@@ -478,5 +478,5 @@ class TeamStatistics:
         return teams
 
 
-# 全局实例
+# globalornek
 team_statistics = TeamStatistics()

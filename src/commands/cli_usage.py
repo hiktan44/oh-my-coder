@@ -4,23 +4,23 @@ from __future__ import annotations
 
 
 """
-omc usage 命令 - 用量统计与追踪
+omc usageEmir-Kullanım istatistikleri ve izleme
 
-合并自三个文件：
-- cli_stats.py - 项目文件统计
-- cli_trace.py - Agent 执行记录追踪
-- cli_memory.py - 分层记忆管理
+Üç dosyadan birleştirildi:
+- cli_stats.py -Proje dosyası istatistikleri
+- cli_trace.py - AgentYürütme kaydı takibi
+- cli_memory.py -Hiyerarşik bellek yönetimi
 
-用法：
-    omc usage stats [PATH]     — 统计项目文件数量
-    omc usage trace list       — 列出最近 session 和 trace
-    omc usage trace show <agent> — 显示某个 Agent 的详细执行过程
-    omc usage trace agents     — 显示当前 session 的所有 Agent
-    omc usage trace latest     — 显示最新 session
-    omc usage memory tier0     — 查看 Tier 0 核心记忆（< 500 token）
-    omc usage memory tier1     — 查看 Tier 1 精选记忆（< 2000 token）
-    omc usage memory summary   — 查看完整记忆摘要
-    omc usage memory stats     — 查看记忆统计（条数、token 数）
+kullanım:
+    omc usage stats [PATH]— Proje dosyalarının sayısını sayın
+    omc usage trace list— Son zamanları listelesessionVetrace
+    omc usage trace show <agent>- bir gösterAgentDetaylı yürütme süreci
+    omc usage trace agents— akımı göstersessionhepsindenAgent
+    omc usage trace latest— en sonuncuyu göstersession
+    omc usage memory tier0 — GörüntüleTier0 çekirdek bellek (< 500 token)
+    omc usage memory tier1 — GörüntüleTier1 Seçilmiş Anılar (< 2000 token)
+    omc usage memory summaryDüşünce zinciri başladı
+    omc usage memory stats— Bellek istatistiklerini görüntüleyin (öğe sayısı,tokensayı)
 """
 
 import asyncio
@@ -46,12 +46,12 @@ from rich.panel import Panel
 from rich.table import Table
 
 # ============================================================================
-# Stats 子命令（来自 cli_stats.py）
+# Statsalt komut (dancli_stats.py)
 # ============================================================================
 
 
 def _get_count_files():
-    """延迟导入 count_files 以避免 stats 模块的兼容性问题"""
+    """Gecikmeli içe aktarmacount_filesprogramlamastatsModül uyumluluk sorunları"""
     from src.stats import count_files
     return count_files
 
@@ -66,9 +66,9 @@ def stats_command(
     follow_symlinks: bool = False,
     sort_by: str = "count",
 ) -> None:
-    """统计项目文件数量。
+    """Proje dosyalarının sayısını sayın.
 
-    PATH 是要统计的项目根目录路径，默认为当前目录。
+    PATHGeçerli dizine varsayılan olan, sayılacak proje kök dizininin yoludur.
     """
     count_files = _get_count_files()
     result = count_files(
@@ -92,12 +92,12 @@ def stats_command(
         click.echo(json.dumps(data, ensure_ascii=False, indent=2))
     else:
         console = Console()
-        console.print(f"📊 项目统计: {path}")
-        console.print(f"  文件总数: {result.total_files}")
-        console.print(f"  目录总数: {result.total_dirs}")
-        console.print(f"  总大小: {result.total_size:,} 字节")
+        console.print(f"📊Proje istatistikleri: {path}")
+        console.print(f"toplam dosya sayısı: {result.total_files}")
+        console.print(f"Toplam dizin sayısı: {result.total_dirs}")
+        console.print(f"toplam boyut: {result.total_size:,}bayt")
         if result.by_type:
-            console.print("\n📁 按类型分类:")
+            console.print("\n📁Türe göre sınıflandırılmış:")
             sorted_types = sorted(
                 result.by_type.items(),
                 key=lambda x: x[1].count,
@@ -105,23 +105,23 @@ def stats_command(
             )
             for ext, stats in sorted_types:
                 console.print(
-                    f"  {ext or '(无扩展名)'}: {stats.count} 个文件, {stats.size:,} 字节"
+                    f"  {ext or '(uzatma yok)'}: {stats.count}dosyalar, {stats.size:,}bayt"
                 )
         if result.errors:
-            console.print(f"\n⚠️ {len(result.errors)} 个错误:", err=True)
+            console.print(f"\n⚠️ {len(result.errors)}hatalar:", err=True)
             for error in result.errors:
                 console.print(f"  {error}", err=True)
 
 
 # ============================================================================
-# Trace 子命令（来自 cli_trace.py）
+# Tracealt komut (dancli_trace.py)
 # ============================================================================
 
 console_trace = Console()
 
 
 def _get_store():
-    """延迟导入 TraceStore"""
+    """Gecikmeli içe aktarmaTraceStore"""
     from src.agents.transparency import TraceStore
 
     return TraceStore.get_instance()
@@ -131,25 +131,25 @@ def trace_list(
     session: str = None,
     limit: int = 20,
 ) -> None:
-    """列出最近执行记录"""
+    """Son yürütme kayıtlarını listele"""
     store = _get_store()
     sessions = [session] if session else store.list_sessions()[:limit]
 
     if not sessions:
-        console_trace.print("[dim]暂无执行记录[/dim]")
+        console_trace.print("[dim]Henüz yürütme kaydı yok[/dim]")
         return
 
     for sid in sessions:
         traces = store.list_traces(sid)
         if not traces:
             continue
-        console_trace.print(f"\n[bold cyan]Session: {sid}[/bold cyan] ({len(traces)} 条记录)")
+        console_trace.print(f"\n[bold cyan]Session: {sid}[/bold cyan] ({len(traces)}kayıtlar)")
         table = Table(show_header=True, header_style="bold magenta")
         table.add_column("Agent", style="green")
-        table.add_column("状态", style="yellow")
-        table.add_column("耗时", style="blue")
-        table.add_column("开始时间", style="dim")
-        table.add_column("摘要", style="white")
+        table.add_column("durum", style="yellow")
+        table.add_column("zaman tükeniyor", style="blue")
+        table.add_column("başlangıç ​​zamanı", style="dim")
+        table.add_column("özet", style="white")
         for t in traces[:10]:
             duration = f"{t.get('total_duration_ms', 0) / 1000:.2f}s"
             started = t.get("started_at", "")[:19]
@@ -170,29 +170,29 @@ def trace_show(
     agent: str,
     session: str = None,
 ) -> None:
-    """显示某个 Agent 的详细执行过程"""
+    """bir gösterAgentDetaylı yürütme süreci"""
     store = _get_store()
     sid = session or store.get_latest_session()
     if not sid:
-        console_trace.print("[red]没有可用的 session[/red]")
+        console_trace.print("[red]Mevcut değilsession[/red]")
         raise typer.Exit(1)
 
     trace_data = store.get_trace(sid, agent)
     if not trace_data:
-        # 尝试模糊匹配
+        #Bulanık eşleştirmeyi deneyin
         all_agents = store.get_all_agents_in_session(sid)
         if agent in all_agents:
             trace_data = store.get_trace(sid, agent)
         else:
-            # 模糊匹配
+            #bulanık eşleştirme
             matches = [a for a in all_agents if agent.lower() in a.lower()]
             if matches:
                 trace_data = store.get_trace(sid, matches[0])
-                console_trace.print(f"[dim]模糊匹配到: {matches[0]}[/dim]")
+                console_trace.print(f"[dim]Görev yürütmeyle ilgili komutlar: {matches[0]}[/dim]")
             else:
-                console_trace.print(f"[red]未找到 Agent '{agent}' 的记录[/red]")
+                console_trace.print(f"[red]bulunamadıAgent '{agent}'kayıtlar[/red]")
                 if all_agents:
-                    console_trace.print("[dim]可用 Agent:[/dim] " + ", ".join(all_agents))
+                    console_trace.print("[dim]MevcutAgent:[/dim] " + ", ".join(all_agents))
                 raise typer.Exit(1)
 
     # Header
@@ -200,22 +200,22 @@ def trace_show(
         Panel(
             f"[green]Agent:[/green] {trace_data['agent_name']}\n"
             f"[green]Session:[/green] {trace_data['session_id']}\n"
-            f"[green]状态:[/green] {trace_data['status']}\n"
-            f"[green]总耗时:[/green] {trace_data['total_duration_ms'] / 1000:.2f}s\n"
-            f"[green]开始:[/green] {trace_data['started_at'][:19]}\n"
-            f"[green]结束:[/green] {trace_data['ended_at'][:19]}",
+            f"[green]durum:[/green] {trace_data['status']}\n"
+            f"[green]Harcanan toplam süre:[/green] {trace_data['total_duration_ms'] / 1000:.2f}s\n"
+            f"[green]başlangıç:[/green] {trace_data['started_at'][:19]}\n"
+            f"[green]Sona ermek:[/green] {trace_data['ended_at'][:19]}",
             title=f"Trace: {trace_data['agent_name']}",
             border_style="cyan",
         )
     )
 
     if trace_data.get("error"):
-        console_trace.print(f"[red]错误: {trace_data['error']}[/red]")
+        console_trace.print(f"[red]hata: {trace_data['error']}[/red]")
 
     # Events timeline
     events = trace_data.get("events", [])
     if not events:
-        console_trace.print("[dim]无事件记录[/dim]")
+        console_trace.print("[dim]Hiçbir etkinlik günlüğe kaydedilmedi[/dim]")
         return
 
     for _i, ev in enumerate(events):
@@ -225,7 +225,7 @@ def trace_show(
         dur_ms = ev.get("duration_ms", 0)
         dur_str = f"[dim]@{dur_ms / 1000:.3f}s[/dim]"
 
-        # 类型标签颜色
+        #Etiket rengini yazın
         color_map = {
             "start": "bold green",
             "end": "bold red",
@@ -262,41 +262,41 @@ def trace_show(
 def trace_agents(
     session: str = None,
 ) -> None:
-    """显示当前 session 的所有 Agent"""
+    """Geçerli olanı göstersessionhepsindenAgent"""
     store = _get_store()
     sid = session or store.get_latest_session()
     if not sid:
-        console_trace.print("[red]没有可用的 session[/red]")
+        console_trace.print("[red]Mevcut değilsession[/red]")
         raise typer.Exit(1)
     agents = store.get_all_agents_in_session(sid)
     if not agents:
-        console_trace.print("[dim]暂无 Agent 记录[/dim]")
+        console_trace.print("[dim]HiçbiriAgentKayıt[/dim]")
     else:
-        console_trace.print(f"[cyan]Session {sid}[/cyan] 的 Agents:")
+        console_trace.print(f"[cyan]Session {sid}[/cyan]ile ilgiliAgents:")
         for a in agents:
             console_trace.print(f"  • {a}")
 
 
 def trace_latest() -> None:
-    """显示最新 session"""
+    """En sonuncuyu göstersession"""
     store = _get_store()
     sid = store.get_latest_session()
     if not sid:
-        console_trace.print("[dim]暂无执行记录[/dim]")
+        console_trace.print("[dim]Henüz yürütme kaydı yok[/dim]")
         raise typer.Exit(0)
-    console_trace.print(f"[green]最新 Session: {sid}[/green]")
+    console_trace.print(f"[green]güncelSession: {sid}[/green]")
     trace_list(session=sid, limit=10)
 
 
 # ============================================================================
-# Memory 子命令（来自 cli_memory.py）
+# Memoryalt komut (dancli_memory.py)
 # ============================================================================
 
 console_memory = Console()
 
 
 def _get_manager(project_path: Path):
-    """初始化 MemoryManager"""
+    """başlatmaMemoryManager"""
     from src.memory.manager import MemoryManager
 
     return MemoryManager.from_project(project_path)
@@ -306,9 +306,9 @@ def memory_tier0(
     project_path: Path = ".",
 ) -> None:
     """
-    🧠 查看 Tier 0 核心记忆（< 500 token）
+    🧠Kontrol etmekTier0 çekirdek bellek (< 500 token)
 
-    用于系统 Prompt 注入的最精简记忆。
+sistem içinPromptMinimum bellek enjekte edildi.
     """
     manager = _get_manager(Path(project_path).resolve())
     tier0 = manager.get_tier0_summary()
@@ -317,8 +317,8 @@ def memory_tier0(
 
     console_memory.print(
         Panel(
-            tier0 if tier0.strip() else "[dim]（空）[/dim]",
-            title=f"🧠 Tier 0 核心记忆 [{tokens} tokens]",
+            tier0 if tier0.strip() else "[dim](hükümsüz)[/dim]",
+            title=f"🧠 Tier0 çekirdek hafıza[{tokens} tokens]",
             border_style="cyan",
         )
     )
@@ -328,9 +328,9 @@ def memory_tier1(
     project_path: Path = ".",
 ) -> None:
     """
-    📋 查看 Tier 1 精选记忆（< 2000 token）
+    📋Kontrol etmekTier1 Seçilmiş Anılar (< 2000 token)
 
-    项目特定知识、常用命令、重要经验。
+Projeye özgü bilgiler, ortak komutlar, öğrenilen önemli dersler.
     """
     manager = _get_manager(Path(project_path).resolve())
     tier1 = manager.get_tier1_summary()
@@ -339,8 +339,8 @@ def memory_tier1(
 
     console_memory.print(
         Panel(
-            tier1 if tier1.strip() else "[dim]（空）[/dim]",
-            title=f"📋 Tier 1 精选记忆 [{tokens} tokens]",
+            tier1 if tier1.strip() else "[dim](hükümsüz)[/dim]",
+            title=f"📋 Tier1 Seçilmiş Anılar[{tokens} tokens]",
             border_style="green",
         )
     )
@@ -350,9 +350,9 @@ def memory_summary(
     project_path: Path = ".",
 ) -> None:
     """
-    📦 查看完整记忆摘要（Tier 2 存档）
+    📦Tam hafıza özetini görün (TierKomutu düzenle
 
-    所有项目、所有学习记录、所有偏好。
+Tüm projeler, tüm öğrenme kayıtları, tüm tercihler.
     """
     manager = _get_manager(Path(project_path).resolve())
     archive = manager.get_tier2_archive()
@@ -363,11 +363,11 @@ def memory_summary(
         Panel(
             archive[:5000]
             + (
-                f"\n\n[dim]... （截断显示，共 {tokens} tokens）[/dim]"
+                f"\n\n[dim]...(Toplamı göstermek için kısaltılmıştır{tokens} tokens)[/dim]"
                 if len(archive) > 5000
                 else ""
             ),
-            title=f"📦 Tier 2 完整存档 [{tokens} tokens]",
+            title=f"📦 Tier2 tam arşiv[{tokens} tokens]",
             border_style="yellow",
         )
     )
@@ -377,40 +377,40 @@ def memory_stats(
     project_path: Path = ".",
 ) -> None:
     """
-    📊 查看记忆统计
+    📊Bellek istatistiklerini görüntüle
 
-    项目数、学习记录数、各层 token 消耗。
+Proje sayısı, öğrenme kaydı sayısı, her katmantokentüketim.
     """
     manager = _get_manager(Path(project_path).resolve())
     stats = manager.get_memory_stats()
 
-    table = Table(title="📊 记忆统计")
-    table.add_column("指标", style="cyan")
-    table.add_column("值", style="green")
+    table = Table(title="📊Yapılandırma dosyası bulunamadı")
+    table.add_column("dizin", style="cyan")
+    table.add_column("değer", style="green")
 
-    table.add_row("项目数", str(stats["projects_count"]))
-    table.add_row("学习记录数", str(stats["learnings_count"]))
+    table.add_row("Öğe sayısı", str(stats["projects_count"]))
+    table.add_row("Öğrenme kayıtlarının sayısı", str(stats["learnings_count"]))
     table.add_row("Tier 0 tokens", str(stats["tier0_tokens"]))
     table.add_row("Tier 1 tokens", str(stats["tier1_tokens"]))
 
     if stats["categories"]:
-        table.add_row("分类", ", ".join(stats["categories"]))
+        table.add_row("sınıflandırma", ", ".join(stats["categories"]))
 
     console_memory.print(table)
 
 
 # ============================================================================
-# Typer App 定义
+# Typer Apptanım
 # ============================================================================
 
 app = typer.Typer(
     name="usage",
-    help="用量统计与追踪 - stats/trace/memory",
+    help="Kullanım istatistikleri ve izleme- stats/trace/memory",
     no_args_is_help=True,
 )
 
-# Stats 子命令
-stats_app = typer.Typer(name="stats", help="项目文件统计")
+# Statsalt komut
+stats_app = typer.Typer(name="stats", help="Proje dosyası istatistikleri")
 app.add_typer(stats_app, name="stats")
 
 
@@ -419,45 +419,45 @@ def stats_main(
     ctx: typer.Context,
     path: str = typer.Argument(
         ".",
-        help="项目路径",
+        help="Proje yolu",
     ),
     json_output: bool = typer.Option(
         False,
         "--json",
-        help="以 JSON 格式输出统计结果",
+        help="inceleme raporuJSONÇıkış istatistikleri sonuçlarını biçimlendirme",
     ),
     exclude_dir: list[str] = typer.Option(
         [],
         "--exclude-dir",
-        help="额外排除的目录名（可多次指定）",
+        help="Hariç tutulan ek dizin adları (birden çok kez belirtilebilir)",
     ),
     exclude_file: list[str] = typer.Option(
         [],
         "--exclude-file",
-        help="额外排除的文件名（可多次指定）",
+        help="Hariç tutulan ek dosya adları (birden çok kez belirtilebilir)",
     ),
     exclude_ext: list[str] = typer.Option(
         [],
         "--exclude-ext",
-        help="额外排除的文件扩展名（可多次指定）",
+        help="Dağıtım başarısız oldu",
     ),
     max_depth: Optional[int] = typer.Option(
         None,
         "--max-depth",
-        help="最大递归深度",
+        help="maksimum yineleme derinliği",
     ),
     follow_symlinks: bool = typer.Option(
         False,
         "--follow-symlinks",
-        help="跟随符号链接",
+        help="Sembolik bağlantıları takip edin",
     ),
     sort: str = typer.Option(
         "count",
         "--sort",
-        help="排序方式（仅 JSON 输出有效）",
+        help="Şuna göre sırala (yalnızcaJSONçıktı geçerlidir)",
     ),
 ) -> None:
-    """统计项目文件数量"""
+    """Proje dosyalarının sayısını sayın"""
     if ctx.invoked_subcommand is None:
         stats_command(
             path=path,
@@ -471,98 +471,98 @@ def stats_main(
         )
 
 
-# Trace 子命令
-trace_app = typer.Typer(name="trace", help="查看 Agent 执行记录")
+# Tracealt komut
+trace_app = typer.Typer(name="trace", help="Kontrol etmekAgentYürütme kaydı")
 app.add_typer(trace_app, name="trace")
 
 
 @trace_app.command("list")
 def trace_list_cmd(
-    session: str = typer.Option(None, "--session", "-s", help="指定 session ID"),
-    limit: int = typer.Option(20, "--limit", "-n", help="显示条数"),
+    session: str = typer.Option(None, "--session", "-s", help="Belirtsession ID"),
+    limit: int = typer.Option(20, "--limit", "-n", help="Ekran numarası"),
 ) -> None:
-    """列出最近执行记录"""
+    """Son yürütme kayıtlarını listele"""
     trace_list(session=session, limit=limit)
 
 
 @trace_app.command("show")
 def trace_show_cmd(
-    agent: str = typer.Argument(..., help="Agent 名称"),
-    session: str = typer.Option(None, "--session", "-s", help="指定 session ID"),
+    agent: str = typer.Argument(..., help="Agentisim"),
+    session: str = typer.Option(None, "--session", "-s", help="Belirtsession ID"),
 ) -> None:
-    """显示某个 Agent 的详细执行过程"""
+    """bir gösterAgentDetaylı yürütme süreci"""
     trace_show(agent=agent, session=session)
 
 
 @trace_app.command("agents")
 def trace_agents_cmd(
-    session: str = typer.Option(None, "--session", "-s", help="指定 session ID"),
+    session: str = typer.Option(None, "--session", "-s", help="Belirtsession ID"),
 ) -> None:
-    """显示当前 session 的所有 Agent"""
+    """Geçerli olanı göstersessionhepsindenAgent"""
     trace_agents(session=session)
 
 
 @trace_app.command("latest")
 def trace_latest_cmd() -> None:
-    """显示最新 session"""
+    """En sonuncuyu göstersession"""
     trace_latest()
 
 
-# Memory 子命令
-memory_app = typer.Typer(name="memory", help="分层记忆管理")
+# Memoryalt komut
+memory_app = typer.Typer(name="memory", help="Hiyerarşik bellek yönetimi")
 app.add_typer(memory_app, name="memory")
 
 
 @memory_app.command("tier0")
 def memory_tier0_cmd(
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ) -> None:
     """
-    🧠 查看 Tier 0 核心记忆（< 500 token）
+    🧠Kontrol etmekTier0 çekirdek bellek (< 500 token)
 
-    用于系统 Prompt 注入的最精简记忆。
+sistem içinPromptMinimum bellek enjekte edildi.
     """
     memory_tier0(project_path=project_path)
 
 
 @memory_app.command("tier1")
 def memory_tier1_cmd(
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ) -> None:
     """
-    📋 查看 Tier 1 精选记忆（< 2000 token）
+    📋Kontrol etmekTier1 Seçilmiş Anılar (< 2000 token)
 
-    项目特定知识、常用命令、重要经验。
+Projeye özgü bilgiler, ortak komutlar, öğrenilen önemli dersler.
     """
     memory_tier1(project_path=project_path)
 
 
 @memory_app.command("summary")
 def memory_summary_cmd(
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ) -> None:
     """
-    📦 查看完整记忆摘要（Tier 2 存档）
+    📦Tam hafıza özetini görün (TierKomutu düzenle
 
-    所有项目、所有学习记录、所有偏好。
+Tüm projeler, tüm öğrenme kayıtları, tüm tercihler.
     """
     memory_summary(project_path=project_path)
 
 
 @memory_app.command("stats")
 def memory_stats_cmd(
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ) -> None:
     """
-    📊 查看记忆统计
+    📊Bellek istatistiklerini görüntüle
 
-    项目数、学习记录数、各层 token 消耗。
+Proje sayısı, öğrenme kaydı sayısı, her katmantokentüketim.
     """
     memory_stats(project_path=project_path)
 
 
 # ============================================================================
-# Compact 子命令（来自 cli_compact.py）
+# Compactalt komut (dancli_compact.py)
 # ============================================================================
 
 console_compact = Console()
@@ -570,68 +570,68 @@ console_compact = Console()
 
 @app.command("stats")
 def compact_stats(
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ) -> None:
     """
-    📊 显示当前会话的压缩统计
+    📊Geçerli oturumun sıkıştırma istatistiklerini görüntüle
 
-    显示内容：
-    - 压缩总次数
-    - 节省的 token 数
-    - 清理的消息数
-    - 工具调用去重次数
-    - 历史错误清理数
+İçeriği görüntüle:
+    -Toplam sıkıştırma sayısı
+    -kaydedilditokensayı
+    -Temizlenen mesaj sayısı
+    -Kopyaları kaldırmak için yapılan araç çağrılarının sayısı
+    -Temizlenen geçmiş hataların sayısı
     """
     from src.memory.manager import MemoryManager
     manager = MemoryManager.from_project(project_path.resolve())
     stats = manager.compact_stats
 
     table = Table(
-        title="🗜️ AutoCompact 统计", show_header=True, header_style="bold cyan"
+        title="🗜️ AutoCompactistatistikler", show_header=True, header_style="bold cyan"
     )
-    table.add_column("指标", style="dim")
-    table.add_column("值", justify="right")
+    table.add_column("dizin", style="dim")
+    table.add_column("değer", justify="right")
 
-    table.add_row("压缩次数", f"{stats['total_compact_count']}")
-    table.add_row("节省 token", f"{stats['total_tokens_saved']:,}")
-    table.add_row("清理消息数", f"{stats['total_messages_removed']:,}")
-    table.add_row("去重 tool_call", f"{stats['total_deduplicated']}")
-    table.add_row("清理错误消息", f"{stats['total_errors_removed']}")
+    table.add_row("Sıkıştırma süreleri", f"{stats['total_compact_count']}")
+    table.add_row("kaydetmektoken", f"{stats['total_tokens_saved']:,}")
+    table.add_row("varsayılan model olarak model", f"{stats['total_messages_removed']:,}")
+    table.add_row("Yinelenenleri kaldırtool_call", f"{stats['total_deduplicated']}")
+    table.add_row("Hata mesajlarını temizleyin", f"{stats['total_errors_removed']}")
 
     console_compact.print(table)
 
     if stats["total_compact_count"] == 0:
-        console_compact.print("\n[dim]尚未执行过压缩，暂无统计数据。[/dim]")
+        console_compact.print("\n[dim]Hiçbir sıkıştırma yapılmadı ve henüz istatistik yok.[/dim]")
 
 
 @app.command("sweep")
 def compact_sweep(
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
     since_last_user: bool = typer.Option(
         False,
         "--since-last-user",
-        help="从最后用户消息开始压缩（丢弃之前的消息）",
+        help="Sıkıştırma son kullanıcı mesajından başlar (önceki mesajlar atılır)",
     ),
-    dry_run: bool = typer.Option(False, "--dry-run", help="只显示结果，不实际压缩"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Yalnızca sonuçlar görüntülenir, gerçek bir sıkıştırma yapılmaz"),
 ) -> None:
     """
-    🧹 手动触发压缩（sweep）
+    🧹Sıkıştırmayı manuel olarak tetikleyin (sweep)
 
-    可选标志：
-      --since-last-user  从最后用户消息开始清理
-      --dry-run           只显示结果，不实际压缩
+İsteğe bağlı bayraklar:
+      --since-last-userTemizlemeye son kullanıcı mesajından başlayın
+      --dry-runYalnızca sonuçlar görüntülenir, gerçek bir sıkıştırma yapılmaz
     """
     from src.memory.manager import MemoryManager
     manager = MemoryManager.from_project(project_path.resolve())
     session = manager.get_latest_session()
 
     if session is None:
-        console_compact.print("[red]未找到活跃会话。[/red]")
+        console_compact.print("[red]Aktif oturum bulunamadı.[/red]")
         raise typer.Exit(1)
 
     if since_last_user:
-        console_compact.print("[cyan]从最后用户消息开始裁剪...[/cyan]")
-        # 找到最后一条 user 消息
+        console_compact.print("[cyan]Son kullanıcı mesajından kırp...[/cyan]")
+        #Sonuncuyu buldumuserbilgi
         messages = session.messages
         last_user_idx = None
         for i in range(len(messages) - 1, -1, -1):
@@ -641,23 +641,23 @@ def compact_sweep(
         if last_user_idx is not None and last_user_idx > 0:
             session.messages = messages[last_user_idx:]
             console_compact.print(
-                f"[green]已裁剪到第 {last_user_idx + 1} 条消息（共 {len(messages)} 条）[/green]"
+                f"[green]Şuraya kırpıldı:{last_user_idx + 1}mesajlar (toplam{len(messages)}şerit)[/green]"
             )
         else:
-            console_compact.print("[yellow]未找到更早的用户消息，无需裁剪。[/yellow]")
+            console_compact.print("[yellow]Daha eski kullanıcı mesajı bulunamadı, kırpmaya gerek yok.[/yellow]")
             raise typer.Exit(0)
 
     if dry_run:
-        # 只检查，不压缩
+        #Yalnızca kontrol edin, sıkıştırma yok
         result = manager.auto_compact_check(session, force=False, since_last_user=False)
         if result.compacted:
             console_compact.print(
-                f"[yellow]Dry-run: 将压缩 {result.messages_removed} 条消息，"
-                f"节省约 {result.tokens_saved} tokens[/yellow]"
+                f"[yellow]Dry-run:sıkıştıracak{result.messages_removed}Basit mod"
+                f"Yaklaşık tasarruf edin.{result.tokens_saved} tokens[/yellow]"
             )
         else:
-            console_compact.print("[dim]Dry-run: 当前使用率未达到阈值，无需压缩。[/dim]")
-            console_compact.print(f"  当前 token: {result.tokens_before}")
+            console_compact.print("[dim]Dry-run:Mevcut kullanım eşiğe ulaşmadı ve herhangi bir sıkıştırma gerekmiyor.[/dim]")
+            console_compact.print(f"Kullanım kayıtlarını yükletoken: {result.tokens_before}")
         raise typer.Exit(0)
 
     result = manager.auto_compact_check(session, force=True)
@@ -665,16 +665,16 @@ def compact_sweep(
 
     if result.compacted:
         console_compact.print(
-            f"[green]✅ 压缩完成: 清理 {result.messages_removed} 条消息，"
-            f"节省 ~{result.tokens_saved} tokens[/green]"
+            f"[green]✅Sıkıştırma tamamlandı:Temizlemek{result.messages_removed}Basit mod"
+            f"kaydetmek~{result.tokens_saved} tokens[/green]"
         )
     else:
-        console_compact.print("[yellow]⚠️  未触发压缩（usage_ratio < threshold）。[/yellow]")
-        console_compact.print(f"  当前 token: {result.tokens_before}")
+        console_compact.print("[yellow]⚠️Sıkıştırma tetiklenmiyor (usage_ratio < threshold).[/yellow]")
+        console_compact.print(f"Kullanım kayıtlarını yükletoken: {result.tokens_before}")
 
 
 # ============================================================================
-# Thought 子命令（来自 cli_thought.py）
+# Thoughtalt komut (dancli_thought.py)
 # ============================================================================
 
 console_thought = Console()
@@ -682,31 +682,31 @@ console_thought = Console()
 
 @app.command("start")
 def thought_start(
-    task: str = typer.Argument(..., help="任务描述"),
-    agent: str = typer.Option("assistant", "--agent", "-a", help="Agent 名称"),
+    task: str = typer.Argument(..., help="Görev açıklaması"),
+    agent: str = typer.Option("assistant", "--agent", "-a", help="Agentisim"),
 ) -> None:
-    """开始记录思维链"""
+    """Düşünce zincirini kaydetmeye başlayın"""
     from src.core.chain_of_thought import ChainOfThoughtRecorder
     recorder = ChainOfThoughtRecorder()
     chain = recorder.start_chain(task, agent)
 
-    console_thought.print("[green]✅ 思维链已启动[/green]")
+    console_thought.print("[green]✅Düşünce zinciri başladı[/green]")
     console_thought.print(f"[dim]ID: {chain.chain_id}[/dim]")
-    console_thought.print(f"任务: {chain.task_description}")
-    console_thought.print("\n[dim]使用以下命令添加步骤:[/dim]")
-    console_thought.print(f"  omc thought step {chain.chain_id} -t analysis -d '分析...'")
+    console_thought.print(f"Görev: {chain.task_description}")
+    console_thought.print("\n[dim]Aşağıdaki komutu kullanarak adımı ekleyin:[/dim]")
+    console_thought.print(f"  omc thought step {chain.chain_id} -t analysis -d 'analiz etmek...'")
 
 
 @app.command("step")
 def thought_step(
-    chain_id: str = typer.Argument(..., help="思维链 ID"),
-    step_type: str = typer.Option("analysis", "--type", "-t", help="步骤类型"),
-    description: str = typer.Option(..., "--desc", "-d", help="步骤描述"),
-    reasoning: str = typer.Option("", "--reasoning", "-r", help="推理过程"),
-    conclusion: str = typer.Option("", "--conclusion", "-c", help="结论"),
-    confidence: str = typer.Option("medium", "--confidence", help="置信度"),
+    chain_id: str = typer.Argument(..., help="Düşünce zinciriID"),
+    step_type: str = typer.Option("analysis", "--type", "-t", help="adım türü"),
+    description: str = typer.Option(..., "--desc", "-d", help="Adım açıklaması"),
+    reasoning: str = typer.Option("", "--reasoning", "-r", help="muhakeme süreci"),
+    conclusion: str = typer.Option("", "--conclusion", "-c", help="Sonuç olarak"),
+    confidence: str = typer.Option("medium", "--confidence", help="Kendinden emin"),
 ) -> None:
-    """添加推理步骤"""
+    """Çıkarım adımı ekle"""
     from src.core.chain_of_thought import (
         ChainOfThoughtRecorder,
         ConfidenceLevel,
@@ -717,8 +717,8 @@ def thought_step(
     try:
         st = ReasoningStepType(step_type)
     except ValueError:
-        console_thought.print(f"[red]无效步骤类型: {step_type}[/red]")
-        console_thought.print(f"可用: {[t.value for t in ReasoningStepType]}")
+        console_thought.print(f"[red]Geçersiz adım türü: {step_type}[/red]")
+        console_thought.print(f"Mevcut: {[t.value for t in ReasoningStepType]}")
         raise typer.Exit(1)
 
     try:
@@ -736,32 +736,32 @@ def thought_step(
     )
 
     if step:
-        console_thought.print(f"[green]✅ 步骤已添加[/green] [{step.step_id}]")
+        console_thought.print(f"[green]✅Adım eklendi[/green] [{step.step_id}]")
     else:
-        console_thought.print(f"[red]思维链不存在: {chain_id}[/red]")
+        console_thought.print(f"[red]Düşünce zinciri mevcut değil: {chain_id}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("complete")
 def thought_complete(
-    chain_id: str = typer.Argument(..., help="思维链 ID"),
-    conclusion: str = typer.Option("", "--conclusion", "-c", help="最终结论"),
+    chain_id: str = typer.Argument(..., help="Düşünce zinciriID"),
+    conclusion: str = typer.Option("", "--conclusion", "-c", help="nihai sonuç"),
 ) -> None:
-    """完成思维链"""
+    """Düşünce zincirini tamamla"""
     from src.core.chain_of_thought import ChainOfThoughtRecorder
     recorder = ChainOfThoughtRecorder()
     recorder.complete_chain(chain_id, conclusion)
-    console_thought.print(f"[green]✅ 思维链已完成[/green] {chain_id}")
+    console_thought.print(f"[green]✅Düşünce zinciri tamamlandı[/green] {chain_id}")
 
 
 @app.command("show")
 def thought_show(
-    chain_id: str = typer.Argument(..., help="思维链 ID"),
+    chain_id: str = typer.Argument(..., help="Düşünce zinciriID"),
     format: str = typer.Option(
-        "text", "--format", "-f", help="格式: text/html/mermaid"
+        "text", "--format", "-f", help="Biçim: text/html/mermaid"
     ),
 ) -> None:
-    """查看思维链"""
+    """Düşünce zincirini görüntüle"""
     import tempfile
 
     from src.core.chain_of_thought import (
@@ -772,40 +772,40 @@ def thought_show(
     chain = recorder.get_chain(chain_id)
 
     if not chain:
-        console_thought.print(f"[red]思维链不存在: {chain_id}[/red]")
+        console_thought.print(f"[red]Düşünce zinciri mevcut değil: {chain_id}[/red]")
         raise typer.Exit(1)
 
     output = visualize_chain(chain, format)
 
     if format == "html":
-        # 保存到临时文件
+        #Geçici dosyaya kaydet
         output_path = os.path.join(tempfile.gettempdir(), f"chain_{chain_id}.html")
         with open(output_path, "w") as f:
             f.write(output)
-        console_thought.print(f"[green]HTML 已保存:[/green] {output_path}")
+        console_thought.print(f"[green]HTMLkaydedildi:[/green] {output_path}")
     else:
         console_thought.print(output)
 
 
 @app.command("list")
 def thought_list(
-    agent: str = typer.Option(None, "--agent", "-a", help="按 Agent 过滤"),
+    agent: str = typer.Option(None, "--agent", "-a", help="buna göreAgentfiltre"),
 ) -> None:
-    """列出思维链"""
+    """Düşünce zincirini listeleyin"""
     from src.core.chain_of_thought import ChainOfThoughtRecorder
     recorder = ChainOfThoughtRecorder()
     chains = recorder.list_chains(agent)
 
     if not chains:
-        console_thought.print("[dim]没有思维链[/dim]")
+        console_thought.print("[dim]düşünce zinciri yok[/dim]")
         return
 
-    table = Table(title="思维链列表")
+    table = Table(title="Düşünce zinciri listesi")
     table.add_column("ID", style="cyan")
-    table.add_column("任务", style="green")
+    table.add_column("Görev", style="green")
     table.add_column("Agent", style="blue")
-    table.add_column("步骤数", justify="right")
-    table.add_column("状态", style="yellow")
+    table.add_column("adım sayısı", justify="right")
+    table.add_column("durum", style="yellow")
 
     for c in chains:
         table.add_row(
@@ -820,28 +820,28 @@ def thought_list(
 
 
 # ============================================================================
-# Context 子命令（来自 cli_context.py）
+# Contextalt komut (dancli_context.py)
 # ============================================================================
 
 console_context = Console()
 
-# 延迟导入以避免循环依赖
+#Döngüsel bağımlılıklardan kaçınmak için içe aktarmayı geciktirin
 
 def _get_scanner():
-    """延迟导入 WorkspaceScanner"""
+    """Gecikmeli içe aktarmaWorkspaceScanner"""
     from src.context import WorkspaceScanner
     return WorkspaceScanner
 
 
 def _get_browser_awareness():
-    """延迟导入 BrowserAwareness"""
+    """Gecikmeli içe aktarmaBrowserAwareness"""
     from src.context import BrowserAwareness
     return BrowserAwareness
 
 
 context_app = typer.Typer(
     name="context",
-    help="工作目录上下文管理 — 扫描文件、获取摘要、感知浏览器",
+    help="Çalışma dizini bağlam yönetimi - dosyaları tarayın, özetleri alın, tarayıcı farkındalığı",
     add_completion=False,
     no_args_is_help=True,
 )
@@ -855,17 +855,17 @@ def context_scan(
         Path.cwd(),
         "--project",
         "-p",
-        help="项目路径",
+        help="Proje yolu",
     ),
-    depth: int = typer.Option(3, "--depth", "-d", help="扫描深度（最大递归层数）"),
+    depth: int = typer.Option(3, "--depth", "-d", help="Tarama derinliği (maksimum yineleme düzeyi sayısı)"),
     json_output: bool = typer.Option(
-        False, "--json", "-j", help="以 JSON 格式输出（便于程序解析）"
+        False, "--json", "-j", help="inceleme raporuJSONÇıkışı formatla (program ayrıştırma için uygun)"
     ),
 ) -> None:
     """
-    扫描当前工作目录，生成文件树结构
+Geçerli çalışma dizinini tarayın ve bir dosya ağacı yapısı oluşturun
 
-    示例：
+Örnek:
         omc usage context scan
         omc usage context scan -p /path/to/project -d 2
         omc usage context scan --depth 5
@@ -877,7 +877,7 @@ def context_scan(
     console = Console()
     scanner = _get_scanner()(project_path.resolve())
 
-    # 执行扫描
+    #tarama gerçekleştir
     tree = scanner.scan(max_depth=depth)
     stats = scanner._scan_stats
 
@@ -901,56 +901,56 @@ def context_scan(
         )
         return
 
-    # 渲染文件树
+    #Dosya ağacını oluştur
     lines = scanner._render_tree(tree, prefix="", is_last=True)
     tree_str = "\n".join(lines)
 
-    # 格式化统计
+    #İstatistikleri biçimlendir
     size_str = scanner._format_size(stats["bytes_scanned"])
 
     console.print(
         Panel(
             f"[bold cyan]{project_path.name}[/bold cyan] ({project_path})\n"
-            f"[dim]深度: {depth} | "
-            f"文件: {stats['files_scanned']} | "
-            f"目录: {stats['dirs_scanned']} | "
-            f"大小: {size_str}[/dim]",
-            title="📁 工作目录扫描",
+            f"[dim]derinlik: {depth} | "
+            f"belge: {stats['files_scanned']} | "
+            f"İçindekiler: {stats['dirs_scanned']} | "
+            f"boyut: {size_str}[/dim]",
+            title="📁Çalışma dizini taraması",
             border_style="cyan",
         )
     )
 
     console.print(f"\n[white]{tree_str}[/white]\n")
 
-    # 错误提示
+    #Hata mesajı
     if stats["errors"]:
-        console.print(f"[yellow]⚠️  {len(stats['errors'])} 个错误[/yellow]")
+        console.print(f"[yellow]⚠️  {len(stats['errors'])}hatalar[/yellow]")
         for err in stats["errors"][:5]:
             console.print(f"  [dim]{err}[/dim]")
         if len(stats["errors"]) > 5:
-            console.print(f"  [dim]... 共 {len(stats['errors'])} 个[/dim]")
+            console.print(f"  [dim]...yaygın{len(stats['errors'])}bireysel[/dim]")
 
 
 @context_app.command("summary")
 def context_summary(
-    path: str = typer.Argument(..., help="文件或目录路径"),
-    max_lines: int = typer.Option(50, "--lines", "-n", help="最大读取行数"),
+    path: str = typer.Argument(..., help="Dosya veya dizin yolu"),
+    max_lines: int = typer.Option(50, "--lines", "-n", help="Okunan maksimum satır sayısı"),
     project_path: Path = typer.Option(
         Path.cwd(),
         "--project",
         "-p",
-        help="项目根目录（用于计算相对路径）",
+        help="Proje kök dizini (göreceli yolları hesaplamak için kullanılır)",
     ),
 ) -> None:
     """
-    生成文件摘要
+Dosya özeti oluştur
 
-    显示指定文件的内容摘要，包括：
-    - 基本信息（大小、修改时间）
-    - 代码结构（导入、类、函数）
-    - 内容预览
+Aşağıdakiler de dahil olmak üzere belirtilen dosyanın içeriğinin bir özetini görüntüler:
+    -Temel bilgiler (boyut, değişiklik zamanı)
+    -Kod yapısı (içe aktarmalar, sınıflar, işlevler)
+    -İçerik önizlemesi
 
-    示例：
+Örnek:
         omc usage context summary src/main.py
         omc usage context summary config.yaml -n 100
     """
@@ -966,12 +966,12 @@ def context_summary(
         file_path = project_path / file_path
 
     if not file_path.exists():
-        console.print(f"[red]✗ 文件不存在: {file_path}[/red]")
+        console.print(f"[red]✗Dosya mevcut değil: {file_path}[/red]")
         raise typer.Exit(1)
 
     result = scanner.get_file_summary(file_path, max_lines=max_lines)
 
-    # 解析摘要结果
+    #Özet sonuçları ayrıştır
     lines = result.split("\n")
     header_lines = []
     content_lines = []
@@ -989,7 +989,7 @@ def context_summary(
     header = "\n".join(header_lines)
     content = "\n".join(content_lines)
 
-    # 检测语言用于语法高亮
+    #Sözdizimi vurgulaması için dilleri algıla
     lang = None
     for line in header_lines:
         if line.startswith("["):
@@ -999,7 +999,7 @@ def context_summary(
     console.print(Panel(header, title=f"📄 {file_path.name}", border_style="green"))
 
     if content_lines:
-        # 如果是代码，尝试语法高亮
+        #Kod ise, sözdizimi vurgulamayı deneyin
         if lang and lang not in ("unknown", "markdown", "rst"):
             try:
                 syntax = Syntax(content, lang, theme="monokai", line_numbers=True)
@@ -1013,17 +1013,17 @@ def context_summary(
 @context_app.command("browser")
 def context_browser(
     watch: bool = typer.Option(
-        False, "--watch", "-w", help="持续监控浏览器变化（Ctrl+C 退出）"
+        False, "--watch", "-w", help="Tarayıcı değişikliklerini sürekli izleyin (Ctrl+Cçıkış yapmak)"
     ),
-    interval: int = typer.Option(5, "--interval", "-i", help="监控间隔（秒）"),
+    interval: int = typer.Option(5, "--interval", "-i", help="İzleme aralığı (saniye)"),
 ) -> None:
     """
-    获取浏览器当前上下文
+Tarayıcının geçerli içeriğini alın
 
-    读取当前浏览器标签页的标题、URL 和内容摘要。
-    需要安装 Playwright 或 Selenium。
+Geçerli tarayıcı sekmesinin başlığını okuyun,URLve içerik özeti.
+Kurulum gerektirirPlaywrightveyaSelenium.
 
-    示例：
+Örnek:
         omc usage context browser
         omc usage context browser --watch
     """
@@ -1040,21 +1040,21 @@ def context_browser(
         if not ctx.available:
             console.print(
                 Panel(
-                    "[yellow]浏览器上下文不可用[/yellow]\n\n"
-                    "[dim]可能的原因：\n"
-                    "  1. 未安装 Playwright 或 Selenium\n"
-                    "  2. 没有活跃的浏览器标签页\n"
-                    "  3. 浏览器拒绝了 CDP 连接[/dim]",
-                    title="🌐 浏览器上下文",
+                    "[yellow]Tarayıcı içeriği mevcut değil[/yellow]\n\n"
+                    "[dim]Olası nedenler:\n"
+                    "  1.Kurulu değilPlaywrightveyaSelenium\n"
+                    "  2.Etkin tarayıcı sekmesi yok\n"
+                    "  3.Tarayıcı reddedildiCDPbağlamak[/dim]",
+                    title="🌐tarayıcı bağlamı",
                     border_style="yellow",
                 )
             )
             return
 
-        # 显示链接列表
+        #Bağlantı listesini göster
         links_text = ""
         if ctx.links:
-            links_text = "\n\n[cyan]链接预览:[/cyan]\n"
+            links_text = "\n\n[cyan]Bağlantı önizlemesi:[/cyan]\n"
             for link in ctx.links[:10]:
                 links_text += f"  • {link}\n"
 
@@ -1062,24 +1062,24 @@ def context_browser(
             Panel(
                 f"[bold]{ctx.title}[/bold]\n"
                 f"[dim]{ctx.url}[/dim]\n\n"
-                f"[green]内容摘要:[/green]\n"
+                f"[green]İçerik özeti:[/green]\n"
                 f"{ctx.content[:500]}"
                 + ("..." if len(ctx.content) > 500 else "")
                 + links_text,
-                title="🌐 浏览器上下文",
+                title="🌐tarayıcı bağlamı",
                 border_style="green",
             )
         )
 
     async def watch_loop():
-        console.print("[dim]持续监控浏览器，按 Ctrl+C 退出...[/dim]\n")
+        console.print("[dim]Tarayıcınızı sürekli izlemek için tuşuna basın.Ctrl+Cçıkış yapmak...[/dim]\n")
         try:
             while True:
                 console.clear()
                 await get_and_display()
                 await asyncio.sleep(interval)
         except asyncio.CancelledError:
-            console.print("\n[dim]监控已退出[/dim]")
+            console.print("\n[dim]bomba[/dim]")
 
     if watch:
         asyncio.run(watch_loop())
@@ -1093,19 +1093,19 @@ def context_tree(
         Path.cwd(),
         "--project",
         "-p",
-        help="项目路径",
+        help="Proje yolu",
     ),
-    depth: int = typer.Option(3, "--depth", "-d", help="显示深度"),
+    depth: int = typer.Option(3, "--depth", "-d", help="Ekran derinliği"),
     filter_ext: str = typer.Option(
-        None, "--ext", "-e", help="只显示特定扩展名（如 py, js）"
+        None, "--ext", "-e", help="Yalnızca belirli uzantıları göster (ör.py, js)"
     ),
 ) -> None:
     """
-    显示文件树
+Dosya ağacını göster
 
-    以树形结构显示项目目录，类似于 tree 命令。
+Proje dizinini aşağıdakine benzer bir ağaç yapısında görüntüleyintreeEmir.
 
-    示例：
+Örnek:
         omc usage context tree
         omc usage context tree -p src -d 2
         omc usage context tree --ext py
@@ -1119,7 +1119,7 @@ def context_tree(
     tree_node = scanner.scan(max_depth=depth)
 
     def build_rich_tree(node: FileNode, filter_ext: Optional[str] = None) -> Tree:
-        """构建 rich Tree"""
+        """inşa etmekrich Tree"""
         label = f"[cyan]{node.name}[/cyan]"
         if node.language:
             label += f" [dim][[{node.language}]][/dim]"
@@ -1152,15 +1152,15 @@ def context_stats(
         Path.cwd(),
         "--project",
         "-p",
-        help="项目路径",
+        help="Proje yolu",
     ),
 ) -> None:
     """
-    显示项目统计信息
+Proje istatistiklerini göster
 
-    统计项目的文件数量、代码行数、各语言占比等信息。
+İstatistikler, dosya sayısını, kod satırlarını ve projedeki her dilin oranını içerir.
 
-    示例：
+Örnek:
         omc usage context stats
         omc usage context stats -p /path/to/project
     """
@@ -1171,10 +1171,10 @@ def context_stats(
     console = Console()
     scanner = _get_scanner()(project_path.resolve())
 
-    # 扫描两次（一次深度大，一次深度小）
+    #İki kez tarayın (biri büyük derinlikle, diğeri küçük derinlikle)
     tree = scanner.scan(max_depth=10)
 
-    # 统计各语言文件数和行数
+    #Her dildeki dosya ve satır sayısını sayın
     lang_stats: dict = {}
 
     def collect_stats(node: FileNode):
@@ -1189,7 +1189,7 @@ def context_stats(
             lang_stats[lang]["files"] += 1
             lang_stats[lang]["size"] += node.size
 
-            # 统计行数
+            #Satırları say
             try:
                 with open(node.path, encoding="utf-8", errors="replace") as f:
                     lang_stats[lang]["lines"] += sum(1 for _ in f if _.strip())
@@ -1198,19 +1198,19 @@ def context_stats(
 
     collect_stats(tree)
 
-    # 按文件数排序
+    #Dosya sayısına göre sırala
     sorted_langs = sorted(
         lang_stats.items(),
         key=lambda x: x[1]["files"],
         reverse=True,
     )
 
-    # 统计表
-    table = Table(title="语言统计")
-    table.add_column("语言", style="cyan")
-    table.add_column("文件", justify="right")
-    table.add_column("行数", justify="right")
-    table.add_column("大小", justify="right")
+    #İstatistik tablosu
+    table = Table(title="Dil istatistikleri")
+    table.add_column("dil", style="cyan")
+    table.add_column("belge", justify="right")
+    table.add_column("Satır sayısı", justify="right")
+    table.add_column("boyut", justify="right")
 
     total_files = sum(s["files"] for _, s in sorted_langs)
     total_lines = sum(s["lines"] for _, s in sorted_langs)
@@ -1226,11 +1226,11 @@ def context_stats(
 
     console.print(
         Panel(
-            f"[cyan]项目:[/cyan] {project_path}\n"
-            f"[cyan]文件:[/cyan] {total_files} 个\n"
-            f"[cyan]代码行数:[/cyan] {total_lines:,} 行\n"
-            f"[cyan]总大小:[/cyan] {scanner._format_size(total_size)}",
-            title="📊 项目统计",
+            f"[cyan]proje:[/cyan] {project_path}\n"
+            f"[cyan]belge:[/cyan] {total_files}bireysel\n"
+            f"[cyan]Kod satırları:[/cyan] {total_lines:,}TAMAM\n"
+            f"[cyan]toplam boyut:[/cyan] {scanner._format_size(total_size)}",
+            title="📊Proje istatistikleri",
             border_style="green",
         )
     )
@@ -1238,17 +1238,17 @@ def context_stats(
 
 
 # ============================================================================
-# Cost 子命令（来自 cli_cost.py）
+# Costalt komut (dancli_cost.py)
 # ============================================================================
 
 console_cost = Console()
 
-# 配置路径
+#Yapılandırma yolu
 _COST_CONFIG_DIR = Path.home() / ".config" / "oh-my-coder"
 _COST_USAGE_FILE = _COST_CONFIG_DIR / "usage.json"
 _COST_PRICES_FILE = _COST_CONFIG_DIR / "model_prices.json"
 
-# 默认模型价格（元/1k tokens）
+#Varsayılan model fiyatı (yuan/1k tokens)
 _COST_DEFAULT_PRICES = {
     "deepseek-chat": {"prompt": 0.001, "completion": 0.002},
     "deepseek-coder": {"prompt": 0.001, "completion": 0.002},
@@ -1276,7 +1276,7 @@ _COST_DEFAULT_PRICES = {
 
 
 def _cost_load_prices() -> dict[str, dict[str, float]]:
-    """加载模型价格配置"""
+    """Model fiyat yapılandırmasını yükle"""
     if _COST_PRICES_FILE.exists():
         try:
             with open(_COST_PRICES_FILE, encoding="utf-8") as f:
@@ -1288,7 +1288,7 @@ def _cost_load_prices() -> dict[str, dict[str, float]]:
 
 
 def _cost_load_usage_data() -> list[dict[str, Any]]:
-    """加载使用记录"""
+    """Kullanım kayıtlarını yükle"""
     if _COST_USAGE_FILE.exists():
         try:
             with open(_COST_USAGE_FILE, encoding="utf-8") as f:
@@ -1299,7 +1299,7 @@ def _cost_load_usage_data() -> list[dict[str, Any]]:
 
 
 def _cost_calculate_cost(model: str, prompt_tokens: int, completion_tokens: int) -> float:
-    """计算单次调用成本"""
+    """Arama başına maliyeti hesaplayın"""
     prices = _cost_load_prices()
     model_lower = model.lower()
 
@@ -1315,7 +1315,7 @@ def _cost_calculate_cost(model: str, prompt_tokens: int, completion_tokens: int)
 
 
 def _cost_format_datetime(dt_str: str) -> str:
-    """格式化日期时间"""
+    """Tarih saatini biçimlendir"""
     try:
         dt = datetime.fromisoformat(dt_str)
         return dt.strftime("%Y-%m-%d %H:%M")
@@ -1324,7 +1324,7 @@ def _cost_format_datetime(dt_str: str) -> str:
 
 
 def _cost_format_cost(cost: float) -> str:
-    """格式化成本显示"""
+    """Maliyet gösterimini biçimlendir"""
     if cost == 0:
         return "Free"
     elif cost < 0.01:
@@ -1334,7 +1334,7 @@ def _cost_format_cost(cost: float) -> str:
 
 
 def _cost_list_models(optimizer) -> None:
-    """列出所有可用模型"""
+    """Mevcut tüm modelleri listele"""
     models = optimizer.get_all_models()
     by_provider: dict = {}
     for m in models:

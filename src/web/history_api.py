@@ -5,10 +5,10 @@ import os
 from typing import Optional
 
 """
-Web UI 增强模块
-- 任务历史界面
-- Agent 状态面板
-- 实时进度增强
+Web UI geliştirme modülü
+- Görev geçmişi arayüzü
+- Agent durum paneli
+- Gerçek zamanlı ilerleme geliştirmesi
 """
 
 import asyncio
@@ -21,7 +21,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 # ========================================
-# API Token 校验（IDOR 修复）
+# API Token doğrulama (IDOR düzeltmesi)
 # ========================================
 API_TOKEN = os.environ.get("OMC_API_TOKEN")
 security = HTTPBearer(auto_error=False)
@@ -30,9 +30,9 @@ security = HTTPBearer(auto_error=False)
 async def verify_api_token(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[str]:
-    """验证 API Token，未配置 token 时允许操作"""
+    """API Token doğrula, token yapılandırılmamışsa işleme izin ver"""
     if not API_TOKEN:
-        return None  # 未配置 token，允许操作
+        return None  # token yapılandırılmamış, işleme izin ver
 
     if not credentials or credentials.credentials != API_TOKEN:
         raise HTTPException(status_code=401, detail="Invalid API token")
@@ -40,16 +40,16 @@ async def verify_api_token(
     return credentials.credentials
 
 
-# 创建路由器
+# Router oluştur
 history_router = APIRouter(prefix="/api/history", tags=["history"])
 agent_router = APIRouter(prefix="/api/agents", tags=["agents"])
 
 
 # ========================================
-# 历史记录存储
+# Geçmiş kayıt deposu
 # ========================================
 class HistoryStore:
-    """历史记录存储"""
+    """Geçmiş kayıt deposu"""
 
     def __init__(self, storage_dir: Optional[Path] = None):
         self.storage_dir = storage_dir or Path(".omc/history")
@@ -57,17 +57,17 @@ class HistoryStore:
         self._cache: dict[str, dict] = {}
 
     def save(self, task_id: str, record: dict) -> None:
-        """保存历史记录"""
+        """Geçmiş kaydını kaydet"""
         record["saved_at"] = datetime.now().isoformat()
         self._cache[task_id] = record
 
-        # 持久化到文件
+        # Dosyaya kalıcı olarak kaydet
         file_path = self.storage_dir / f"{task_id}.json"
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(record, f, ensure_ascii=False, indent=2)
 
     def load(self, task_id: str) -> Optional[dict]:
-        """加载历史记录"""
+        """Geçmiş kaydını yükle"""
         if task_id in self._cache:
             return self._cache[task_id]
 
@@ -90,14 +90,14 @@ class HistoryStore:
         status: Optional[str] = None,
         workflow: Optional[str] = None,
     ) -> list[dict]:
-        """列出所有历史记录"""
+        """Tüm geçmiş kayıtlarını listele"""
         records = []
 
         for file_path in self.storage_dir.glob("*.json"):
             try:
                 record = self.load(file_path.stem)
                 if record:
-                    # 过滤
+                    # Filtrele
                     if status and record.get("status") != status:
                         continue
                     if workflow and record.get("workflow") != workflow:
@@ -106,12 +106,12 @@ class HistoryStore:
             except Exception:
                 continue
 
-        # 按时间排序
+        # Tarihe göre sırala
         records.sort(key=lambda x: x.get("started_at", ""), reverse=True)
         return records[offset : offset + limit]
 
     def delete(self, task_id: str) -> bool:
-        """删除历史记录"""
+        """Geçmiş kaydını sil"""
         file_path = self.storage_dir / f"{task_id}.json"
         if file_path.exists():
             file_path.unlink()
@@ -120,7 +120,7 @@ class HistoryStore:
         return True
 
     def get_stats(self) -> dict:
-        """获取统计信息"""
+        """İstatistik bilgilerini al"""
         all_records = self.list_all(limit=1000)
 
         total_tasks = len(all_records)
@@ -151,7 +151,7 @@ history_store = HistoryStore()
 
 
 # ========================================
-# 历史记录 API
+# Geçmiş kayıt API
 # ========================================
 @history_router.get("")
 async def list_history(
@@ -160,7 +160,7 @@ async def list_history(
     status: Optional[str] = Query(default=None),
     workflow: Optional[str] = Query(default=None),
 ):
-    """获取历史记录列表"""
+    """Geçmiş kayıt listesini al"""
     records = history_store.list_all(
         limit=limit,
         offset=offset,
@@ -184,7 +184,7 @@ async def list_history(
 
 @history_router.get("/{task_id}")
 async def get_history_detail(task_id: str):
-    """获取历史记录详情"""
+    """Geçmiş kayıt detayını al"""
     record = history_store.load(task_id)
     if not record:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -196,17 +196,17 @@ async def delete_history(
     task_id: str,
     token: Optional[str] = Depends(verify_api_token),
 ):
-    """删除历史记录（需要 API token 校验）"""
+    """Geçmiş kaydını sil (API token doğrulaması gerekir)"""
     success = history_store.delete(task_id)
     return JSONResponse({"success": success})
 
 
 @history_router.get("/stats/summary")
 async def get_history_stats():
-    """获取历史统计摘要"""
+    """Geçmiş istatistik özetini al"""
     stats = history_store.get_stats()
 
-    # 按工作流分组统计
+    # İş akışına göre gruplandırılmış istatistikler
     all_records = history_store.list_all(limit=1000)
     workflow_stats = {}
     for record in all_records:
@@ -224,17 +224,17 @@ async def get_history_stats():
 
 
 # ========================================
-# Agent 状态管理
+# Agent durum yönetimi
 # ========================================
 class AgentStatusManager:
-    """Agent 状态管理器"""
+    """Agent durum yöneticisi"""
 
     def __init__(self):
         self._agents: dict[str, dict] = {}
         self._status_subscribers: list[asyncio.Queue] = []
 
     def register_agent(self, name: str, info: dict) -> None:
-        """注册 Agent"""
+        """Agent kaydet"""
         self._agents[name] = {
             "name": name,
             "status": "idle",
@@ -250,7 +250,7 @@ class AgentStatusManager:
         task: Optional[str] = None,
         progress: Optional[float] = None,
     ) -> None:
-        """更新 Agent 状态"""
+        """Agent durumunu güncelle"""
         if name in self._agents:
             self._agents[name]["status"] = status
             self._agents[name]["current_task"] = task
@@ -258,25 +258,25 @@ class AgentStatusManager:
             if progress is not None:
                 self._agents[name]["progress"] = progress
 
-            # 通知订阅者
+            # Abonelere bildir
             self._notify_subscribers(name)
 
     def get_agent(self, name: str) -> Optional[dict]:
-        """获取 Agent 状态"""
+        """Agent durumunu al"""
         return self._agents.get(name)
 
     def get_all(self) -> list[dict]:
-        """获取所有 Agent 状态"""
+        """Tüm Agent durumlarını al"""
         return list(self._agents.values())
 
     def subscribe(self) -> asyncio.Queue:
-        """订阅状态变化"""
+        """Durum değişikliklerine abone ol"""
         queue: asyncio.Queue = asyncio.Queue()
         self._status_subscribers.append(queue)
         return queue
 
     def _notify_subscribers(self, agent_name: str) -> None:
-        """通知所有订阅者"""
+        """Tüm abonelere bildirim gönder"""
         agent = self._agents.get(agent_name)
         if agent:
             for queue in self._status_subscribers:
@@ -289,12 +289,12 @@ class AgentStatusManager:
                         }
                     )
                 except asyncio.QueueFull:
-                    pass  # 队列满，跳过
+                    pass  # Kuyruk dolu, atla
 
 
 agent_status_manager = AgentStatusManager()
 
-# 注册默认 Agents
+# Varsayılan Agent'ları kaydet
 DEFAULT_AGENTS = [
     {"name": "Planner", "channel": "BUILD", "level": "MEDIUM"},
     {"name": "Architect", "channel": "BUILD", "level": "HIGH"},
@@ -318,17 +318,17 @@ for agent_info in DEFAULT_AGENTS:
 
 
 # ========================================
-# Agent 状态 API
+# Agent durum API
 # ========================================
 @agent_router.get("")
 async def list_agents():
-    """获取所有 Agent 状态"""
+    """Tüm Agent durumlarını al"""
     return JSONResponse({"agents": agent_status_manager.get_all()})
 
 
 @agent_router.get("/{agent_name}")
 async def get_agent_status(agent_name: str):
-    """获取单个 Agent 状态"""
+    """Tek bir Agent durumunu al"""
     agent = agent_status_manager.get_agent(agent_name)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -337,7 +337,7 @@ async def get_agent_status(agent_name: str):
 
 @agent_router.get("/sse/status")
 async def agent_status_sse():
-    """SSE 流式推送 Agent 状态变化"""
+    """SSE akışı ile Agent durum değişikliklerini gönder"""
     from fastapi.responses import StreamingResponse
 
     queue = agent_status_manager.subscribe()
@@ -348,7 +348,7 @@ async def agent_status_sse():
                 data = await asyncio.wait_for(queue.get(), timeout=30.0)
                 yield f"data: {json.dumps(data)}\n\n"
             except TimeoutError:
-                # 发送心跳
+                # Kalp atışı gönder
                 yield ": heartbeat\n\n"
 
     return StreamingResponse(

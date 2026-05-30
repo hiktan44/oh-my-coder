@@ -1,13 +1,13 @@
 """
-Verifier Agent - 验证智能体
+Verifier Agent - Temsilciyi doğrula
 
-职责：
-1. 验证代码功能正确性
-2. 检查测试覆盖率
-3. 运行测试套件
-4. 确认任务完成
+Sorumluluklar:
+1. Kodun işlevsel doğruluğunu doğrulayın
+2. Test kapsamını kontrol edin
+3. Test paketini çalıştırın
+4. Görevin tamamlandığını onayla
 
-模型层级：MEDIUM（平衡，对应 sonnet）
+Modeli seviyesi:MEDIUM(denge, yazışma sonnet)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class VerifierAgent(BaseAgent):
-    """验证 Agent - 确保代码质量和功能正确"""
+    """doğrulamak Agent - Kod kalitesinin ve işlevselliğinin doğru olduğundan emin olun"""
 
     name = "verifier"
-    description = "验证智能体 - 检查功能正确性和测试覆盖"
+    description = "Temsilciyi doğrula - İşlevsel doğruluğu ve test kapsamını kontrol edin"
     lane = AgentLane.BUILD_ANALYSIS
     default_tier = "medium"
     icon = "✅"
@@ -34,80 +34,80 @@ class VerifierAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个严谨的质量保证工程师。
+        return """Siz ciddi bir kalite güvence mühendisisiniz.
 
-## 角色
-你的职责是验证代码是否正确实现了需求，确保质量达标。
+## Rol
+Sizin sorumluluğunuz, kodun gereksinimleri doğru bir şekilde uyguladığını doğrulamak ve kalitenin standartlara uygun olmasını sağlamaktır.
 
-## 能力
-1. 功能验证 - 运行测试，检查结果
-2. 覆盖率检查 - 确保测试充分
-3. 集成测试 - 端到端验证
-4. 回归检查 - 确保没有破坏现有功能
+## yetenek
+1. İşlevsel doğrulama - Testi çalıştırın ve sonuçları kontrol edin
+2. kapsam kontrolü - Testin yeterli olduğundan emin olun
+3. Entegrasyon testi - Uçtan uca doğrulama
+4. regresyon kontrolü - Mevcut işlevselliği bozmadığınızdan emin olun
 
-## 验证标准
-- ✅ BUILD: 代码编译通过
-- ✅ TEST: 所有测试通过
-- ✅ LINT: 无 lint 错误
-- ✅ FUNCTIONALITY: 功能按预期工作
-- ✅ NO_TODO: 无遗留 TODO
-- ✅ ERROR_FREE: 无未解决错误
+## Doğrulama standartları
+- ✅ BUILD: Kod derlendi ve aktarıldı
+- ✅ TEST: Tüm testler geçti
+- ✅ LINT: hiçbiri lint hata
+- ✅ FUNCTIONALITY: İşlev beklendiği gibi çalışıyor
+- ✅ NO_TODO: Miras yok TODO
+- ✅ ERROR_FREE: Çözülmemiş hata yok
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 验证结果
-| 检查项 | 状态 | 说明 |
+### 1. Doğrulama sonuçları
+| Öğeleri kontrol et | durum | göstermek |
 |--------|------|------|
 | BUILD | ✅/❌ | ... |
 | TEST | ✅/❌ | ... |
 
-### 2. 测试覆盖
-- 总测试数: X
-- 通过: X
-- 失败: X
-- 覆盖率: X%
+### 2. test kapsamı
+- Toplam test sayısı: X
+- geçmek: X
+- hata: X
+- Kapsam: X%
 
-### 3. 发现的问题
-- 问题1: ...
-- 问题2: ...
+### 3. Bulunan sorunlar
+- soru1: ...
+- soru2: ...
 
-### 4. 建议
+### 4. telkin
 - ...
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行验证"""
-        # 添加前序输出
+        """Doğrulamayı gerçekleştir"""
+        # Ön sipariş çıktısı ekle
         if context.previous_outputs.get("executor"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 实现代码\n{context.previous_outputs['executor'].result}",
+                    "content": f"## Kodu uygulama\n{context.previous_outputs['executor'].result}",
                 }
             )
 
-        # 读取测试文件
+        # Test dosyasını oku
         test_dir = context.project_path / "tests"
         if test_dir.exists():
             test_files = list(test_dir.glob("test_*.py"))
             if test_files:
-                tests_info = f"## 现有测试\n共 {len(test_files)} 个测试文件"
+                tests_info = f"## Mevcut testler\nyaygın {len(test_files)} test dosyaları"
                 prompt.append({"role": "user", "content": tests_info})
 
-        # 验证提示
+        # Doğrulama istemi
         verify_hint = """
 
-请验证实现是否正确：
-1. 代码是否能编译/运行？
-2. 测试是否通过？
-3. 功能是否符合需求？
-4. 是否有遗漏的边界情况？
+Lütfen uygulamanın doğru olduğunu doğrulayın:
+1. Kod derlenebilir mi?/koşmak?
+2. Test geçti mi?
+3. Fonksiyon ihtiyaçları karşılıyor mu?
+4. Gözden kaçan uç durumlar var mı?
 """
         prompt.append({"role": "user", "content": verify_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -120,12 +120,12 @@ class VerifierAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "如果验证通过，可以提交代码",
-                "如果验证失败，返回 executor 修复",
+                "Doğrulama başarılı olursa kodu gönderebilirsiniz",
+                "Doğrulama başarısız olursa geri dönün executor tamirat",
             ],
         )

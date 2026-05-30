@@ -1,14 +1,14 @@
 """
-插件系统
+eklentisistem
 
-支持第三方 Agent 插件的动态加载和管理。
+destekinciucyon Agent eklentidinamikyukleveyonet. 
 
-核心组件:
-- registry: 插件注册表，@register 装饰器
-- loader:   插件加载器，依赖排序加载
+cekirdekgrupogre:
+- registry: eklentikayittablo, @register dekoratif
+- loader:   eklentiyukle, bagimliliksiralayukle
 
-示例插件:
-- example_plugin: 示例插件
+ornekeklenti:
+- example_plugin: ornekeklenti
 """
 
 from src.plugins.loader import PluginLoader, get_loader
@@ -35,9 +35,9 @@ __all__ = [
 ]
 
 
-# 自动发现并加载内置插件（供 main.py 调用）
+# otomatikkesfetveyukleicindeayareklenti (saglar main.py cagri) 
 def discover_and_load() -> list[str]:
-    """发现所有内置插件并按依赖顺序加载，返回成功加载的插件名列表"""
+    """kesfetvaricindeayareklentivegorebagimliliksirayukle, donusbasariliyukleeklentiisimliste"""
     loader = get_loader()
     loader.discover()
     return loader.load_all()

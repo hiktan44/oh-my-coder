@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 """
-仪表板 API
+Gösterge paneli API
 
-提供项目统计和概览数据。
+Proje istatistiklerini ve genel bakış verilerini sağlar.
 """
 
 from datetime import datetime
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 
 class DashboardStats(BaseModel):
-    """仪表板统计数据"""
+    """Gösterge paneli istatistik verileri"""
 
     total_tasks: int
     completed_tasks: int
@@ -33,7 +33,7 @@ class DashboardStats(BaseModel):
 
 
 class ActivityData(BaseModel):
-    """活动数据"""
+    """Etkinlik verileri"""
 
     day: str
     tasks: int
@@ -41,7 +41,7 @@ class ActivityData(BaseModel):
 
 
 class AgentStatus(BaseModel):
-    """Agent 状态"""
+    """Agent durumu"""
 
     name: str
     status: str  # idle, running, error
@@ -50,7 +50,7 @@ class AgentStatus(BaseModel):
 
 
 class RecentTask(BaseModel):
-    """最近任务"""
+    """Son görev"""
 
     task_id: str
     task: str
@@ -62,16 +62,16 @@ class RecentTask(BaseModel):
     execution_time: Optional[float] = None
 
 
-# 模拟数据存储
+# Sahte veri deposu
 _stats_cache: dict[str, Any] = {}
 _activity_cache: list[ActivityData] = []
 _stats_cache_time: float = 0.0
 
 
 def _get_real_stats(days: int = 7) -> DashboardStats:
-    """从 .omc/state/ 目录读取真实工作流数据统计
+    """.omc/state/ dizininden gerçek iş akışı veri istatistiklerini oku
 
-    优先使用缓存（5 分钟有效），减少磁盘 IO。
+    Disk IO'sunu azaltmak için öncelikli olarak önbelleği kullanır (5 dakika geçerli).
     """
     global _stats_cache, _stats_cache_time
     import json
@@ -135,7 +135,7 @@ def _get_real_stats(days: int = 7) -> DashboardStats:
 
 
 def _get_real_activity(days: int = 7) -> list[ActivityData]:
-    """从 .omc/state/ 读取最近 days 天的每日工作流活动数据"""
+    """.omc/state/ dizininden son days günün günlük iş akışı etkinlik verilerini oku"""
     global _activity_cache, _stats_cache, _stats_cache_time
     import json
     import time
@@ -165,7 +165,7 @@ def _get_real_activity(days: int = 7) -> list[ActivityData]:
             except Exception:
                 pass
 
-    # 填充最近 days 天
+    # Son days günü doldur
     result = []
     for i in range(days, 0, -1):
         day_str = (
@@ -187,7 +187,7 @@ def _get_real_activity(days: int = 7) -> list[ActivityData]:
 
 
 def _build_mock_activity(days: int) -> list[ActivityData]:
-    """兜底：返回空活动数据"""
+    """Yedek: boş etkinlik verileri döndür"""
     return [
         ActivityData(
             day=(
@@ -201,26 +201,26 @@ def _build_mock_activity(days: int) -> list[ActivityData]:
     ]
 
 
-# 保留旧函数名用于兼容，直接替换为真实实现
+# Uyumluluk için eski işlev adı korunur, doğrudan gerçek uygulamayla değiştirildi
 def _get_mock_stats() -> DashboardStats:
-    """获取统计数据（现已从真实文件读取，7 天窗口）"""
+    """İstatistik verilerini al (artık gerçek dosyadan okunur, 7 günlük pencere)"""
     return _get_real_stats(7)
 
 
 def _get_mock_activity() -> list[ActivityData]:
-    """获取活动数据（现已从真实文件读取，7 天窗口）"""
+    """Etkinlik verilerini al (artık gerçek dosyadan okunur, 7 günlük pencere)"""
     return _get_real_activity(7)
 
 
 def _get_mock_agents() -> list[AgentStatus]:
-    """获取模拟 Agent 状态"""
+    """Sahte Agent durumlarını al"""
     return [
         AgentStatus(name="Planner", status="idle", total_executions=45),
         AgentStatus(name="Architect", status="idle", total_executions=32),
         AgentStatus(
             name="Executor",
             status="running",
-            current_task="生成代码",
+            current_task="Kod üretiliyor",
             total_executions=89,
         ),
         AgentStatus(name="Verifier", status="idle", total_executions=67),
@@ -229,18 +229,18 @@ def _get_mock_agents() -> list[AgentStatus]:
         AgentStatus(
             name="Writer",
             status="running",
-            current_task="生成文档",
+            current_task="Belge üretiliyor",
             total_executions=23,
         ),
     ]
 
 
 def _get_mock_recent_tasks() -> list[RecentTask]:
-    """获取模拟最近任务"""
+    """Sahte son görevleri al"""
     return [
         RecentTask(
             task_id="task-001",
-            task="实现用户登录功能",
+            task="Kullanıcı giriş işlevini uygula",
             workflow="build",
             model="deepseek",
             status="completed",
@@ -250,7 +250,7 @@ def _get_mock_recent_tasks() -> list[RecentTask]:
         ),
         RecentTask(
             task_id="task-002",
-            task="生成 API 文档",
+            task="API belgesi üret",
             workflow="document",
             model="tongyi",
             status="running",
@@ -258,7 +258,7 @@ def _get_mock_recent_tasks() -> list[RecentTask]:
         ),
         RecentTask(
             task_id="task-003",
-            task="代码审查 PR #42",
+            task="PR #42 kod incelemesi",
             workflow="review",
             model="wenxin",
             status="completed",
@@ -268,7 +268,7 @@ def _get_mock_recent_tasks() -> list[RecentTask]:
         ),
         RecentTask(
             task_id="task-004",
-            task="修复数据库连接问题",
+            task="Veritabanı bağlantı sorununu düzelt",
             workflow="debug",
             model="kimi",
             status="failed",
@@ -281,27 +281,27 @@ def _get_mock_recent_tasks() -> list[RecentTask]:
 
 @router.get("/stats", response_model=DashboardStats)
 async def get_dashboard_stats(
-    days: int = Query(7, ge=1, le=30, description="统计周期（天）"),
+    days: int = Query(7, ge=1, le=30, description="İstatistik dönemi (gün)"),
 ) -> DashboardStats:
     """
-    获取仪表板统计数据。数据从 .omc/state/ 读取，5分钟缓存。
+    Gösterge paneli istatistik verilerini al. Veriler .omc/state/ dizininden okunur, 5 dakika önbelleklenir.
     """
     return _get_real_stats(days)
 
 
 @router.get("/activity", response_model=list[ActivityData])
 async def get_activity_data(days: int = Query(7, ge=1, le=30)) -> list[ActivityData]:
-    """获取活动数据。数据从 .omc/state/ 读取。"""
+    """Etkinlik verilerini al. Veriler .omc/state/ dizininden okunur."""
     return _get_real_activity(days)
 
 
 @router.get("/agents", response_model=list[AgentStatus])
 async def get_agent_status() -> list[AgentStatus]:
     """
-    获取所有 Agent 状态
+    Tüm Agent durumlarını al
 
     Returns:
-        Agent 状态列表
+        Agent durum listesi
     """
     return _get_mock_agents()
 
@@ -309,13 +309,13 @@ async def get_agent_status() -> list[AgentStatus]:
 @router.get("/recent-tasks", response_model=list[RecentTask])
 async def get_recent_tasks(limit: int = Query(10, ge=1, le=50)) -> list[RecentTask]:
     """
-    获取最近任务
+    Son görevleri al
 
     Args:
-        limit: 返回数量
+        limit: Döndürülecek miktar
 
     Returns:
-        最近任务列表
+        Son görev listesi
     """
     return _get_mock_recent_tasks()[:limit]
 
@@ -323,10 +323,10 @@ async def get_recent_tasks(limit: int = Query(10, ge=1, le=50)) -> list[RecentTa
 @router.get("/overview")
 async def get_overview() -> dict[str, Any]:
     """
-    获取完整仪表板概览
+    Eksiksiz gösterge paneli genel bakışını al
 
     Returns:
-        所有仪表板数据
+        Tüm gösterge paneli verileri
     """
     return {
         "stats": _get_mock_stats().model_dump(),

@@ -10,9 +10,9 @@ import urllib.request
 from typing import Optional
 
 """
-Quest 通知系统
+Quest bildirimsistem
 
-支持桌面通知（macOS/Windows）和钉钉 Webhook。
+destekmasayuzbildirim (macOS/Windows) veDingTalk Webhook. 
 """
 
 import json
@@ -28,22 +28,22 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================
-# 通知渠道抽象
+# bildirimkanalceknesne
 # ============================================================
 
 
 class NotificationChannel:
-    """通知渠道基类"""
+    """bildirimkanaltemel sinif"""
 
     name: str = "base"
 
     def send(self, title: str, body: str, level: str = "info") -> bool:
-        """发送通知，返回是否成功"""
+        """gondergonderbildirim, donusbasarili mi"""
         raise NotImplementedError
 
 
 class MacOSNotificationChannel(NotificationChannel):
-    """macOS 桌面通知（使用 osascript）"""
+    """macOS masayuzbildirim (kullan osascript) """
 
     name = "macos"
 
@@ -63,7 +63,7 @@ class MacOSNotificationChannel(NotificationChannel):
 
 
 class WindowsNotificationChannel(NotificationChannel):
-    """Windows 桌面通知（使用 PowerShell）"""
+    """Windows masayuzbildirim (kullan PowerShell) """
 
     name = "windows"
 
@@ -91,7 +91,7 @@ class WindowsNotificationChannel(NotificationChannel):
 
 
 class DingTalkNotificationChannel(NotificationChannel):
-    """钉钉自定义机器人 Webhook"""
+    """DingTalkozelmakinekisi Webhook"""
 
     name = "dingtalk"
 
@@ -104,7 +104,7 @@ class DingTalkNotificationChannel(NotificationChannel):
             return False
 
         try:
-            # 钉钉签名
+            # DingTalkimzaisim
             if self.secret:
                 timestamp = str(round(time.time() * 1000))
                 secret_enc = self.secret.encode("utf-8")
@@ -120,7 +120,7 @@ class DingTalkNotificationChannel(NotificationChannel):
             else:
                 url = self.webhook_url
 
-            # Markdown 格式
+            # Markdown format
             emoji = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "🚨"}.get(
                 level, "ℹ️"
             )
@@ -147,7 +147,7 @@ class DingTalkNotificationChannel(NotificationChannel):
 
 
 class TelegramNotificationChannel(NotificationChannel):
-    """Telegram Bot API 通知"""
+    """Telegram Bot API bildirim"""
 
     name = "telegram"
 
@@ -187,7 +187,7 @@ class TelegramNotificationChannel(NotificationChannel):
 
 
 class DiscordNotificationChannel(NotificationChannel):
-    """Discord Webhook 通知"""
+    """Discord Webhook bildirim"""
 
     name = "discord"
 
@@ -200,10 +200,10 @@ class DiscordNotificationChannel(NotificationChannel):
 
         try:
             color_map = {
-                "info": 3447003,  # 蓝色
-                "success": 3066993,  # 绿色
-                "warning": 16761527,  # 橙色
-                "error": 15158332,  # 红色
+                "info": 3447003,  # mavirenk
+                "success": 3066993,  # yesilrenk
+                "warning": 16761527,  # turuncurenk
+                "error": 15158332,  # kirmizirenk
             }
             color = color_map.get(level, 3447003)
             payload = {
@@ -232,7 +232,7 @@ class DiscordNotificationChannel(NotificationChannel):
 
 
 class SlackNotificationChannel(NotificationChannel):
-    """Slack Incoming Webhook 通知"""
+    """Slack Incoming Webhook bildirim"""
 
     name = "slack"
 
@@ -289,7 +289,7 @@ class SlackNotificationChannel(NotificationChannel):
 
 
 class TeamsNotificationChannel(NotificationChannel):
-    """Microsoft Teams Incoming Webhook 通知"""
+    """Microsoft Teams Incoming Webhook bildirim"""
 
     name = "teams"
 
@@ -360,7 +360,7 @@ class TeamsNotificationChannel(NotificationChannel):
 
 
 class FeishuNotificationChannel(NotificationChannel):
-    """飞书（Lark）自定义机器人 Webhook 通知"""
+    """Feishu (Lark) ozelmakinekisi Webhook bildirim"""
 
     name = "feishu"
 
@@ -411,7 +411,7 @@ class FeishuNotificationChannel(NotificationChannel):
 
 
 class WeComNotificationChannel(NotificationChannel):
-    """企业微信 Webhook 通知"""
+    """WeCom Webhook bildirim"""
 
     name = "wecom"
 
@@ -447,7 +447,7 @@ class WeComNotificationChannel(NotificationChannel):
 
 
 class PushPlusNotificationChannel(NotificationChannel):
-    """PushPlus 微信公众号推送通知"""
+    """PushPlus mikrobilgiortakhalknoitgonderbildirim"""
 
     name = "pushplus"
 
@@ -476,7 +476,7 @@ class PushPlusNotificationChannel(NotificationChannel):
 
 
 class ConsoleNotificationChannel(NotificationChannel):
-    """控制台通知（CLI 实时输出）"""
+    """kontrolplatformbildirim (CLI zamancikti) """
 
     name = "console"
 
@@ -490,15 +490,15 @@ class ConsoleNotificationChannel(NotificationChannel):
 
 
 # ============================================================
-# 通知管理器
+# bildirimyonet
 # ============================================================
 
 
 @dataclass
 class NotificationConfig:
-    """通知配置"""
+    """bildirimyapilandirma"""
 
-    desktop: bool = True  # 桌面通知
+    desktop: bool = True  # masayuzbildirim
     dingtalk_webhook: Optional[str] = None
     dingtalk_secret: Optional[str] = None
     telegram_bot_token: Optional[str] = None
@@ -514,20 +514,20 @@ class NotificationConfig:
 
 class NotificationManager:
     """
-    Quest 通知管理器
+    Quest bildirimyonet
 
-    支持多渠道通知：桌面、钉钉、控制台回调。
+    destekcokkanalbildirim: masayuz, DingTalk, kontrolplatformgeri arama. 
     """
 
     def __init__(self, config: Optional[NotificationConfig] = None):
         self.config = config or NotificationConfig()
         self._channels: list[NotificationChannel] = []
 
-        # 自动检测平台并初始化桌面通知
+        # otomatikalgilamaplatformvebaslatmasayuzbildirim
         if self.config.desktop:
             self._init_desktop_channel()
 
-        # 钉钉
+        # DingTalk
         if self.config.dingtalk_webhook:
             self._channels.append(
                 DingTalkNotificationChannel(
@@ -563,13 +563,13 @@ class NotificationManager:
                 TeamsNotificationChannel(webhook_url=self.config.teams_webhook)
             )
 
-        # 飞书
+        # Feishu
         if self.config.feishu_webhook:
             self._channels.append(
                 FeishuNotificationChannel(webhook_url=self.config.feishu_webhook)
             )
 
-        # 企业微信
+        # WeCom
         if self.config.wecom_webhook:
             self._channels.append(
                 WeComNotificationChannel(webhook_url=self.config.wecom_webhook)
@@ -581,26 +581,26 @@ class NotificationManager:
                 PushPlusNotificationChannel(token=self.config.pushplus_token)
             )
 
-        # 控制台
+        # kontrolplatform
         if self.config.console_callback:
             self._channels.append(
                 ConsoleNotificationChannel(callback=self.config.console_callback)
             )
 
-        # 如果没有任何渠道，至少加一个 console channel
+        # egeryokvargorevnekanal, kadarazeklebir console channel
         if not self._channels:
             self._channels.append(ConsoleNotificationChannel())
 
     def _init_desktop_channel(self) -> None:
-        """根据操作系统初始化桌面通知"""
+        """goreislemsistembaslatmasayuzbildirim"""
         if sys.platform == "darwin":
             self._channels.append(MacOSNotificationChannel())
         elif sys.platform == "win32":
             self._channels.append(WindowsNotificationChannel())
-        # Linux 可以扩展（notify-send 等）
+        # Linux olabilirilegenislet (notify-send vb.) 
 
     def _level_from_event(self, event: str) -> str:
-        """从事件类型判断通知级别"""
+        """olaytipkarar verbildirimseviye"""
         level_map = {
             "started": "info",
             "spec_ready": "info",
@@ -621,7 +621,7 @@ class NotificationManager:
         event: Optional[str] = None,
         quest_id: Optional[str] = None,
     ) -> None:
-        """发送通知到所有已配置的渠道"""
+        """gondergonderbildirimkadarvaryapilandirmakanal"""
         level = self._level_from_event(event) if event else "info"
 
         for channel in self._channels:
@@ -631,51 +631,51 @@ class NotificationManager:
                 logger.warning(f"Channel {channel.name} failed: {e}")
 
     # ============================================================
-    # 便捷方法
+    # kullanisliyontem
     # ============================================================
 
     def notify_started(self, quest_title: str, quest_id: str) -> None:
-        self.send("🧙 Quest 已启动", quest_title, "started", quest_id)
+        self.send("🧙 Quest baslat", quest_title, "started", quest_id)
 
     def notify_spec_ready(self, quest_title: str, quest_id: str) -> None:
         self.send(
-            "📋 SPEC 已生成",
-            f"Quest [{quest_id[:8]}] {quest_title}\n请审查并确认执行",
+            "📋 SPEC olustur",
+            f"Quest [{quest_id[:8]}] {quest_title}\nlutfenincelemeveonaylayurut",
             "spec_ready",
             quest_id,
         )
 
     def notify_step_completed(self, step_title: str, quest_id: str) -> None:
-        self.send("✅ 步骤完成", step_title, "step_completed", quest_id)
+        self.send("✅ adimtamamla", step_title, "step_completed", quest_id)
 
     def notify_step_failed(self, step_title: str, error: str, quest_id: str) -> None:
-        self.send("⚠️ 步骤失败", f"{step_title}\n{error}", "failed", quest_id)
+        self.send("⚠️ adimbasarisiz", f"{step_title}\n{error}", "failed", quest_id)
 
     def notify_completed(self, quest_title: str, summary: str, quest_id: str) -> None:
-        self.send("🎉 Quest 完成！", f"{quest_title}\n{summary}", "completed", quest_id)
+        self.send("🎉 Quest tamamla! ", f"{quest_title}\n{summary}", "completed", quest_id)
 
     def notify_failed(self, quest_title: str, error: str, quest_id: str) -> None:
-        self.send("❌ Quest 失败", f"{quest_title}\n{error}", "failed", quest_id)
+        self.send("❌ Quest basarisiz", f"{quest_title}\n{error}", "failed", quest_id)
 
     def notify_waiting_input(
         self, quest_title: str, message: str, quest_id: str
     ) -> None:
-        self.send("⏸️ 等待输入", f"{quest_title}\n{message}", "waiting_input", quest_id)
+        self.send("⏸️ vb.beklegirdi", f"{quest_title}\n{message}", "waiting_input", quest_id)
 
     def notify_paused(self, quest_title: str, quest_id: str) -> None:
-        self.send("⏸️ Quest 已暂停", quest_title, "paused", quest_id)
+        self.send("⏸️ Quest duraklat", quest_title, "paused", quest_id)
 
     def notify_resumed(self, quest_title: str, quest_id: str) -> None:
-        self.send("▶️ Quest 已恢复", quest_title, "resumed", quest_id)
+        self.send("▶️ Quest kurtar", quest_title, "resumed", quest_id)
 
 
 # ============================================================
-# 辅助函数
+# yardimcifonksiyon
 # ============================================================
 
 
 def _escape_shell(text: str) -> str:
-    """转义 shell 特殊字符"""
+    """donusturanlam shell ozelkarakter"""
     return text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
 
 
@@ -684,7 +684,7 @@ def create_notification_manager(
     dingtalk_webhook: Optional[str] = None,
     dingtalk_secret: Optional[str] = None,
 ) -> NotificationManager:
-    """创建通知管理器（兼容旧 API）"""
+    """olusturbildirimyonet (uyumlueski API) """
     config = NotificationConfig(
         desktop=desktop,
         dingtalk_webhook=dingtalk_webhook,

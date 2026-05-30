@@ -1,7 +1,7 @@
 """
-Capsule - GEP 协议能力包系统
+Capsule - GEP protokolyetenekpaketsistem
 
-实现 EvoMap GEP 协议的数据结构和注册表，支持能力注册、发现和互通。
+uygula EvoMap GEP protokolsayigoreyapivekayittablo, destekyetenekkayit, kesfetvekarsi. 
 """
 
 from .capsule import Capsule as Capsule

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 """
-Checkpoint CLI 命令
+Checkpoint CLIEmir
 
-omc checkpoint --list                      # 列出所有快照
-omc checkpoint --restore <id>             # 回滚到指定快照
-omc checkpoint --diff <id>                 # 查看快照与当前差异
-omc checkpoint --delete <id>               # 删除快照
-omc checkpoint --info <id>                 # 查看快照详情
-omc checkpoint --stats                     # 查看统计
+omc checkpoint --list                      #Tüm anlık görüntüleri listele
+omc checkpoint --restore <id>             #Belirtilen anlık görüntüye geri dönün
+omc checkpoint --diff <id>                 #Anlık görüntü ile geçerli görüntü arasındaki farkları görüntüleme
+omc checkpoint --delete <id>               #Anlık görüntüyü sil
+omc checkpoint --info <id>                 #Anlık görüntü ayrıntılarını görüntüle
+omc checkpoint --stats                     #İstatistikleri görüntüle
 """
 
 
@@ -21,32 +21,32 @@ from rich.table import Table
 from src.core.checkpoint import CheckpointManager
 
 app = typer.Typer(
-    name="checkpoint", help="Checkpoint 快照管理 — 任务开始前自动记录，出问题可一键回滚"
+    name="checkpoint", help="CheckpointAnlık görüntü yönetimi - görev başlamadan önce otomatik olarak kayıt yapın ve herhangi bir sorun oluştuğunda geri alın"
 )
 console = Console()
 
 
 @app.command()
 def list(
-    task_id: str = typer.Option(None, "--task", "-t", help="按任务 ID 过滤"),
-    project_path: Path = typer.Option(Path("."), "--project", "-p", help="项目路径"),
-    limit: int = typer.Option(20, "--limit", "-n", help="返回条数"),
+    task_id: str = typer.Option(None, "--task", "-t", help="göreve göreIDfiltre"),
+    project_path: Path = typer.Option(Path("."), "--project", "-p", help="Proje yolu"),
+    limit: int = typer.Option(20, "--limit", "-n", help="Öğe sayısını döndür"),
 ):
-    """列出所有 Checkpoint"""
+    """hepsini listeleCheckpoint"""
     cm = CheckpointManager(project_path=project_path)
     checkpoints = cm.list(task_id=task_id, limit=limit)
 
     if not checkpoints:
-        console.print("[dim]暂无快照，使用 `omc run` 会自动创建[/dim]")
+        console.print("[dim]Henüz anlık görüntü yok, kullanın`omc run`otomatik olarak oluşturulacak[/dim]")
         raise typer.Exit(0)
 
-    table = Table(title="Checkpoint 列表")
+    table = Table(title="Checkpointliste")
     table.add_column("ID", style="cyan", no_wrap=False)
-    table.add_column("任务", style="green")
-    table.add_column("描述", style="white")
-    table.add_column("文件", style="yellow", justify="right")
-    table.add_column("大小", style="magenta")
-    table.add_column("创建时间", style="dim")
+    table.add_column("Görev", style="green")
+    table.add_column("betimlemek", style="white")
+    table.add_column("belge", style="yellow", justify="right")
+    table.add_column("boyut", style="magenta")
+    table.add_column("yaratılış zamanı", style="dim")
 
     for cp in checkpoints:
         size_kb = cp.get("total_size", 0) // 1024
@@ -62,57 +62,57 @@ def list(
 
     console.print(table)
     console.print(
-        f"\n[dim]共 {len(checkpoints)} 个快照 | 备份位置: ~/.omc/backup/[/dim]"
+        f"\n[dim]yaygın{len(checkpoints)}anlık görüntüler|Yedekleme konumu: ~/.omc/backup/[/dim]"
     )
 
 
 @app.command()
 def restore(
     checkpoint_id: str = typer.Argument(..., help="Checkpoint ID"),
-    project_path: Path = typer.Option(Path("."), "--project", "-p", help="项目路径"),
-    yes: bool = typer.Option(False, "--yes", "-y", help="跳过确认"),
+    project_path: Path = typer.Option(Path("."), "--project", "-p", help="Proje yolu"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Onayı atla"),
 ):
-    """回滚到指定 Checkpoint（恢复前自动备份当前状态）"""
+    """Belirtilen Checkpoint'e geri dön (geri yükleme öncesi mevcut durum otomatik yedeklenir)"""
     cm = CheckpointManager(project_path=project_path)
 
-    # 先获取 checkpoint 信息
+    #İlk siz oluncheckpointbilgi
     cp = cm.get_checkpoint(checkpoint_id)
     if cp is None:
-        console.print(f"[red]❌ 未找到 Checkpoint: {checkpoint_id}[/red]")
+        console.print(f"[red]❌bulunamadıCheckpoint: {checkpoint_id}[/red]")
         raise typer.Exit(1)
 
-    # 确认
+    #onaylamak
     if not yes:
         console.print(
-            f"[yellow]⚠️  将回滚以下 Checkpoint：[/yellow]\n"
+            f"[yellow]⚠️Aşağıdakileri geri alacakCheckpoint:[/yellow]\n"
             f"  ID:      {checkpoint_id}\n"
-            f"  任务:    {cp.task_id}\n"
-            f"  描述:    {cp.description}\n"
-            f"  文件:    {cp.file_count} 个\n"
-            f"\n[yellow]当前工作区的变更文件将自动备份到 ~/.omc/backup/[/yellow]"
+            f"Görev:    {cp.task_id}\n"
+            f"betimlemek:    {cp.description}\n"
+            f"Tüm çocukları listele:    {cp.file_count}bireysel\n"
+            f"\n[yellow]Geçerli çalışma alanındaki değişiklik dosyaları otomatik olarak şuraya yedeklenecek:~/.omc/backup/[/yellow]"
         )
-        confirm = typer.prompt("确认回滚？输入 'yes' 继续", default="no")
+        confirm = typer.prompt("Geri alma onaylansın mı? girmek'yes'devam etmek", default="no")
         if confirm.lower() != "yes":
-            console.print("[dim]已取消[/dim]")
+            console.print("[dim]İptal edildi[/dim]")
             raise typer.Exit(0)
 
     try:
         backup_path = cm.restore(checkpoint_id)
-        console.print("[green]✅ 回滚成功！[/green]")
-        console.print(f"   快照 ID: {checkpoint_id}")
-        console.print(f"   文件数:  {cp.file_count} 个")
-        console.print(f"   当前状态已备份至: {backup_path}")
+        console.print("[green]✅Geri alma başarılı![/green]")
+        console.print(f"Anlık GörüntüID: {checkpoint_id}")
+        console.print(f"Dosya sayısı:  {cp.file_count}bireysel")
+        console.print(f"Mevcut durum şu tarihe kadar yedeklendi:: {backup_path}")
     except Exception as e:
-        console.print(f"[red]❌ 回滚失败: {e}[/red]")
+        console.print(f"[red]❌Geri alma başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
 
 @app.command()
 def diff(
     checkpoint_id: str = typer.Argument(..., help="Checkpoint ID"),
-    project_path: Path = typer.Option(Path("."), "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(Path("."), "--project", "-p", help="Proje yolu"),
 ):
-    """查看 Checkpoint 与当前工作区的差异"""
+    """Kontrol etmekCheckpointMevcut çalışma alanından farklılıklar"""
     cm = CheckpointManager(project_path=project_path)
 
     try:
@@ -129,53 +129,53 @@ def diff(
         + len(diff_result["removed"])
         + len(diff_result["modified"])
     )
-    console.print(f"\n[dim]共 {total_changes} 处变更[/dim]")
+    console.print(f"\n[dim]yaygın{total_changes}her yerde değiş[/dim]")
 
 
 @app.command()
 def delete(
     checkpoint_id: str = typer.Argument(..., help="Checkpoint ID"),
-    project_path: Path = typer.Option(Path("."), "--project", "-p", help="项目路径"),
-    yes: bool = typer.Option(False, "--yes", "-y", help="跳过确认"),
+    project_path: Path = typer.Option(Path("."), "--project", "-p", help="Proje yolu"),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Onayı atla"),
 ):
-    """删除指定 Checkpoint"""
+    """belirtileni silCheckpoint"""
     cm = CheckpointManager(project_path=project_path)
 
     if not cm.delete(checkpoint_id):
-        console.print(f"[red]❌ 未找到 Checkpoint: {checkpoint_id}[/red]")
+        console.print(f"[red]❌bulunamadıCheckpoint: {checkpoint_id}[/red]")
         raise typer.Exit(1)
 
-    console.print(f"[green]✅ 已删除: {checkpoint_id}[/green]")
+    console.print(f"[green]✅Silindi: {checkpoint_id}[/green]")
 
 
 @app.command()
 def info(
     checkpoint_id: str = typer.Argument(..., help="Checkpoint ID"),
-    project_path: Path = typer.Option(Path("."), "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(Path("."), "--project", "-p", help="Proje yolu"),
 ):
-    """查看 Checkpoint 详情"""
+    """Kontrol etmekCheckpointDetaylar"""
     cm = CheckpointManager(project_path=project_path)
 
     cp = cm.get_checkpoint(checkpoint_id)
     if cp is None:
-        console.print(f"[red]❌ 未找到 Checkpoint: {checkpoint_id}[/red]")
+        console.print(f"[red]❌bulunamadıCheckpoint: {checkpoint_id}[/red]")
         raise typer.Exit(1)
 
     from rich.panel import Panel
 
     files = "\n".join(f"  • {e.path} ({e.size} B)" for e in cp.entries[:30])
     if len(cp.entries) > 30:
-        files += f"\n  ... 还有 {len(cp.entries) - 30} 个文件"
+        files += f"\n  ...Ayrıca{len(cp.entries) - 30}dosyalar"
 
     panel = Panel(
         f"[bold]ID:[/bold]       {cp.id}\n"
-        f"[bold]任务:[/bold]     {cp.task_id}\n"
-        f"[bold]描述:[/bold]     {cp.description}\n"
-        f"[bold]创建:[/bold]     {cp.created_at}\n"
-        f"[bold]文件:[/bold]     {cp.file_count} 个\n"
-        f"[bold]大小:[/bold]     {cp.total_size // 1024} KB\n"
-        f"[bold]工作区:[/bold]  {cp.working_dir}\n\n"
-        f"[bold]文件列表:[/bold]\n{files}",
+        f"[bold]Görev:[/bold]     {cp.task_id}\n"
+        f"[bold]betimlemek:[/bold]     {cp.description}\n"
+        f"[bold]yaratmak:[/bold]     {cp.created_at}\n"
+        f"[bold]belge:[/bold]     {cp.file_count}bireysel\n"
+        f"[bold]boyut:[/bold]     {cp.total_size // 1024} KB\n"
+        f"[bold]çalışma alanı:[/bold]  {cp.working_dir}\n\n"
+        f"[bold]Yapılandırma dosyası bütünlüğü (:[/bold]\n{files}",
         title=f"Checkpoint: {checkpoint_id}",
         border_style="cyan",
     )
@@ -184,16 +184,16 @@ def info(
 
 @app.command()
 def stats(
-    project_path: Path = typer.Option(Path("."), "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(Path("."), "--project", "-p", help="Proje yolu"),
 ):
-    """查看 Checkpoint 统计"""
+    """Kontrol etmekCheckpointistatistikler"""
     cm = CheckpointManager(project_path=project_path)
     stats = cm.get_stats()
 
     console.print(
-        f"[bold cyan]Checkpoint 统计[/bold cyan]\n\n"
-        f"  快照数量:  {stats['total_checkpoints']} 个\n"
-        f"  文件总数:  {stats['total_files']} 个\n"
-        f"  总大小:    {stats['total_size_bytes'] // 1024} KB\n"
-        f"\n[dim]备份目录: ~/.omc/backup/[/dim]"
+        f"[bold cyan]Checkpointistatistikler[/bold cyan]\n\n"
+        f"Anlık görüntü sayısı:  {stats['total_checkpoints']}bireysel\n"
+        f"toplam dosya sayısı:  {stats['total_files']}bireysel\n"
+        f"toplam boyut:    {stats['total_size_bytes'] // 1024} KB\n"
+        f"\n[dim]Yedekleme dizini: ~/.omc/backup/[/dim]"
     )

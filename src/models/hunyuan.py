@@ -4,15 +4,15 @@ from __future__ import annotations
 from typing import Optional
 
 """
-腾讯混元 (Hunyuan) 模型适配器
+Tencent Hunyuan (Hunyuan) modeladaptor
 
 API: https://api.hunyuan.cn
-文档: https://cloud.tencent.com/document/product/
+dokumantasyon: https://cloud.tencent.com/document/product/
 
-特点：
-- 腾讯自研大模型
-- 中文理解能力强
-- 支持多模态（文本/图像）
+Ozellikler:
+- Tencentkendiarastirbuyukmodel
+- icindemetinanlayetenekguclu
+- destekcokmodal (metin/resim) 
 """
 
 import hashlib
@@ -32,11 +32,11 @@ from .base import (
     Usage,
 )
 
-# 混元模型配置
+# Hunyuanmodelyapilandirma
 HUNYUAN_MODELS = {
     "low": {
         "name": "hunyuan-standard",
-        "cost_per_1k_prompt": 0.0,  # 可能有免费额度
+        "cost_per_1k_prompt": 0.0,  # olabiliredebilirvarucretsizkotaderece
         "cost_per_1k_completion": 0.0,
     },
     "medium": {
@@ -54,9 +54,9 @@ HUNYUAN_MODELS = {
 
 class HunyuanModel(BaseModel):
     """
-    腾讯混元 (Hunyuan) 模型适配器
+    Tencent Hunyuan (Hunyuan) modeladaptor
 
-    使用腾讯云 TC3-HMAC-SHA256 签名认证
+    kullanTencentbulut TC3-HMAC-SHA256 imzaisimkimlik dogrulama
     base URL: https://api.hunyuan.cn
     """
 
@@ -105,7 +105,7 @@ class HunyuanModel(BaseModel):
     def _sign_tc3(
         self, secret_key: str, date: str, service: str, action: str, payload: str
     ) -> str:
-        """TC3-HMAC-SHA256 签名"""
+        """TC3-HMAC-SHA256 imzaisim"""
 
         def _hmac_sha256(key: bytes, msg: str) -> bytes:
             return hmac.new(key, msg.encode(), hashlib.sha256).digest()
@@ -113,7 +113,7 @@ class HunyuanModel(BaseModel):
         def _sha256(msg: str) -> bytes:
             return hashlib.sha256(msg.encode()).digest()
 
-        # 步骤 1: 拼接规范请求串
+        # adim 1: birlestirbaglannormistekdizi
         http_request_method = "POST"
         http_request_uri = "/"
         http_request_params = ""
@@ -122,7 +122,7 @@ class HunyuanModel(BaseModel):
             f"{_sha256(payload).hexdigest()}\n{_sha256('').hexdigest()}"
         )
 
-        # 步骤 2: 拼接待签名字符串
+        # adim 2: birlestirbaglanbekleimzaisimkarakter dizisi
         algorithm = "TC3-HMAC-SHA256"
         timestamp = int(time.time())
         credential_scope = f"{date}/{service}/tc3_request"
@@ -133,7 +133,7 @@ class HunyuanModel(BaseModel):
             f"{algorithm}\n{timestamp}\n{credential_scope}\n{hashed_canonical_request}"
         )
 
-        # 步骤 3: 计算签名
+        # adim 3: hesaplaimzaisim
         secret_date = _hmac_sha256(("TC3" + secret_key).encode(), date)
         secret_service = _hmac_sha256(secret_date, service)
         secret_signing = _hmac_sha256(secret_service, "tc3_request")
@@ -141,7 +141,7 @@ class HunyuanModel(BaseModel):
             secret_signing, string_to_sign.encode(), hashlib.sha256
         ).hexdigest()
 
-        # 步骤 4: 拼接 Authorization
+        # adim 4: birlestirbaglan Authorization
         return (
             f"{algorithm} "
             f"Credential={self._secret_id}/{credential_scope}, "
@@ -155,9 +155,9 @@ class HunyuanModel(BaseModel):
             item: dict[str, str] = {"role": msg.role, "content": msg.content}
             if msg.name:
                 item["name"] = msg.name
-            if msg.tool_calls:  # assistant 消息的工具调用
+            if msg.tool_calls:  # assistant mesaj aracligicagri
                 item["tool_calls"] = msg.tool_calls  # type: ignore
-            if msg.tool_call_id:  # tool 消息的工具调用 ID
+            if msg.tool_call_id:  # tool mesaj aracligicagri ID
                 item["tool_call_id"] = msg.tool_call_id
             formatted.append(item)
         return formatted
@@ -225,10 +225,10 @@ class HunyuanModel(BaseModel):
             )
 
         except httpx.HTTPStatusError as e:
-            raise HunyuanAPIError(f"混元 API 错误 ({e.response.status_code}): {e}")
+            raise HunyuanAPIError(f"Hunyuan API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise HunyuanAPIError(f"网络请求失败: {e}")
+            raise HunyuanAPIError(f"ag istegibasarisiz: {e}")
 
 
 class HunyuanAPIError(Exception):
-    """腾讯混元 API 错误"""
+    """Tencent Hunyuan API hata"""

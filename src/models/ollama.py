@@ -4,23 +4,23 @@ from __future__ import annotations
 
 
 """
-Ollama 本地模型适配器
+Ollama yerelmodeladaptor
 
-支持 Ollama 本地部署的开源模型（如 Qwen2, Llama3, Mistral 等）。
-零成本、隐私保护、离线可用。
+destek Ollama yerelkisimyerlestirackaynakmodel (ornegin Qwen2, Llama3, Mistral vb.) . 
+sifirol, gizlilikkoru, ayrilsatirolabilirkullan. 
 
-使用方式：
-1. 安装 Ollama: https://ollama.ai/
-2. 拉取模型: ollama pull qwen2:7b
-3. 运行: ollama serve (默认 http://localhost:11434)
-4. 配置: export OLLAMA_BASE_URL=http://localhost:11434
+kullanyontem: 
+1. kurulum Ollama: https://ollama.ai/
+2. cekmodel: ollama pull qwen2:7b
+3. satir: ollama serve (varsayilan http://localhost:11434)
+4. yapilandirma: export OLLAMA_BASE_URL=http://localhost:11434
 
-支持的模型：
-- qwen2:7b / qwen2:72b - 阿里通义千问2
+destekmodel: 
+- qwen2:7b / qwen2:72b - AliTongyi2
 - llama3:8b / llama3:70b - Meta Llama 3
 - mistral:7b - Mistral AI
 - codellama:7b - Meta Code Llama
-- deepseek-coder:6.7b - DeepSeek 代码模型
+- deepseek-coder:6.7b - DeepSeek kodmodel
 """
 
 import json
@@ -40,21 +40,21 @@ from .base import (
     Usage,
 )
 
-# Ollama 默认配置
+# Ollama varsayilanyapilandirma
 OLLAMA_DEFAULT_URL = "http://localhost:11434"
 
-# 常用本地模型列表（按能力分级）
+# sikkullanyerelmodelliste (goreyetenekpuanseviye) 
 OLLAMA_MODELS = {
-    # LOW tier - 快速、轻量
+    # LOW tier - hizlihiz, hafifmiktar
     ModelTier.LOW: [
-        {"name": "qwen2:1.5b", "desc": "通义千问 1.5B", "context": 32768},
+        {"name": "qwen2:1.5b", "desc": "Tongyi 1.5B", "context": 32768},
         {"name": "llama3:8b", "desc": "Llama 3 8B", "context": 8192},
         {"name": "mistral:7b", "desc": "Mistral 7B", "context": 32768},
         {"name": "gemma:7b", "desc": "Google Gemma 7B", "context": 8192},
     ],
-    # MEDIUM tier - 平衡
+    # MEDIUM tier - denge
     ModelTier.MEDIUM: [
-        {"name": "qwen2:7b", "desc": "通义千问 7B", "context": 32768},
+        {"name": "qwen2:7b", "desc": "Tongyi 7B", "context": 32768},
         {"name": "llama3:8b-instruct", "desc": "Llama 3 8B Instruct", "context": 8192},
         {
             "name": "deepseek-coder:6.7b",
@@ -63,16 +63,16 @@ OLLAMA_MODELS = {
         },
         {"name": "codellama:7b", "desc": "Code Llama 7B", "context": 16384},
     ],
-    # HIGH tier - 高质量（需要更多显存）
+    # HIGH tier - yuksekkalitemiktar (gerekisterdahacokgosterkaydet) 
     ModelTier.HIGH: [
-        {"name": "qwen2:72b", "desc": "通义千问 72B", "context": 32768},
+        {"name": "qwen2:72b", "desc": "Tongyi 72B", "context": 32768},
         {"name": "llama3:70b", "desc": "Llama 3 70B", "context": 8192},
         {"name": "deepseek-coder:33b", "desc": "DeepSeek Coder 33B", "context": 16384},
         {"name": "mixtral:8x7b", "desc": "Mixtral 8x7B MoE", "context": 32768},
     ],
 }
 
-# 模型到层级映射（动态生成）
+# modelkadarkatmanseviyeesle (dinamikolustur) 
 _MODEL_TIER_MAP: dict[str, ModelTier] = {}
 for tier, models in OLLAMA_MODELS.items():
     for m in models:
@@ -81,13 +81,13 @@ for tier, models in OLLAMA_MODELS.items():
 
 class OllamaModel(BaseModel):
     """
-    Ollama 本地模型适配器
+    Ollama yerelmodeladaptor
 
-    特点：
-    - 零成本：完全本地运行，无 API 费用
-    - 隐私保护：数据不出本地
-    - 离线可用：无需网络连接
-    - 支持多种开源模型
+    Ozellikler:
+    - sifirol: tamamtumyerelsatir, yok API ucretkullan
+    - gizlilikkoru: sayigorehayiryerel
+    - ayrilsatirolabilirkullan: yokgerekagbaglabaglan
+    - destekcokturackaynakmodel
     """
 
     provider = "ollama"
@@ -100,11 +100,11 @@ class OllamaModel(BaseModel):
     ):
         """
         Args:
-            config: 模型配置
-            tier: 性能层级
-            model_name: Ollama 模型名称（如 qwen2:7b）
+            config: modelyapilandirma
+            tier: performanskatmanseviye
+            model_name: Ollama model adi (ornegin qwen2:7b) 
         """
-        # 设置 Ollama 特定配置
+        # ayarlaayar Ollama ozelyapilandirma
         config.provider = "ollama"
         if config.base_url is None:
             config.base_url = OLLAMA_DEFAULT_URL
@@ -113,7 +113,7 @@ class OllamaModel(BaseModel):
         self.base_url = config.base_url.rstrip("/")
         self._client: Optional[httpx.AsyncClient] = None
 
-        # 推断 tier（仅当传入的是默认 MEDIUM 且模型在映射中时才覆盖）
+        # cikarim tier (sadecene zamaniletgirisdirvarsayilan MEDIUM vemodelicindeesleicindezamanyetenekuzerine yaz) 
         if tier == ModelTier.MEDIUM and model_name in _MODEL_TIER_MAP:
             tier = _MODEL_TIER_MAP[model_name]
 
@@ -121,11 +121,11 @@ class OllamaModel(BaseModel):
 
     @property
     def model_name(self) -> str:
-        """返回实际使用的模型名称"""
+        """donusgercekkullanmodel adi"""
         return self._model_name
 
     async def _get_client(self) -> httpx.AsyncClient:
-        """获取 HTTP 客户端"""
+        """al HTTP istemci"""
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(timeout=self.config.timeout)
         return self._client
@@ -137,14 +137,14 @@ class OllamaModel(BaseModel):
         **kwargs,
     ) -> ModelResponse:
         """
-        调用 Ollama API 生成响应
+        cagri Ollama API olusturyanit
 
-        Ollama API 文档: https://github.com/ollama/ollama/blob/main/docs/api.md
+        Ollama API dokumantasyon: https://github.com/ollama/ollama/blob/main/docs/api.md
         """
         client = await self._get_client()
         start_time = time.time()
 
-        # 转换消息格式
+        # donusturmesajformat
         ollama_messages = []
         for msg in messages:
             item: dict[str, Any] = {"role": msg.role, "content": msg.content}
@@ -154,7 +154,7 @@ class OllamaModel(BaseModel):
                 item["tool_call_id"] = msg.tool_call_id
             ollama_messages.append(item)
 
-        # 构建 Ollama API 请求
+        # olustur Ollama API istek
         payload = {
             "model": self.model_name,
             "messages": ollama_messages,
@@ -178,14 +178,14 @@ class OllamaModel(BaseModel):
             response.raise_for_status()
             data = response.json()
 
-            # 解析响应
+            # ayristiryanit
             content = data.get("message", {}).get("content", "")
             tool_calls = data.get("message", {}).get("tool_calls", [])
             model = data.get("model", self.model_name)
 
-            # Ollama 返回的 token 统计
-            eval_count = data.get("eval_count", 0)  # 生成的 token 数
-            prompt_eval_count = data.get("prompt_eval_count", 0)  # 输入的 token 数
+            # Ollama donus token istatistik
+            eval_count = data.get("eval_count", 0)  # olustur token sayi
+            prompt_eval_count = data.get("prompt_eval_count", 0)  # girdi token sayi
 
             usage = Usage(
                 prompt_tokens=prompt_eval_count,
@@ -212,25 +212,25 @@ class OllamaModel(BaseModel):
 
         except httpx.HTTPStatusError as e:
             raise RuntimeError(
-                f"Ollama API 错误: {e.response.status_code} - {e.response.text}"
+                f"Ollama API hata: {e.response.status_code} - {e.response.text}"
             )
         except httpx.ConnectError:
             raise RuntimeError(
-                f"无法连接到 Ollama 服务 ({self.base_url})，"
-                "请确保 Ollama 已启动：ollama serve"
+                f"yokyontembaglabaglankadar Ollama servis ({self.base_url}), "
+                "lutfensaglar Ollama baslat: ollama serve"
             )
         except Exception as e:
-            raise RuntimeError(f"Ollama 调用失败: {e}")
+            raise RuntimeError(f"Ollama cagribasarisiz: {e}")
 
     async def _generate_stream(
         self,
         messages: list[Message],
         **kwargs,
     ) -> AsyncIterator[str]:
-        """流式生成响应"""
+        """akisolusturyanit"""
         client = await self._get_client()
 
-        # 转换消息格式
+        # donusturmesajformat
         ollama_messages = []
         for msg in messages:
             item: dict[str, Any] = {"role": msg.role, "content": msg.content}
@@ -268,14 +268,14 @@ class OllamaModel(BaseModel):
                             continue
 
         except httpx.ConnectError:
-            raise RuntimeError(f"无法连接到 Ollama 服务 ({self.base_url})")
+            raise RuntimeError(f"yokyontembaglabaglankadar Ollama servis ({self.base_url})")
 
     async def complete(
         self,
         messages: list[Message],
         **kwargs,
     ) -> ModelResponse:
-        """完成对话（非流式）"""
+        """tamamlaicinkonusma (olmayanakis) """
         return await self._generate(messages, stream=False, **kwargs)
 
     async def stream(
@@ -283,24 +283,24 @@ class OllamaModel(BaseModel):
         messages: list[Message],
         **kwargs,
     ) -> AsyncIterator[str]:
-        """流式完成对话"""
+        """akistamamlaicinkonusma"""
         async for chunk in self._generate_stream(messages, **kwargs):
             yield chunk
 
     async def generate(self, messages: list[Message], **kwargs) -> ModelResponse:
-        """非流式生成（调用 complete）"""
+        """olmayanakisolustur (cagri complete) """
         return await self.complete(messages, **kwargs)
 
     @staticmethod
     def is_available(base_url: str = OLLAMA_DEFAULT_URL) -> bool:
         """
-        检查 Ollama 服务是否可用
+        kontrol Ollama servisolup olmadigiolabilirkullan
 
         Args:
-            base_url: Ollama API 地址
+            base_url: Ollama API adres
 
         Returns:
-            bool: 服务是否可用
+            bool: servisolup olmadigiolabilirkullan
         """
         try:
             import httpx
@@ -313,13 +313,13 @@ class OllamaModel(BaseModel):
     @staticmethod
     def list_models(base_url: str = OLLAMA_DEFAULT_URL) -> list[dict[str, Any]]:
         """
-        列出本地可用的 Ollama 模型
+        listeleyerelolabilirkullan Ollama model
 
         Args:
-            base_url: Ollama API 地址
+            base_url: Ollama API adres
 
         Returns:
-            模型列表，每个模型包含 name, size, modified_at 等信息
+            modelliste, hermodelicerir name, size, modified_at vb.bilgi
         """
         try:
             import httpx
@@ -335,21 +335,21 @@ class OllamaModel(BaseModel):
     @staticmethod
     def pull_model(model_name: str, base_url: str = OLLAMA_DEFAULT_URL) -> bool:
         """
-        拉取模型到本地
+        cekmodelkadaryerel
 
         Args:
-            model_name: 模型名称（如 qwen2:7b）
-            base_url: Ollama API 地址
+            model_name: model adi (ornegin qwen2:7b) 
+            base_url: Ollama API adres
 
         Returns:
-            bool: 是否成功
+            bool: basarili mi
         """
         try:
             result = subprocess.run(
                 ["ollama", "pull", model_name],
                 capture_output=True,
                 text=True,
-                timeout=600,  # 10 分钟超时
+                timeout=600,  # 10 puandakikaasirizaman
             )
             return result.returncode == 0
         except Exception:
@@ -363,7 +363,7 @@ class OllamaModel(BaseModel):
         )
 
 
-# Ollama Provider 标识符
+# Ollama Provider isarettanisembol
 OLLAMA_PROVIDER = "ollama"
 
 
@@ -373,22 +373,22 @@ def create_ollama_model(
     tier: Optional[ModelTier] = None,
 ) -> OllamaModel:
     """
-    创建 Ollama 模型实例的便捷函数
+    olustur Ollama modelornekkullanislifonksiyon
 
     Args:
-        model_name: 模型名称
-        base_url: Ollama API 地址
-        tier: 性能层级（不指定则自动推断）
+        model_name: model adi
+        base_url: Ollama API adres
+        tier: performanskatmanseviye (hayirbelirtkuralotomatikcikarim) 
 
     Returns:
-        OllamaModel 实例
+        OllamaModel ornek
     """
     config = ModelConfig(
-        api_key="",  # Ollama 不需要 API Key
+        api_key="",  # Ollama hayirgerekister API Key
         base_url=base_url,
     )
 
-    # 自动推断 tier
+    # otomatikcikarim tier
     if tier is None:
         tier = _MODEL_TIER_MAP.get(model_name, ModelTier.MEDIUM)
 

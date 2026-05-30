@@ -4,17 +4,17 @@ from __future__ import annotations
 from typing import Optional
 
 """
-工作目录扫描器 - Workspace Scanner
+isdizintara - Workspace Scanner
 
-扫描工作目录，生成文件树结构，用于为 AI Agent 提供项目上下文。
-支持语言检测、文件摘要、深度控制。
+taraisdizin, olusturdosyaagacyapi, kullandeicin AI Agent saglarprojebaglam. 
+destekdilalgilama, dosyaalintiister, derinlikkontrol. 
 """
 
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# 排除的目录和文件（与 .gitignore 类似逻辑）
+# harir tutdizinvedosya (ile .gitignore sinifbenzermantik) 
 EXCLUDE_DIRS = {
     ".git",
     ".svn",
@@ -83,9 +83,9 @@ EXCLUDE_EXTENSIONS = {
 @dataclass
 class FileNode:
     """
-    文件树节点
+    dosyaagacdugum
 
-    用于表示目录或文件的树形结构。
+    kullandetablogosterdizinveyadosyaagacsekilyapi. 
     """
 
     name: str
@@ -93,12 +93,12 @@ class FileNode:
     is_dir: bool
     size: int = 0
     modified: str = ""
-    language: Optional[str] = None  # 代码语言
-    summary: Optional[str] = None  # 文件摘要
+    language: Optional[str] = None  # koddil
+    summary: Optional[str] = None  # dosyaalintiister
     children: list[FileNode] = field(default_factory=list)
 
     def to_dict(self) -> dict:
-        """转换为字典（用于 JSON 序列化）"""
+        """donusturicinsozluk (kullande JSON sira) """
         return {
             "name": self.name,
             "path": str(self.path),
@@ -113,17 +113,17 @@ class FileNode:
 
 class WorkspaceScanner:
     """
-    工作目录扫描器
+    isdizintara
 
-    扫描指定目录，生成文件树结构，并提供文件摘要功能。
+    tarabelirtdizin, olusturdosyaagacyapi, vesaglardosyaalintiisterislev. 
 
-    使用示例：
+    kullanornek: 
         scanner = WorkspaceScanner(Path("/path/to/project"))
         tree = scanner.scan(max_depth=3)
         print(scanner.to_context_string())
     """
 
-    # 支持的语言及文件扩展名
+    # destekdilvedosyagenisletisim
     LANGUAGE_EXTENSIONS = {
         ".py": "python",
         ".pyw": "python",
@@ -180,7 +180,7 @@ class WorkspaceScanner:
         ".tfvars": "hcl",
     }
 
-    # 特殊文件名语言映射
+    # ozeldosyaisimdilesle
     LANGUAGE_FILENAMES = {
         "dockerfile": "dockerfile",
         "makefile": "makefile",
@@ -201,10 +201,10 @@ class WorkspaceScanner:
 
     def __init__(self, root: Path):
         """
-        初始化扫描器
+        baslattara
 
         Args:
-            root: 根目录路径
+            root: kokdizin yolu
         """
         self.root = Path(root)
         self._cache: dict = {}
@@ -217,13 +217,13 @@ class WorkspaceScanner:
 
     def scan(self, max_depth: int = 3) -> FileNode:
         """
-        扫描工作目录，返回文件树
+        taraisdizin, donusdosyaagac
 
         Args:
-            max_depth: 最大递归深度（0 = 仅根目录文件）
+            max_depth: enbuyukrekursifderinlik (0 = sadecekokdizindosya) 
 
         Returns:
-            FileNode: 根节点
+            FileNode: kokdugum
         """
         self._scan_stats = {
             "files_scanned": 0,
@@ -234,7 +234,7 @@ class WorkspaceScanner:
         return self._scan_recursive(self.root, depth=0, max_depth=max_depth)
 
     def _scan_recursive(self, path: Path, depth: int, max_depth: int) -> FileNode:
-        """递归扫描"""
+        """rekursiftara"""
         node = FileNode(
             name=path.name or str(path),
             path=path,
@@ -257,12 +257,12 @@ class WorkspaceScanner:
             node.language = self._detect_language(path)
             return node
 
-        # 目录
+        # dizin
         self._scan_stats["dirs_scanned"] += 1
         node.is_dir = True
 
-        # 达到最大深度，不再递归子目录（但仍列出当前节点）
-        # max_depth=0: 只显示根节点；max_depth=1: 显示根+一层子目录
+        # ulaskadarenbuyukderinlik, hayirtekrarrekursifaltdizin (ancakhalalistelemevcutdugum) 
+        # max_depth=0: sadecegosterkokdugum; max_depth=1: gosterkok+birkatmanaltdizin
         if depth >= max_depth:
             return node
 
@@ -275,12 +275,12 @@ class WorkspaceScanner:
             self._scan_stats["errors"].append(f"{path}: {e}")
             return node
 
-        # 先收集，再排序（目录优先，同类型按名字排序）
+        # oncealset, tekrarsirala (dizinoncelik, aynitipgoreisimharfsirala) 
         children: list[FileNode] = []
         for entry in entries:
             name = entry.name
 
-            # 跳过隐藏文件（但保留 .gitignore 等特殊文件）
+            # atlagizledosya (ancakkoru .gitignore vb.ozeldosya) 
             if name.startswith(".") and name not in (
                 ".gitignore",
                 ".dockerignore",
@@ -289,16 +289,16 @@ class WorkspaceScanner:
             ):
                 continue
 
-            # 跳过排除的目录
+            # atlaharir tutdizin
             if entry.is_dir() and name in EXCLUDE_DIRS:
                 continue
 
-            # 跳过排除的扩展名
+            # atlaharir tutgenisletisim
             if entry.is_file():
                 ext = entry.suffix.lower()
                 if ext in EXCLUDE_EXTENSIONS:
                     continue
-                # 隐藏文件（但保留 .gitignore 等特殊文件）
+                # gizledosya (ancakkoru .gitignore vb.ozeldosya) 
                 if name.startswith(".") and name not in (
                     ".gitignore",
                     ".dockerignore",
@@ -316,7 +316,7 @@ class WorkspaceScanner:
             else:
                 self._scan_stats["dirs_scanned"] += 1
 
-        # 排序：目录优先，再按名字
+        # sirala: dizinoncelik, tekrargoreisimharf
         def sort_key(n: FileNode) -> tuple:
             return (not n.is_dir, n.name.lower())
 
@@ -326,59 +326,59 @@ class WorkspaceScanner:
         return node
 
     def _detect_language(self, path: Path) -> Optional[str]:
-        """检测文件语言"""
+        """algilamadosyadil"""
         name = path.name.lower()
         ext = path.suffix.lower()
 
-        # 优先检查特殊文件名
+        # oncelikkontrolozeldosyaisim
         if name in self.LANGUAGE_FILENAMES:
             return self.LANGUAGE_FILENAMES[name]
 
-        # 再检查扩展名
+        # tekrarkontrolgenisletisim
         return self.LANGUAGE_EXTENSIONS.get(ext)
 
     def get_file_summary(self, path: Path, max_lines: int = 50) -> str:
         """
-        获取文件摘要（用于上下文）
+        aldosyaalintiister (kullandebaglam) 
 
-        对于代码文件，提取前 N 行作为摘要。
-        对于大型文件，只读取配置或注释。
+        icindekoddosya, cikaronce N satiryapicinalintiister. 
+        icindebuyuktipdosya, sadeceokuyapilandirmaveyayorum. 
 
         Args:
-            path: 文件路径
-            max_lines: 最大读取行数
+            path: dosyayol
+            max_lines: enbuyukokusatirsayi
 
         Returns:
-            str: 文件摘要字符串
+            str: dosyaalintiisterkarakter dizisi
         """
         path = Path(path)
 
         if not path.exists():
-            return f"[文件不存在: {path}]"
+            return f"[dosyamevcut degil: {path}]"
 
         if path.is_dir():
-            return f"[目录: {path}]"
+            return f"[dizin: {path}]"
 
         try:
             stat = path.stat()
         except OSError:
-            return f"[无法读取: {path}]"
+            return f"[yokyontemoku: {path}]"
 
-        # 小文件直接读取全部
+        # kucukdosyadogrubaglanokutumkisim
         if stat.st_size < 10 * 1024:  # < 10KB
             lines = self._read_file_lines(path, max_lines)
         else:
-            # 大文件只读取前面部分
+            # buyukdosyasadeceokuonceyuzkisimpuan
             lines = self._read_file_lines(path, max_lines)
 
         if not lines:
-            return f"[空文件: {path.name}]"
+            return f"[bosdosya: {path.name}]"
 
-        # 构建摘要
+        # olusturalintiister
         language = self._detect_language(path)
         lines[0] if lines else ""
 
-        # 检测文件类型并提取关键信息
+        # algilamadosyatipvecikaranahtarbilgi
         summary_parts = []
 
         if language == "python":
@@ -394,25 +394,25 @@ class WorkspaceScanner:
         elif language == "dockerfile":
             summary_parts = self._summarize_dockerfile(lines, path)
         else:
-            # 通用摘要：前几行
+            # kullanalintiister: oncebirkacsatir
             summary_parts = lines[: max_lines // 2]
 
-        # 组合摘要
+        # grupbirlestiralintiister
         if isinstance(summary_parts, list) and summary_parts:
             body = "\n".join(summary_parts)
         else:
             body = str(summary_parts)
 
         return f"""[{language or "unknown"}] {path.name}
-路径: {path.relative_to(self.root) if path.is_relative_to(self.root) else path}
-大小: {self._format_size(stat.st_size)}
-修改: {time.strftime("%Y-%m-%d %H:%M", time.localtime(stat.st_mtime))}
+yol: {path.relative_to(self.root) if path.is_relative_to(self.root) else path}
+buyukkucuk: {self._format_size(stat.st_size)}
+degistir: {time.strftime("%Y-%m-%d %H:%M", time.localtime(stat.st_mtime))}
 
---- 内容摘要 ---
+--- icerikalintiister ---
 {body}"""
 
     def _read_file_lines(self, path: Path, max_lines: int) -> list[str]:
-        """安全读取文件行"""
+        """guvenlikokudosyasatir"""
         try:
             with open(path, encoding="utf-8", errors="replace") as f:
                 lines = []
@@ -425,7 +425,7 @@ class WorkspaceScanner:
             return []
 
     def _summarize_python(self, lines: list[str], path: Path) -> list[str]:
-        """Python 文件摘要：提取导入、类、函数定义"""
+        """Python dosyaalintiister: cikariceri aktar, sinif, fonksiyontanim"""
         result = []
         imports = []
         classes = []
@@ -437,12 +437,12 @@ class WorkspaceScanner:
                 if len(imports) < 10:
                     imports.append(stripped)
             elif stripped.startswith("class "):
-                # 提取类名
+                # cikarsinifisim
                 parts = stripped.split()
                 if len(parts) >= 2:
                     classes.append(parts[1].split("(")[0])
             elif stripped.startswith("def "):
-                # 提取函数名
+                # cikarfonksiyonisim
                 parts = stripped.split("(", 1)
                 if len(parts) >= 1:
                     fname = parts[0].replace("async ", "").replace("def ", "")
@@ -450,24 +450,24 @@ class WorkspaceScanner:
 
         if imports:
             result.append(
-                f"导入: {', '.join(imports[:5])}" + (" ..." if len(imports) > 5 else "")
+                f"iceri aktar: {', '.join(imports[:5])}" + (" ..." if len(imports) > 5 else "")
             )
         if classes:
-            result.append(f"类: {', '.join(classes)}")
+            result.append(f"sinif: {', '.join(classes)}")
         if functions:
             result.append(
-                f"函数: {', '.join(functions[:10])}"
+                f"fonksiyon: {', '.join(functions[:10])}"
                 + (" ..." if len(functions) > 10 else "")
             )
 
-        # 如果没提取到，返回前几行
+        # egeryokcikarkadar, donusoncebirkacsatir
         if not result:
             result = lines[:10]
 
         return result
 
     def _summarize_js_ts(self, lines: list[str], path: Path) -> list[str]:
-        """JS/TS 文件摘要：提取导入、导出、函数"""
+        """JS/TS dosyaalintiister: cikariceri aktar, disa aktar, fonksiyon"""
         result = []
         imports = []
         exports = []
@@ -483,7 +483,7 @@ class WorkspaceScanner:
                     exports.append(stripped[:80])
             elif "function " in stripped or "=> {" in stripped:
                 if len(functions) < 10:
-                    # 提取函数名
+                    # cikarfonksiyonisim
                     fn_match = (
                         stripped.split("function")[1].split("(")[0].strip()
                         if "function" in stripped
@@ -492,14 +492,14 @@ class WorkspaceScanner:
                     functions.append(fn_match or stripped[:50])
 
         if imports:
-            result.append(f"导入: {len(imports)} 个依赖")
+            result.append(f"iceri aktar: {len(imports)} bagimlilik")
         if exports:
             result.append(
-                f"导出: {', '.join(exports[:5])}" + (" ..." if len(exports) > 5 else "")
+                f"disa aktar: {', '.join(exports[:5])}" + (" ..." if len(exports) > 5 else "")
             )
         if functions:
             result.append(
-                f"函数: {', '.join(functions[:10])}"
+                f"fonksiyon: {', '.join(functions[:10])}"
                 + (" ..." if len(functions) > 10 else "")
             )
 
@@ -509,7 +509,7 @@ class WorkspaceScanner:
         return result
 
     def _summarize_json(self, path: Path) -> list[str]:
-        """JSON 文件摘要"""
+        """JSON dosyaalintiister"""
         try:
             import json
 
@@ -518,23 +518,23 @@ class WorkspaceScanner:
 
             if isinstance(data, dict):
                 keys = list(data.keys())[:20]
-                return [f"键: {', '.join(keys)}" + (" ..." if len(data) > 20 else "")]
+                return [f"anahtar: {', '.join(keys)}" + (" ..." if len(data) > 20 else "")]
             if isinstance(data, list):
                 return [
-                    f"数组: {len(data)} 项，示例: {str(data[0])[:100] if data else '[]'}"
+                    f"sayigrup: {len(data)} ogre, ornek: {str(data[0])[:100] if data else '[]'}"
                 ]
             return [str(data)[:200]]
         except Exception:
-            return ["[JSON 解析失败]"]
+            return ["[JSON ayristirma basarisiz]"]
 
     def _summarize_config(self, lines: list[str], path: Path) -> list[str]:
-        """YAML/TOML 配置摘要"""
+        """YAML/TOML yapilandirmaalintiister"""
         result = []
         for line in lines[:30]:
             stripped = line.strip()
             if stripped and not stripped.startswith("#"):
                 if stripped.startswith("["):
-                    result.append(f"章节: {stripped}")
+                    result.append(f"bolum: {stripped}")
                 elif ":" in stripped:
                     key = stripped.split(":")[0].strip()
                     if key:
@@ -542,7 +542,7 @@ class WorkspaceScanner:
         return result[:20]
 
     def _summarize_doc(self, lines: list[str], path: Path) -> list[str]:
-        """Markdown/RST 文档摘要"""
+        """Markdown/RST dokumantasyonalintiister"""
         result = []
         for line in lines:
             stripped = line.strip()
@@ -558,8 +558,8 @@ class WorkspaceScanner:
         return lines[:10]
 
     def _summarize_dockerfile(self, lines: list[str], path: Path) -> list[str]:
-        """Dockerfile 摘要"""
-        result = ["FROM / 指令:"]
+        """Dockerfile alintiister"""
+        result = ["FROM / isaretkomut:"]
         for line in lines:
             stripped = line.strip()
             if stripped.startswith(("FROM ", "RUN ", "COPY ", "WORKDIR ")):
@@ -567,7 +567,7 @@ class WorkspaceScanner:
         return result[:15]
 
     def _format_size(self, size: int) -> str:
-        """格式化文件大小"""
+        """formatdosyabuyukkucuk"""
         if size < 1024:
             return f"{size}B"
         if size < 1024 * 1024:
@@ -578,37 +578,37 @@ class WorkspaceScanner:
 
     def to_context_string(self, max_depth: int = 3) -> str:
         """
-        生成可用于 Prompt 的上下文字符串
+        olusturolabilirkullande Prompt baglamkarakter dizisi
 
-        扫描当前工作目录，生成人类可读的文件树。
+        taramevcutisdizin, olusturkisisinifolabilirokudosyaagac. 
 
         Args:
-            max_depth: 扫描深度
+            max_depth: taraderinlik
 
         Returns:
-            str: 上下文字符串
+            str: baglamkarakter dizisi
         """
         tree = self.scan(max_depth=max_depth)
         lines = self._render_tree(tree, prefix="", is_last=True)
         lines.append("")
 
-        # 添加统计信息
+        # ekleistatistikbilgi
         stats = self._scan_stats
         lines.append(
-            f"共扫描 {stats['files_scanned']} 个文件，{stats['dirs_scanned']} 个目录"
+            f"ortaktara {stats['files_scanned']} dosya, {stats['dirs_scanned']} dizin"
         )
-        lines.append(f"总大小: {self._format_size(stats['bytes_scanned'])}")
+        lines.append(f"toplambuyukkucuk: {self._format_size(stats['bytes_scanned'])}")
 
         if stats["errors"]:
-            lines.append(f"扫描时发生 {len(stats['errors'])} 个错误")
+            lines.append(f"tarazamangonderyarat {len(stats['errors'])} hata")
 
         return "\n".join(lines)
 
     def _render_tree(self, node: FileNode, prefix: str, is_last: bool) -> list[str]:
-        """渲染文件树"""
+        """renderdosyaagac"""
         lines = []
 
-        # 当前节点
+        # mevcutdugum
         connector = "└── " if is_last else "├── "
         size_str = f" ({self._format_size(node.size)})" if node.size > 0 else ""
         lang_str = f" [{node.language}]" if node.language else ""
@@ -618,7 +618,7 @@ class WorkspaceScanner:
             f"{prefix}{connector}{node.name}{size_str}{lang_str}{modified_str}"
         )
 
-        # 子节点
+        # altdugum
         if node.children:
             child_prefix = prefix + ("    " if is_last else "│   ")
             for i, child in enumerate(node.children):

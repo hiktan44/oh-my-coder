@@ -3,34 +3,34 @@ from __future__ import annotations
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 
 """
-Skill 自进化系统 - SkillManager
+Skill kendiilerlesistem - SkillManager
 
-职责：
-1. 管理 .omc/skills/ 目录下的 Skill 文件（CRUD）
-2. 维护 .omc/skills/index.json 实时索引
-3. 提供搜索能力（按 name/description/tags/category）
-4. patch 优先于 create（节省 token）
-5. 自动沉淀触发器评估
+Sorumluluk:
+1. yonet .omc/skills/ dizinalt Skill dosya (CRUD) 
+2. bakim .omc/skills/index.json zamanindeks
+3. saglararayetenek (gore name/description/tags/category) 
+4. patch oncelikde create (bolumatla token) 
+5. otomatikbiriktirtetikgonderdegerlendir
 
-目录结构：
+dizinyapi: 
 .omc/skills/
-├── index.json          # 全量索引
+├── index.json          # tummiktarindeks
 ├── debugging/
 │   ├── slow-query-fix/
-│   │   └── SKILL.md    # YAML frontmatter + Markdown 正文
+│   │   └── SKILL.md    # YAML frontmatter + Markdown metin
 │   └── ...
 ├── workflow/
 ├── corrections/
 └── best-practices/
 
-SKILL.md 格式：
+SKILL.md format: 
 ---
 name: slow-query-fix
-description: 优化 SQL 查询性能的步骤
+description: iyi SQL sorguperformansadim
 category: debugging
 tags: [sql, performance, database]
 triggers:
-  - 查询慢
+  - sorguyavas
   - database timeout
 created_at: 2026-04-12
 updated_at: 2026-04-12
@@ -38,7 +38,7 @@ updated_at: 2026-04-12
 
 # Slow Query Fix
 
-当发现 SQL 查询响应慢时...
+ne zamankesfet SQL sorguyanityavaszaman...
 """
 
 
@@ -51,7 +51,7 @@ from typing import Any, Optional
 
 import yaml
 
-# 可选：tiktoken 用于精确 token 计算
+# olabilirsec: tiktoken kullandekesin token hesapla
 try:
     import tiktoken
 
@@ -61,15 +61,15 @@ except ImportError:
 
 
 class SkillManager:
-    """Skill 文件管理器"""
+    """Skill dosyayonet"""
 
-    # 合法 categories
+    # birlestiryontem categories
     CATEGORIES = ["debugging", "workflow", "corrections", "best-practices"]
 
     def __init__(self, skills_dir: Optional[Path] = None):
         """
         Args:
-            skills_dir: Skills 根目录，默认为 .omc/skills
+            skills_dir: Skills kokdizin, varsayilanicin .omc/skills
         """
         self.skills_dir = skills_dir or Path(".omc/skills")
         self.index_file = self.skills_dir / "index.json"
@@ -78,17 +78,17 @@ class SkillManager:
         self._load_index()
 
     # ------------------------------------------------------------------
-    # 初始化
+    # baslat
     # ------------------------------------------------------------------
 
     def _init(self) -> None:
-        """初始化目录结构"""
+        """baslatdizinyapi"""
         self.skills_dir.mkdir(parents=True, exist_ok=True)
         for cat in self.CATEGORIES:
             (self.skills_dir / cat).mkdir(exist_ok=True)
 
     def _load_index(self) -> None:
-        """加载索引文件"""
+        """yukleindeksdosya"""
         if self.index_file.exists():
             try:
                 self._index = json.loads(self.index_file.read_text(encoding="utf-8"))
@@ -98,17 +98,17 @@ class SkillManager:
             self._index = {}
 
     def _save_index(self) -> None:
-        """保存索引文件"""
+        """kaydetindeksdosya"""
         self.index_file.write_text(
             json.dumps(self._index, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
     # ------------------------------------------------------------------
-    # 索引重建（用于修复损坏的索引）
+    # indekstekrarolustur (kullandeduzeltmezararkotuindeks) 
     # ------------------------------------------------------------------
 
     def rebuild_index(self) -> int:
-        """扫描所有 SKILL.md 文件，重建 index.json"""
+        """taravar SKILL.md dosya, tekrarolustur index.json"""
         self._index = {}
         count = 0
         for cat in self.CATEGORIES:
@@ -139,12 +139,12 @@ class SkillManager:
         return count
 
     # ------------------------------------------------------------------
-    # Frontmatter 解析
+    # Frontmatter ayristir
     # ------------------------------------------------------------------
 
     @staticmethod
     def _parse_frontmatter(skill_md: Path) -> Optional[dict[str, Any]]:
-        """从 SKILL.md 解析 YAML frontmatter"""
+        """ SKILL.md ayristir YAML frontmatter"""
         try:
             content = skill_md.read_text(encoding="utf-8")
         except OSError:
@@ -161,8 +161,8 @@ class SkillManager:
 
     @staticmethod
     def _serialize_frontmatter(meta: dict[str, Any]) -> str:
-        """序列化 frontmatter 为 YAML 字符串"""
-        # 只保留 frontmatter 字段
+        """sira frontmatter icin YAML karakter dizisi"""
+        # sadecekoru frontmatter alan
         keys = [
             "name",
             "description",
@@ -178,7 +178,7 @@ class SkillManager:
         )
 
     # ------------------------------------------------------------------
-    # 核心 CRUD
+    # cekirdek CRUD
     # ------------------------------------------------------------------
 
     def create(
@@ -191,41 +191,41 @@ class SkillManager:
         description: Optional[str] = None,
     ) -> dict[str, Any]:
         """
-        创建新的 Skill
+        olusturyeni Skill
 
         Args:
-            name: Skill 名称（用于目录名，自动 slugify）
-            body: Markdown 正文
-            category: 分类（debugging/workflow/corrections/best-practices）
-            tags: 标签列表
-            triggers: 触发关键词列表
-            description: 一句话描述（自动从 body 首行提取如果为空）
+            name: Skill ad (kullandedizinisim, otomatik slugify) 
+            body: Markdown metin
+            category: puansinif (debugging/workflow/corrections/best-practices) 
+            tags: etiketliste
+            triggers: tetikgonderanahtar kelimeliste
+            description: bircumlekonusmaaciklama (otomatik body ilksatircikaregericinbos) 
 
         Returns:
-            创建的 Skill 信息 dict（含 skill_id）
+            olustur Skill bilgi dict (icerir skill_id) 
         """
         if category not in self.CATEGORIES:
-            raise ValueError(f"无效 category '{category}'，可选: {self.CATEGORIES}")
+            raise ValueError(f"yoketki category '{category}', olabilirsec: {self.CATEGORIES}")
 
-        # Slugify 目录名
+        # Slugify dizinisim
         skill_id = self._slugify(name)
         if not skill_id:
-            raise ValueError(f"无法从 name '{name}' 生成有效 slug")
+            raise ValueError(f"yokyontem name '{name}' olusturvaretki slug")
 
         skill_dir = self.skills_dir / category / skill_id
         skill_dir.mkdir(parents=True, exist_ok=True)
 
         skill_md = skill_dir / "SKILL.md"
 
-        # 检查是否已存在
+        # kontrololup olmadigikaydeticinde
         if skill_md.exists():
             raise FileExistsError(
-                f"Skill '{skill_id}' 已存在，请用 patch() 而非 create()"
+                f"Skill '{skill_id}' kaydeticinde, lutfenkullan patch() veolmayan create()"
             )
 
-        # 自动提取 description
+        # otomatikcikar description
         if description is None:
-            # 取 body 第一行非空行作为描述
+            # al body incibirsatirolmayanbossatiryapicinaciklama
             first_line = ""
             for line in body.strip().split("\n"):
                 stripped = line.strip()
@@ -275,29 +275,29 @@ class SkillManager:
         category: str = "workflow",
     ) -> dict[str, Any]:
         """
-        增量更新 Skill（优先于 create）
+        artmiktarguncelle Skill (oncelikde create) 
 
-        只更新传入的字段，保留原有值。
-        如果 Skill 不存在，自动转为 create。
+        sadeceguncelleiletgirisalan, koruasilvardeger. 
+        eger Skill mevcut degil, otomatikdonusturicin create. 
 
         Args:
-            skill_id: Skill ID（目录名）
-            body: Markdown 正文（只替换 --- 之后的部分）
-            description: 一句话描述
-            tags: 标签列表（替换）
-            triggers: 触发关键词列表（替换）
-            name: Skill 名称
+            skill_id: Skill ID (dizinisim) 
+            body: Markdown metin (sadecedegistir --- sonrakisimpuan) 
+            description: bircumlekonusmaaciklama
+            tags: etiketliste (degistir) 
+            triggers: tetikgonderanahtar kelimeliste (degistir) 
+            name: Skill ad
 
         Returns:
-            更新后的 Skill 信息
+            guncellesonra Skill bilgi
         """
-        # 先查找原文件
+        # oncearaasildosya
         skill_path = self._find_skill_path(skill_id)
 
         if skill_path is None:
-            # 不存在，自动 create（body 必填）
+            # mevcut degil, otomatik create (body gereklidoldur) 
             if body is None:
-                raise ValueError(f"Skill '{skill_id}' 不存在，且未提供 body，无法创建")
+                raise ValueError(f"Skill '{skill_id}' mevcut degil, vehenuzsaglar body, yokyontemolustur")
             return self.create(
                 name=name or skill_id,
                 body=body,
@@ -307,11 +307,11 @@ class SkillManager:
                 description=description,
             )
 
-        # 读取原有 frontmatter
+        # okuasilvar frontmatter
         old_meta = self._parse_frontmatter(skill_path) or {}
         category = old_meta.get("category", "workflow")
 
-        # 合并更新
+        # birlestirveguncelle
         now = time.strftime("%Y-%m-%d")
         new_meta = {**old_meta}
         if description is not None:
@@ -324,9 +324,9 @@ class SkillManager:
             new_meta["name"] = name
         new_meta["updated_at"] = now
 
-        # 如果只更新 body 而非 frontmatter，保留原有 meta
+        # egersadeceguncelle body veolmayan frontmatter, koruasilvar meta
         if body is not None:
-            # 读取原有 body
+            # okuasilvar body
             content = skill_path.read_text(encoding="utf-8")
             match = re.match(r"^---\n.*?\n---\n(.*)$", content, re.DOTALL)
             match.group(1).strip() if match else content.strip()
@@ -336,7 +336,7 @@ class SkillManager:
                 f"---\n{self._serialize_frontmatter(new_meta)}---\n\n{new_body}\n"
             )
         else:
-            # 只更新 frontmatter
+            # sadeceguncelle frontmatter
             full_content = skill_path.read_text(encoding="utf-8")
             full_content = re.sub(
                 r"^---\n.*?\n---",
@@ -348,7 +348,7 @@ class SkillManager:
 
         skill_path.write_text(full_content, encoding="utf-8")
 
-        # 更新索引
+        # guncelleindeks
         self._index[skill_id] = {
             "name": new_meta.get("name", skill_id),
             "description": new_meta.get("description", ""),
@@ -364,16 +364,16 @@ class SkillManager:
         return {"skill_id": skill_id, **self._index[skill_id]}
 
     def delete(self, skill_id: str) -> bool:
-        """删除 Skill 及其目录"""
+        """sil Skill veonundizin"""
         skill_path = self._find_skill_path(skill_id)
         if skill_path is None:
             return False
 
-        # 删除目录
+        # sildizin
         skill_dir = skill_path.parent
         shutil.rmtree(skill_dir)
 
-        # 从索引移除
+        # indekskaldir
         if skill_id in self._index:
             del self._index[skill_id]
             self._save_index()
@@ -381,7 +381,7 @@ class SkillManager:
         return True
 
     # ------------------------------------------------------------------
-    # 查询
+    # sorgu
     # ------------------------------------------------------------------
 
     def list_skills(
@@ -391,15 +391,15 @@ class SkillManager:
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         """
-        列出 Skills
+        listele Skills
 
         Args:
-            category: 按分类过滤
-            tag: 按标签过滤
-            limit: 返回上限
+            category: gorepuansiniffiltrele
+            tag: goreetiketfiltrele
+            limit: donusustsinir
 
         Returns:
-            Skill 信息列表（不含 body）
+            Skill bilgiliste (hayiricerir body) 
         """
         results = []
         for sid, info in self._index.items():
@@ -409,7 +409,7 @@ class SkillManager:
                 continue
             results.append({**info, "skill_id": sid})
 
-        # 按 updated_at 倒序
+        # gore updated_at ters sira
         results.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
         return results[:limit]
 
@@ -419,14 +419,14 @@ class SkillManager:
         include_body: bool = False,
     ) -> Optional[dict[str, Any]]:
         """
-        获取单个 Skill
+        altekil Skill
 
         Args:
             skill_id: Skill ID
-            include_body: 是否包含 Markdown 正文
+            include_body: olup olmadigiicerir Markdown metin
 
         Returns:
-            Skill 信息 dict，含 skill_id；不存在返回 None
+            Skill bilgi dict, icerir skill_id; mevcut degildonus None
         """
         info = self._index.get(skill_id)
         if info is None:
@@ -438,7 +438,7 @@ class SkillManager:
             path = Path(info["path"])
             if path.exists():
                 content = path.read_text(encoding="utf-8")
-                # 去掉 frontmatter
+                # kaldir frontmatter
                 match = re.match(r"^---\n.*?\n---\n(.*)$", content, re.DOTALL)
                 result["body"] = match.group(1).strip() if match else content.strip()
             else:
@@ -454,16 +454,16 @@ class SkillManager:
         limit: int = 20,
     ) -> list[dict[str, Any]]:
         """
-        全文搜索 Skills
+        tummetinara Skills
 
         Args:
-            query: 搜索关键词（空格分词，AND 逻辑）
-            category: 按分类过滤
-            tags: 按标签过滤（任一匹配）
-            limit: 返回上限
+            query: arama anahtar kelimeleri (bospuankelime, AND mantik) 
+            category: gorepuansiniffiltrele
+            tags: goreetiketfiltrele (gorevbireslestir) 
+            limit: donusustsinir
 
         Returns:
-            匹配的 Skill 信息列表
+            eslestir Skill bilgiliste
         """
         query_terms = query.lower().split()
         results = []
@@ -474,7 +474,7 @@ class SkillManager:
             if tags and not any(t in (info.get("tags") or []) for t in tags):
                 continue
 
-            # 拼接搜索文本
+            # birlestirbaglanarametin
             searchable = " ".join(
                 [
                     info.get("name", ""),
@@ -484,11 +484,11 @@ class SkillManager:
                 ]
             ).lower()
 
-            # AND 匹配所有 term
+            # AND eslestirvar term
             if all(term in searchable for term in query_terms):
                 results.append({**info, "skill_id": sid})
 
-        # 相关度排序：完全匹配 > 名称包含 > 描述包含
+        # ilgiliderecesirala: tamamtumeslestir > adicerir > aciklamaicerir
         def score(x: dict[str, Any]) -> int:
             s = 0
             full = f"{x.get('name', '')} {x.get('description', '')}".lower()
@@ -503,26 +503,26 @@ class SkillManager:
         return results[:limit]
 
     # ------------------------------------------------------------------
-    # 工具方法
+    # aracyontem
     # ------------------------------------------------------------------
 
     @staticmethod
     def _slugify(text: str) -> str:
-        """将任意文本转为合法的目录名"""
-        # 小写化
+        """herhangimetindonusturicinbirlestiryontemdizinisim"""
+        # kucukyaz
         s = text.lower()
-        # 替换空格/特殊字符
+        # degistirbos/ozelkarakter
         s = re.sub(r"[^\w\s-]", "", s)
         s = re.sub(r"[_\s]+", "-", s)
         s = re.sub(r"-+", "-", s)
         s = s.strip("-")
-        # 限制长度
+        # siniruzunlukderece
         if len(s) > 48:
             s = s[:48].rstrip("-")
         return s
 
     def _find_skill_path(self, skill_id: str) -> Optional[Path]:
-        """在所有 category 中查找 skill_id 对应的 SKILL.md 路径"""
+        """icindevar category icindeara skill_id karsilik gelen SKILL.md yol"""
         for cat in self.CATEGORIES:
             path = self.skills_dir / cat / skill_id / "SKILL.md"
             if path.exists():
@@ -531,16 +531,16 @@ class SkillManager:
 
     def get_skill_inventory(self, max_tokens: int = 500) -> str:
         """
-        生成 Tier 0 注入文本：Skill 名字 + 一句话描述。
+        olustur Tier 0 enjektemetin: Skill isimharf + bircumlekonusmaaciklama. 
 
-        严格限制输出不超过 max_tokens。
-        格式：[skill-name]: 描述（每行一个，不要 Markdown 列表）
+        ciddisinirciktihayirasiri max_tokens. 
+        format: [skill-name]: aciklama (hersatirbir, hayirister Markdown liste) 
 
         Args:
-            max_tokens: 最大 token 数（默认 500）
+            max_tokens: enbuyuk token sayi (varsayilan 500) 
 
         Returns:
-            形如 "skill_id: description\n..." 的字符串
+            sekilornegin "skill_id: description\n..." karakter dizisi
         """
         has_tiktoken = _HAS_TIKTOKEN
 
@@ -551,14 +551,14 @@ class SkillManager:
                 has_tiktoken = False
 
         if not has_tiktoken:
-            # 回退：粗略估算 1 token ≈ 4 字符
+            # gerigeri: kabacatahmin 1 token ≈ 4 karakter
             max_chars = max_tokens * 4
             return self._get_inventory_fallback(max_chars)
 
         lines = []
         total_tokens = 0
 
-        # 按 updated_at 排序，最新的优先
+        # gore updated_at sirala, enyenioncelik
         sorted_skills = sorted(
             self._index.items(),
             key=lambda x: x[1].get("updated_at", ""),
@@ -566,10 +566,10 @@ class SkillManager:
         )
 
         for sid, info in sorted_skills:
-            # 每行格式：skill_id: description
+            # hersatirformat: skill_id: description
             line = f"{sid}: {info.get('description', '')}"
             line_tokens = len(enc.encode(line))
-            newline_tokens = 1  # 换行符
+            newline_tokens = 1  # degissatirsembol
 
             if total_tokens + line_tokens + newline_tokens > max_tokens:
                 break
@@ -588,7 +588,7 @@ class SkillManager:
         return f"[{count} Skills] (none)"
 
     def _get_inventory_fallback(self, max_chars: int) -> str:
-        """回退方案：按字符数截断"""
+        """gerigeriplan: gorekaraktersayikes"""
         lines = []
         total = 0
         sorted_skills = sorted(
@@ -613,7 +613,7 @@ class SkillManager:
         return f"[{count} Skills] (none)"
 
     # ------------------------------------------------------------------
-    # 自动沉淀评估
+    # otomatikbiriktirdegerlendir
     # ------------------------------------------------------------------
 
     @staticmethod
@@ -625,23 +625,23 @@ class SkillManager:
         is_nontrivial_workflow: bool,
     ) -> bool:
         """
-        判断当前执行是否值得沉淀为 Skill
+        karar vermevcutyurutolup olmadigidegerbiriktiricin Skill
 
-        触发条件（满足任一）：
-        1. 工具调用 ≥5 次且成功
-        2. 错误 → 解决
-        3. 用户纠正
-        4. 非平凡工作流（多步骤）
+        tetikgonderkosul (doluyeterligorevbir) : 
+        1. araccagri ≥5 kezvebasarili
+        2. hata → coz
+        3. kullaniciduzelt
+        4. olmayansiradanis akisi (cokadim) 
 
         Args:
-            tool_call_count: 工具调用次数
-            had_error: 是否出过错
-            had_fix: 是否从错误中恢复
-            had_user_correction: 用户是否纠正过
-            is_nontrivial_workflow: 是否为多步骤工作流
+            tool_call_count: araccagrikezsayi
+            had_error: olup olmadigiyanlis
+            had_fix: olup olmadigihataicindekurtar
+            had_user_correction: kullaniciolup olmadigiduzelt
+            is_nontrivial_workflow: olup olmadigiicincokadimis akisi
 
         Returns:
-            True = 值得沉淀
+            True = degerbiriktir
         """
         if tool_call_count >= 5:
             return True
@@ -661,22 +661,22 @@ class SkillManager:
         error_context: Optional[str] = None,
     ) -> dict[str, Any]:
         """
-        从一次执行构建 Skill 草稿
+        birkezyurutolustur Skill taslak
 
-        用于自动沉淀时生成 SKILL.md 内容。
+        kullandeotomatikbiriktirzamanolustur SKILL.md icerik. 
 
         Args:
-            agent_name: 使用的 Agent 名
-            task_description: 任务描述
-            workflow_name: 工作流名
-            final_result: 最终结果摘要
-            key_steps: 关键步骤列表
-            error_context: 错误上下文（如果有）
+            agent_name: kullan Agent isim
+            task_description: gorev aciklamasi
+            workflow_name: is akisiisim
+            final_result: ensonsonucalintiister
+            key_steps: anahtaradimliste
+            error_context: hatabaglam (egervar) 
 
         Returns:
-            可直接传给 create() 的 dict（含 name, body, category, tags, triggers）
+            olabilirdogrubaglaniletver create()  dict (icerir name, body, category, tags, triggers) 
         """
-        # 提取关键词作为 triggers
+        # cikaranahtar kelimeyapicin triggers
         triggers = []
         for word in task_description.split():
             if len(word) >= 3 and word.lower() not in {
@@ -688,7 +688,7 @@ class SkillManager:
             }:
                 triggers.append(word.strip(".,!?;:"))
 
-        # 判断 category
+        # karar ver category
         if error_context or "error" in task_description.lower():
             category = "debugging"
         elif workflow_name in {"build", "refactor", "test"}:
@@ -698,33 +698,33 @@ class SkillManager:
         else:
             category = "workflow"
 
-        # 生成 name
+        # olustur name
         name = f"{workflow_name}-{agent_name}"[:48]
 
-        # 构建 body
+        # olustur body
         body_lines = [
             f"# {workflow_name.title()} with {agent_name.title()}",
             "",
-            f"**任务**: {task_description}",
-            f"**工作流**: {workflow_name}",
+            f"**gorev**: {task_description}",
+            f"**is akisi**: {workflow_name}",
             f"**Agent**: {agent_name}",
             "",
-            "## 关键步骤",
+            "## anahtaradim",
         ]
 
         if key_steps:
             for i, step in enumerate(key_steps, 1):
                 body_lines.append(f"{i}. {step}")
         else:
-            body_lines.append(f"1. 识别任务类型: {workflow_name}")
-            body_lines.append("2. 规划执行步骤")
-            body_lines.append("3. 按计划执行")
-            body_lines.append("4. 验证结果")
+            body_lines.append(f"1. tanigorevtip: {workflow_name}")
+            body_lines.append("2. planlayurutadim")
+            body_lines.append("3. goreplanyurut")
+            body_lines.append("4. dogrulama sonucu")
 
         body_lines.extend(
             [
                 "",
-                "## 执行结果",
+                "## yurutme sonucu",
                 final_result[:300],
             ]
         )
@@ -733,7 +733,7 @@ class SkillManager:
             body_lines.extend(
                 [
                     "",
-                    "## 错误处理",
+                    "## hata isleme",
                     error_context[:200],
                 ]
             )
@@ -741,9 +741,9 @@ class SkillManager:
         body_lines.extend(
             [
                 "",
-                "## 适用条件",
-                f"- 任务类型: {workflow_name}",
-                f"- 触发词: {', '.join(triggers[:5])}",
+                "## uygunkullankosul",
+                f"- gorevtip: {workflow_name}",
+                f"- tetikgonderkelime: {', '.join(triggers[:5])}",
             ]
         )
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Quest 管理器
+Quest yonet
 
-统一管理 Quest 的创建、SPEC 生成、执行、查询。
+biryonet Quest olustur, SPEC olustur, yurut, sorgu. 
 """
 
 from collections.abc import Awaitable, Callable
@@ -21,14 +21,14 @@ from .store import QuestStore
 
 class QuestManager:
     """
-    Quest Mode 总管理器
+    Quest Mode toplamyonet
 
-    用法:
+    kullanyontem:
         manager = QuestManager(project_path)
-        quest = await manager.create_quest("实现用户认证")
-        quest = await manager.generate_spec(quest)  # 生成 SPEC
-        manager.confirm_and_execute(quest)           # 确认后执行
-        quests = manager.list_quests()                # 查看状态
+        quest = await manager.create_quest("uygulakullanicikimlik dogrulama")
+        quest = await manager.generate_spec(quest)  # olustur SPEC
+        manager.confirm_and_execute(quest)           # onaylasonrayurut
+        quests = manager.list_quests()                # goruntuledurum
     """
 
     def __init__(
@@ -42,7 +42,7 @@ class QuestManager:
         self.notify_callback = notify_callback
         self.review_callback = review_callback
 
-        # 延迟初始化 ModelRouter
+        # gecikmebaslat ModelRouter
         self._router: Optional[ModelRouter] = None
         self._executor: Optional[QuestExecutor] = None
 
@@ -64,7 +64,7 @@ class QuestManager:
         return self._executor
 
     # ============================================================
-    # 核心操作
+    # cekirdekislem
     # ============================================================
 
     async def create_quest(
@@ -73,7 +73,7 @@ class QuestManager:
         title: Optional[str] = None,
         priority: str = "medium",
     ) -> Quest:
-        """创建新 Quest"""
+        """olusturyeni Quest"""
         return self.store.create(
             title=title or self._extract_title(description),
             description=description,
@@ -82,11 +82,11 @@ class QuestManager:
 
     async def generate_spec(self, quest: Quest) -> Quest:
         """
-        为 Quest 生成 SPEC
+        icin Quest olustur SPEC
 
-        会自动更新 quest.spec 和 quest.spec_path
+        yapacakotomatikguncelle quest.spec ve quest.spec_path
         """
-        # 更新状态
+        # guncelledurum
         self.store.update_status(quest.id, QuestStatus.SPEC_GENERATING)
 
         try:
@@ -101,21 +101,21 @@ class QuestManager:
             self.store.update_status(quest.id, QuestStatus.FAILED)
             quest = self.store.get(quest.id)
             if quest:
-                quest.error_message = f"SPEC 生成失败: {e}"
+                quest.error_message = f"SPEC olusturbasarisiz: {e}"
                 self.store.save(quest)
             raise
 
         return self.store.get(quest.id)
 
     def confirm_and_execute(self, quest_id: str) -> Quest:
-        """用户确认 SPEC 后，开始后台执行"""
+        """kullanicionayla SPEC sonra, baslatsonraplatformyurut"""
         quest = self.store.get(quest_id)
         if quest is None:
-            raise ValueError(f"Quest {quest_id} 不存在")
+            raise ValueError(f"Quest {quest_id} mevcut degil")
 
         if quest.status != QuestStatus.SPEC_READY:
             raise ValueError(
-                f"Quest 状态为 {quest.status}，需要 SPEC_READY 状态才能执行"
+                f"Quest durumicin {quest.status}, gerekister SPEC_READY durumyetenekedebiliryurut"
             )
 
         self.store.update_status(quest_id, QuestStatus.EXECUTING)
@@ -125,31 +125,31 @@ class QuestManager:
         return self.store.get(quest_id)
 
     def execute_without_spec(self, quest_id: str) -> Quest:
-        """直接执行（不生成 SPEC）"""
+        """dogrubaglanyurut (hayirolustur SPEC) """
         quest = self.store.get(quest_id)
         if quest is None:
-            raise ValueError(f"Quest {quest_id} 不存在")
+            raise ValueError(f"Quest {quest_id} mevcut degil")
 
         self.executor.start(quest)
         return quest
 
     # ============================================================
-    # 查询操作
+    # sorguislem
     # ============================================================
 
     def get_quest(self, quest_id: str) -> Optional[Quest]:
-        """获取单个 Quest"""
+        """altekil Quest"""
         return self.store.get(quest_id)
 
     def list_quests(
         self,
         status_filter: Optional[QuestStatus] = None,
     ) -> list[Quest]:
-        """列出 Quest"""
+        """listele Quest"""
         return self.store.list(status_filter=status_filter)
 
     def get_active_quests(self) -> list[Quest]:
-        """获取活跃的 Quest"""
+        """alaktif Quest"""
         quests = self.store.list()
         active_statuses = {
             QuestStatus.PENDING,
@@ -161,40 +161,40 @@ class QuestManager:
         return [q for q in quests if q.status in active_statuses]
 
     # ============================================================
-    # 控制操作
+    # kontrolislem
     # ============================================================
 
     def cancel(self, quest_id: str) -> bool:
-        """取消 Quest"""
+        """iptal Quest"""
         return self.executor.cancel(quest_id)
 
     def stop(self, quest_id: str) -> bool:
-        """停止执行"""
+        """durduryurut"""
         return self.executor.stop(quest_id)
 
     def pause(self, quest_id: str) -> bool:
-        """暂停"""
+        """duraklat"""
         return self.executor.pause(quest_id)
 
     def resume(self, quest_id: str) -> Optional[Quest]:
-        """恢复"""
+        """kurtar"""
         return self.executor.resume(quest_id)
 
     def delete(self, quest_id: str) -> bool:
-        """删除 Quest"""
+        """sil Quest"""
         return self.store.delete(quest_id)
 
     def is_running(self, quest_id: str) -> bool:
-        """检查是否在运行"""
+        """kontrololup olmadigiicindesatir"""
         return self.executor.is_running(quest_id)
 
     # ============================================================
-    # 辅助方法
+    # yardimciyontem
     # ============================================================
 
     def _extract_title(self, description: str) -> str:
-        """从描述中提取简洁标题"""
-        # 取前 50 个字符
+        """aciklamaicindecikarbasittemizbaslik"""
+        # alonce 50 karakter
         title = description.strip()[:50]
         if len(description) > 50:
             title += "..."

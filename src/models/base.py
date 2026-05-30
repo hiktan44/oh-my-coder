@@ -4,13 +4,13 @@ from __future__ import annotations
 
 
 """
-模型基类 - 定义所有 LLM 提供商的统一接口
+modeltemel sinif - tanimvar LLM saglayicibirbaglanagiz
 
-设计原则：
-1. 异步优先 - 所有 API 调用都是异步的
-2. 流式支持 - 支持流式输出，提升用户体验
-3. 统一错误处理 - 捕获各提供商的差异
-4. Token 计数 - 标准化的 token 使用统计
+tasarimasilkural: 
+1. asenkrononcelik - var API cagritumdirasenkron
+2. akisdestek - destekakiscikti, yukseltyukseltkullanicidogrula
+3. birhata isleme - yakalahersaglayicifarkfarkli
+4. Token hesapsayi - standart token kullanistatistik
 """
 
 from abc import ABC, abstractmethod
@@ -23,47 +23,47 @@ import httpx
 
 
 class ModelTier(Enum):
-    """模型性能层级 - 对应原项目的 haiku/sonnet/opus 三层"""
+    """modelperformanskatmanseviye - karsilik gelenasilproje haiku/sonnet/opus uckatman"""
 
-    LOW = "low"  # 快速、便宜 - 对应 haiku
-    MEDIUM = "medium"  # 平衡 - 对应 sonnet
-    HIGH = "high"  # 最高质量 - 对应 opus
+    LOW = "low"  # hizlihiz, kolayuygun - karsilik gelen haiku
+    MEDIUM = "medium"  # denge - karsilik gelen sonnet
+    HIGH = "high"  # enyuksekkalitemiktar - karsilik gelen opus
 
 
 class ModelProvider(Enum):
-    """支持的模型提供商"""
+    """destekmodelsaglayici"""
 
     DEEPSEEK = "deepseek"
-    WENXIN = "wenxin"  # 文心一言
-    TONGYI = "tongyi"  # 通义千问
-    GLM = "glm"  # 智谱 ChatGLM
+    WENXIN = "wenxin"  # Wenxin
+    TONGYI = "tongyi"  # Tongyi
+    GLM = "glm"  # Zhipu ChatGLM
     OPENAI = "openai"  # OpenAI GPT
     CLAUDE = "claude"  # Anthropic Claude
     MINIMAX = "minimax"  # MiniMax
     KIMI = "kimi"  # Kimi
-    HUNYUAN = "hunyuan"  # 腾讯混元
-    DOUBAO = "doubao"  # 字节豆包
-    TIANGONG = "tiangong"  # 天工AI
-    SPARK = "spark"  # 讯飞星火
-    BAICHUAN = "baichuan"  # 百川智能
-    MIMO = "mimo"  # 小米 MiMo
-    OLLAMA = "ollama"  # Ollama 本地模型（零成本）
+    HUNYUAN = "hunyuan"  # Tencent Hunyuan
+    DOUBAO = "doubao"  # bytepaket
+    TIANGONG = "tiangong"  # TiangongAI
+    SPARK = "spark"  # iFlytek Spark
+    BAICHUAN = "baichuan"  # Baichuanedebilir
+    MIMO = "mimo"  # kucukmetre MiMo
+    OLLAMA = "ollama"  # Ollama yerelmodel (sifirol) 
 
 
 @dataclass
 class Message:
-    """统一的消息格式"""
+    """birmesajformat"""
 
     role: str  # system, user, assistant, tool
     content: str
-    name: Optional[str] = None  # 用于多轮对话中的角色标识
-    tool_calls: Optional[list[dict[str, Any]]] = None  # assistant 消息中的工具调用
-    tool_call_id: Optional[str] = None  # tool 消息中的工具调用 ID
+    name: Optional[str] = None  # kullandecokturicinkonusmaicinderolisarettani
+    tool_calls: Optional[list[dict[str, Any]]] = None  # assistant mesajicindearaccagri
+    tool_call_id: Optional[str] = None  # tool mesajicindearaccagri ID
 
 
 @dataclass
 class Usage:
-    """Token 使用统计"""
+    """Token kullanistatistik"""
 
     prompt_tokens: int = 0
     completion_tokens: int = 0
@@ -79,7 +79,7 @@ class Usage:
 
 @dataclass
 class ModelResponse:
-    """统一的响应格式"""
+    """biryanitformat"""
 
     content: str
     model: str
@@ -89,12 +89,12 @@ class ModelResponse:
     finish_reason: str = "stop"
     latency_ms: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
-    tool_calls: list[dict[str, Any]] = field(default_factory=list)  # 工具调用（function calling）
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)  # araccagri (function calling) 
 
 
 @dataclass
 class ModelConfig:
-    """模型配置"""
+    """modelyapilandirma"""
 
     api_key: Optional[str] = None
     base_url: Optional[str] = None
@@ -103,24 +103,24 @@ class ModelConfig:
     temperature: float = 0.7
     timeout: float = 60.0
 
-    # 重试策略
+    # yeniden denestrateji
     max_retries: int = 5
     retry_delay: float = 2.0
-    timeout: float = 120.0  # 增加超时时间到 120 秒
+    timeout: float = 120.0  # artekleasirizamanzamanarasindakadar 120 saniye
 
-    # 成本控制
-    cost_per_1k_prompt: float = 0.0  # 每 1k prompt token 的成本（元）
-    cost_per_1k_completion: float = 0.0  # 每 1k completion token 的成本（元）
+    # olkontrol
+    cost_per_1k_prompt: float = 0.0  # her 1k prompt token ol (ogre) 
+    cost_per_1k_completion: float = 0.0  # her 1k completion token ol (ogre) 
 
 
 class BaseModel(ABC):
     """
-    所有模型适配器的基类
+    varmodeladaptortemel sinif
 
-    职责：
-    1. 定义统一的 API 接口
-    2. 提供通用的错误处理和重试逻辑
-    3. 支持流式和非流式两种调用方式
+    Sorumluluk:
+    1. tanimbir API baglanagiz
+    2. saglarkullanhata islemeveyeniden denemantik
+    3. destekakisveolmayanakisikiturcagriyontem
     """
 
     def __init__(self, config: ModelConfig, tier: ModelTier):
@@ -131,10 +131,10 @@ class BaseModel(ABC):
 
     async def _get_client(self) -> httpx.AsyncClient:
         """
-        获取或创建 HTTP 客户端（延迟初始化）
+        alveyaolustur HTTP istemci (gecikmebaslat) 
 
-        子类可以覆盖此方法以提供自定义的客户端配置。
-        默认实现使用 OpenAI 兼容的 API 格式（base_url + Bearer token）。
+        altsinifolabilirileuzerine yazbuyontemilesaglarozelistemciyapilandirma. 
+        varsayilanuygulakullan OpenAI uyumlu API format (base_url + Bearer token) . 
         """
         if self._client is None or self._client.is_closed:
             headers = {
@@ -149,7 +149,7 @@ class BaseModel(ABC):
         return self._client
 
     async def close(self):
-        """关闭 HTTP 客户端"""
+        """kapat HTTP istemci"""
         if self._client and not self._client.is_closed:
             await self._client.aclose()
             self._client = None
@@ -157,56 +157,56 @@ class BaseModel(ABC):
     @property
     @abstractmethod
     def provider(self) -> ModelProvider:
-        """返回提供商标识"""
+        """donussaglayiciisarettani"""
         pass
 
     @property
     @abstractmethod
     def model_name(self) -> str:
-        """返回实际使用的模型名称"""
+        """donusgercekkullanmodel adi"""
         pass
 
     @abstractmethod
     async def generate(self, messages: list[Message], **kwargs) -> ModelResponse:
         """
-        非流式生成
+        olmayanakisolustur
 
         Args:
-            messages: 对话历史
-            **kwargs: 模型特定参数
+            messages: icinkonusmagecmis
+            **kwargs: modelozelparametre
 
         Returns:
-            ModelResponse: 统一格式的响应
+            ModelResponse: birformatyanit
         """
         pass
 
     @abstractmethod
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
         """
-        流式生成
+        akisolustur
 
         Args:
-            messages: 对话历史
-            **kwargs: 模型特定参数
+            messages: icinkonusmagecmis
+            **kwargs: modelozelparametre
 
         Yields:
-            str: 每次生成的文本片段
+            str: herkezolusturmetinparca
         """
         pass
 
     async def count_tokens(self, text: str) -> int:
         """
-        计算 token 数量（子类可覆盖提供更精确的实现）
+        hesapla token sayimiktar (altsinifolabiliruzerine yazsaglardahakesinuygula) 
 
-        默认实现：中文字符约 1.5 token，英文单词约 1 token
+        varsayilanuygula: icindemetinkarakteryaklasik 1.5 token, Ingilizmetintekilkelimeyaklasik 1 token
         """
-        # 简化估算
+        # basittahmin
         chinese_chars = sum(1 for c in text if "\u4e00" <= c <= "\u9fff")
         other_chars = len(text) - chinese_chars
         return int(chinese_chars * 1.5 + other_chars / 4)
 
     def get_cost(self, usage: Usage) -> float:
-        """计算本次调用的成本（元）"""
+        """hesaplakezcagriol (ogre) """
         prompt_cost = (usage.prompt_tokens / 1000) * self.config.cost_per_1k_prompt
         completion_cost = (
             usage.completion_tokens / 1000
@@ -214,37 +214,37 @@ class BaseModel(ABC):
         return prompt_cost + completion_cost
 
     def update_usage(self, usage: Usage):
-        """更新累计使用量"""
+        """guncellebiriktirhesapkullanmiktar"""
         self._total_usage = self._total_usage + usage
 
     def get_total_usage(self) -> Usage:
-        """获取累计使用量"""
+        """albiriktirhesapkullanmiktar"""
         return self._total_usage
 
     def reset_usage(self):
-        """重置使用统计"""
+        """tekrarayarkullanistatistik"""
         self._total_usage = Usage()
 
     def _format_messages(self, messages: list[Message]) -> list[dict[str, str]]:
         """
-        将统一消息格式转换为 OpenAI 兼容的 API 格式
+        birmesajformatdonusturicin OpenAI uyumlu API format
 
-        子类可以覆盖此方法以提供不同 API 格式的消息转换。
+        altsinifolabilirileuzerine yazbuyontemilesaglarhayirayni API formatmesajdonustur. 
         """
         formatted = []
         for msg in messages:
             item: dict[str, str] = {"role": msg.role, "content": msg.content}
             if msg.name:
                 item["name"] = msg.name  # type: ignore
-            if msg.tool_calls:  # assistant 消息的工具调用
+            if msg.tool_calls:  # assistant mesaj aracligicagri
                 item["tool_calls"] = msg.tool_calls  # type: ignore
-            if msg.tool_call_id:  # tool 消息的工具调用 ID
+            if msg.tool_call_id:  # tool mesaj aracligicagri ID
                 item["tool_call_id"] = msg.tool_call_id
             formatted.append(item)
         return formatted
 
     def _build_system_prompt(self, system: Optional[str] = None) -> Optional[Message]:
-        """构建系统提示词"""
+        """olustursistemipucukelime"""
         if system:
             return Message(role="system", content=system)
         return None
@@ -253,9 +253,9 @@ class BaseModel(ABC):
         self, messages: list[Message], **kwargs
     ) -> dict[str, Any]:
         """
-        构建 OpenAI 兼容的请求体基础部分
+        olustur OpenAI uyumluistektemeltemelkisimpuan
 
-        子类可以调用此方法来构建基础请求体，然后添加模型特定的参数。
+        altsinifolabilirilecagribuyontemgelolusturtemeltemelistek, sonraeklemodelozelparametre. 
         """
         request_body: dict[str, Any] = {
             "model": self.model_name,
@@ -264,7 +264,7 @@ class BaseModel(ABC):
             "temperature": kwargs.get("temperature", self.config.temperature),
         }
 
-        # 添加可选参数
+        # ekleolabilirsecparametre
         if "top_p" in kwargs:
             request_body["top_p"] = kwargs["top_p"]
         if "stop" in kwargs:
@@ -277,19 +277,19 @@ class BaseModel(ABC):
 
     async def _parse_response(self, response: httpx.Response) -> dict[str, Any]:
         """
-        解析 HTTP 响应，统一处理错误
+        ayristir HTTP yanit, birislehata
 
         Raises:
-            httpx.HTTPStatusError: 当 API 返回错误状态码时
-            httpx.RequestError: 当网络请求失败时
+            httpx.HTTPStatusError: ne zaman API donushatadurumkodzaman
+            httpx.RequestError: ne zamanag istegibasarisizzaman
         """
         response.raise_for_status()
         return response.json()
 
     async def _execute_with_retry(self, func, *args, **kwargs):
         """
-        带重试的执行（使用 tenacity 指数退避）
-        仅重试网络超时类错误，其他异常直接抛出。
+        kemeryeniden deneyurut (kullan tenacity isaretsayigerikacin) 
+        sadeceyeniden deneagasirizamansinifhata, onunofarklisikdogrubaglanfirlat. 
         """
         import httpx
         from tenacity import (
@@ -299,7 +299,7 @@ class BaseModel(ABC):
             wait_exponential,
         )
 
-        # 可重试的异常类型
+        # olabiliryeniden denefarklisiktip
         retryable_exceptions = (
             httpx.ReadTimeout,
             httpx.ConnectTimeout,
@@ -331,8 +331,8 @@ class BaseModel(ABC):
 
     async def _execute_with_retry(self, func, *args, **kwargs):
         """
-        带重试的执行（使用 tenacity 指数退避）
-        仅重试网络超时类错误，其他异常直接抛出。
+        kemeryeniden deneyurut (kullan tenacity isaretsayigerikacin) 
+        sadeceyeniden deneagasirizamansinifhata, onunofarklisikdogrubaglanfirlat. 
         """
         import httpx
         from tenacity import (
@@ -342,7 +342,7 @@ class BaseModel(ABC):
             wait_exponential,
         )
 
-        # 可重试的异常类型
+        # olabiliryeniden denefarklisiktip
         retryable_exceptions = (
             httpx.ReadTimeout,
             httpx.ConnectTimeout,

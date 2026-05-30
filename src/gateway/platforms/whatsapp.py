@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 """
-WhatsApp Business Cloud API 平台处理器
+WhatsApp Business Cloud API platform isleyicisi
 
-支持 WhatsApp Business Cloud API（官方 API，无需第三方中间件）。
-支持：消息接收（Webhook）、消息发送。
+destek WhatsApp Business Cloud API (resmiyon API, yokgerekinciucyonicindearasindaogre) . 
+destek: mesajbaglanal (Webhook) , mesajgondergonder. 
 
-文档：https://developers.facebook.com/docs/whatsapp/cloud-api
+Dokumantasyon:https://developers.facebook.com/docs/whatsapp/cloud-api
 """
 
 
@@ -44,25 +44,25 @@ except ImportError:
     )
 
 
-# WhatsApp Cloud API 端点模板
+# WhatsApp Cloud API uc noktasablon
 _WHATSAPP_API_URL = "https://graph.facebook.com/v21.0"
 
 
 class WhatsAppHandler(PlatformHandler):
     """
-    WhatsApp Business Cloud API 处理器
+    WhatsApp Business Cloud API isleyici
 
-    接收 Webhook 事件 → 转为 IncomingMessage → 传给 on_message
-    发送消息 → WhatsApp Send API
+    baglanal Webhook olay → donusturicin IncomingMessage → iletver on_message
+    mesaj gonder → WhatsApp Send API
 
-    环境变量配置：
-        WHATSAPP_PHONE_NUMBER_ID   - 电话号码 ID（From 号码）
-        WHATSAPP_WEBHOOK_URL       - Webhook 基础 URL（不含路径）
-        WHATSAPP_WEBHOOK_PORT      - 本地监听端口（默认 8080）
-        WHATSAPP_VERIFY_TOKEN      - 验证 Token（自己生成）
+    ortam degiskenmiktaryapilandirma: 
+        WHATSAPP_PHONE_NUMBER_ID   - elektrikkonusmanokod ID (From nokod) 
+        WHATSAPP_WEBHOOK_URL       - Webhook temeltemel URL (hayiriceriryol) 
+        WHATSAPP_WEBHOOK_PORT      - yereldinleme uc noktaagiz (varsayilan 8080) 
+        WHATSAPP_VERIFY_TOKEN      - dogrulama Token(kendi olusturulan)
         WHATSAPP_ACCESS_TOKEN      - Long-lived Access Token
 
-    本地运行后需将 http://<your-host>:<port>/webhook/whatsapp 注册到 Meta Webhook。
+    yerelsatirsonragerek http://<your-host>:<port>/webhook/whatsapp kayitkadar Meta Webhook. 
     """
 
     name = Platform.WHATSAPP
@@ -78,11 +78,11 @@ class WhatsAppHandler(PlatformHandler):
     ):
         """
         Args:
-            phone_number_id: WhatsApp 商业电话号码 ID（From 号码）
-            access_token: Meta App Access Token（Long-lived）
-            webhook_url: 你的服务器公网 URL（用于注册 Webhook）
-            verify_token: Webhook 验证 Token（自己生成，用于校验 Meta 的验证请求）
-            webhook_port: 本地 Webhook 监听端口
+            phone_number_id: WhatsApp ticaretendustrielektrikkonusmanokod ID (From nokod) 
+            access_token: Meta App Access Token (Long-lived) 
+            webhook_url: senservisortakag URL (kullandekayit Webhook) 
+            verify_token: Webhook dogrulama Token (kendiolustur, kullandekontroldogrula Meta dogrulamaistek) 
+            webhook_port: yerel Webhook dinleme uc noktaagiz
         """
         super().__init__(**kwargs)
         self.phone_number_id = phone_number_id
@@ -95,18 +95,18 @@ class WhatsAppHandler(PlatformHandler):
         self._app: Any = None
         self._server_task: Optional[asyncio.Task[None]] = None
 
-    # ---- PlatformHandler 实现 ----
+    # ---- PlatformHandler uygula ----
 
     async def start(self) -> None:
         if not _HAS_STARLETTE:
-            raise RuntimeError("starlette 未安装。运行: pip install starlette httpx")
+            raise RuntimeError("starlette kurulu degil. Calistirin: pip install starlette httpx")
 
         if not _HAS_HTTPX:
-            raise RuntimeError("httpx 未安装。运行: pip install httpx")
+            raise RuntimeError("httpx kurulu degil. Calistirin: pip install httpx")
 
-        # 构建 Webhook 路由
+        # olustur Webhook yoltarafindan
         async def webhookGET(request: Request) -> PlainTextResponse:
-            """Meta Webhook 验证（GET）"""
+            """Meta Webhook dogrulama (GET) """
             mode = request.query_params.get("hub.mode")
             token = request.query_params.get("hub.verify_token")
             challenge = request.query_params.get("hub.challenge")
@@ -120,7 +120,7 @@ class WhatsAppHandler(PlatformHandler):
             return PlainTextResponse(content="Invalid verify", status_code=403)
 
         async def webhookPOST(request: Request) -> JSONResponse:
-            """接收 WhatsApp 消息事件"""
+            """baglanal WhatsApp mesajolay"""
             body = await request.json()
             await self._handle_webhook_event(body)
             return JSONResponse(content={"status": "ok"})
@@ -132,7 +132,7 @@ class WhatsAppHandler(PlatformHandler):
             ]
         )
 
-        # 启动后台 HTTP 服务器
+        # baslatsonraplatform HTTP servis
         import uvicorn
 
         config = uvicorn.Config(
@@ -162,7 +162,7 @@ class WhatsAppHandler(PlatformHandler):
         logger.info("[whatsapp] Handler stopped")
 
     async def send(self, message: OutgoingMessage) -> bool:
-        """通过 WhatsApp Cloud API 发送消息"""
+        """araciligiyla WhatsApp Cloud API mesaj gonder"""
         if not _HAS_HTTPX:
             return False
 
@@ -175,7 +175,7 @@ class WhatsAppHandler(PlatformHandler):
             "messaging_product": "whatsapp",
             "to": message.chat_id,
             "type": "text",
-            "text": {"body": message.text[:4096]},  # WhatsApp 限制 4096 字符
+            "text": {"body": message.text[:4096]},  # WhatsApp sinir 4096 karakter
         }
         if message.reply_to:
             payload["context"] = {"message_id": message.reply_to}
@@ -193,10 +193,10 @@ class WhatsAppHandler(PlatformHandler):
             self.on_error(e)
             return False
 
-    # ---- 内部处理 ----
+    # ---- icindekisimisle ----
 
     async def _handle_webhook_event(self, body: dict[str, Any]) -> None:
-        """处理 WhatsApp Webhook 事件"""
+        """isle WhatsApp Webhook olay"""
         try:
             entries = body.get("entry", [])
             for entry in entries:
@@ -215,7 +215,7 @@ class WhatsAppHandler(PlatformHandler):
     async def _process_message(
         self, msg: dict[str, Any], value: dict[str, Any]
     ) -> None:
-        """处理单条消息"""
+        """isletekilogremesaj"""
         msg_type = msg.get("type")
         if msg_type != "text":
             logger.debug(f"[whatsapp] Unsupported message type: {msg_type}")
@@ -232,7 +232,7 @@ class WhatsAppHandler(PlatformHandler):
         incoming = IncomingMessage(
             platform=Platform.WHATSAPP,
             user_id=from_id,
-            chat_id=from_id,  # WhatsApp 一对一/群组 ID
+            chat_id=from_id,  # WhatsApp biricinbir/grupgrup ID
             text=text,
             raw={
                 "message_id": msg.get("id", ""),
@@ -254,11 +254,11 @@ class WhatsAppHandler(PlatformHandler):
 
 
 def check_whatsapp_dependencies() -> bool:
-    """检查 WhatsApp 依赖是否满足"""
+    """kontrol WhatsApp bagimlilikolup olmadigidoluyeterli"""
     if not _HAS_HTTPX:
-        logger.error("httpx 未安装: pip install httpx")
+        logger.error("httpx kurulu degil: pip install httpx")
         return False
     if not _HAS_STARLETTE:
-        logger.error("starlette 未安装: pip install starlette")
+        logger.error("starlette kurulu degil: pip install starlette")
         return False
     return True

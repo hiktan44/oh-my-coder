@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Wiki Generator - Markdown 文档生成器
+Wiki Generator - Markdown dokumantasyonolustur
 
-从解析的模块信息生成结构化 Markdown 文档。
+ayristirmodulbilgiolusturyapi Markdown dokumantasyon. 
 """
 
 from pathlib import Path
@@ -14,7 +14,7 @@ from .parser import ClassInfo, FunctionInfo, ModuleInfo, PythonParser
 
 
 class WikiGenerator:
-    """Wiki 文档生成器"""
+    """Wiki dokumantasyonolustur"""
 
     def __init__(
         self,
@@ -23,12 +23,12 @@ class WikiGenerator:
         parser: Optional[PythonParser] = None,
     ):
         """
-        初始化生成器
+        baslatolustur
 
         Args:
-            project_name: 项目名称
-            project_path: 项目路径
-            parser: Python 解析器
+            project_name: projead
+            project_path: proje yolu
+            parser: Python ayristir
         """
         self.project_name = project_name
         self.project_path = Path(project_path)
@@ -36,80 +36,80 @@ class WikiGenerator:
 
     def generate(self, output_path: Path | Optional[str] = None) -> str:
         """
-        生成 Wiki 文档
+        olustur Wiki dokumantasyon
 
         Args:
-            output_path: 输出文件路径，默认输出到 REPO_WIKI.md
+            output_path: ciktidosyayol, varsayilanciktikadar REPO_WIKI.md
 
         Returns:
-            生成的 Markdown 内容
+            olustur Markdown icerik
         """
         modules = self.parser.scan_directory(self.project_path)
 
-        # 按目录结构组织
+        # goredizinyapigrupduzen
         content = self._generate_header()
         content += self._generate_summary(modules)
         content += self._generate_project_structure(modules)
         content += self._generate_module_details(modules)
         content += self._generate_footer()
 
-        # 如果指定了输出路径，写入文件
+        # egerbelirtciktiyol, yazgirisdosya
         if output_path:
             output_path = Path(output_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(content, encoding="utf-8")
-            print(f"✅ Wiki 文档已生成: {output_path}")
+            print(f"✅ Wiki dokumantasyonolustur: {output_path}")
 
         return content
 
     def _generate_header(self) -> str:
-        """生成文档头部"""
+        """olusturdokumantasyonbaskisim"""
         return f"""# {self.project_name}
 
-> ⚠️ **注意**: 此文档由 oh-my-coder 自动生成，请勿手动编辑。
-> 生成时间: <!-- GENERATED_AT -->
+> ⚠️ **dikkat**: budokumantasyontarafindan oh-my-coder otomatikolustur, lutfenyapmamanuelduzenleduzenle. 
+> olusturzamanarasinda: <!-- GENERATED_AT -->
 
 ---
 
-## 目录
+## dizin
 
-- [项目概述](#项目概述)
-- [项目结构](#项目结构)
-- [模块详解](#模块详解)
-- [API 参考](#api-参考)
+- [projegenel bakis](#projegenel bakis)
+- [proje yapisi](#proje yapisi)
+- [moduldetaycoz](#moduldetaycoz)
+- [API referans](#api-referans)
 
 ---
 
 """
 
     def _generate_summary(self, modules: list[ModuleInfo]) -> str:
-        """生成项目摘要"""
+        """olusturprojealintiister"""
         total_files = len(modules)
         total_classes = sum(len(m.classes) for m in modules)
         total_functions = sum(len(m.functions) for m in modules)
 
-        # 统计导入最多的模块
+        # istatistikiceri aktaren fazlamodul
         top_imports = sorted(
             modules,
             key=lambda m: len(m.imports),
             reverse=True,
         )[:5]
 
-        content = "## 项目概述\n\n"
+        content = "## projegenel bakis\n\n"
 
         if modules and modules[0].docstring:
             content += f"{modules[0].docstring}\n\n"
 
-        content += f"""| 指标 | 数值 |
+        content += f"""| isaretisaret | sayideger |
 |------|------|
-| 总文件数 | {total_files} |
-| 总类数 | {total_classes} |
-| 总函数数 | {total_functions} |
+| toplamdosya sayisi | {total_files} |
+| toplamsinifsayi | {total_classes} |
+| toplamfonksiyonsayi | {total_functions} |
 
 """
 
         if top_imports:
-            content += "### 核心依赖\n\n"
+            content += "### cekirdekbagimlilik\n\n"
             content += "```python\n"
             for mod in top_imports[:3]:
                 for imp in mod.imports[:3]:
@@ -120,11 +120,11 @@ class WikiGenerator:
         return content
 
     def _generate_project_structure(self, modules: list[ModuleInfo]) -> str:
-        """生成项目结构树"""
-        content = "## 项目结构\n\n"
+        """olusturproje yapisiagac"""
+        content = "## proje yapisi\n\n"
         content += "```\n"
 
-        # 按路径分组
+        # goreyolpuangrup
         by_dir: dict[str, list[ModuleInfo]] = {}
         for mod in modules:
             dir_name = str(mod.relative_path.parent)
@@ -132,7 +132,7 @@ class WikiGenerator:
                 by_dir[dir_name] = []
             by_dir[dir_name].append(mod)
 
-        # 生成树形结构
+        # olusturagacsekilyapi
         for dir_name in sorted(by_dir.keys()):
             if dir_name == ".":
                 content += f"{self.project_path.name}/\n"
@@ -152,19 +152,19 @@ class WikiGenerator:
 
         content += "```\n\n"
 
-        # 目录说明
+        # dizinaciklama
         if "src" in [str(m.relative_path.parent) for m in modules]:
-            content += "### 目录说明\n\n"
-            content += "| 目录 | 说明 |\n|------|------|\n"
-            content += "| src/ | 源代码目录 |\n"
-            content += "| tests/ | 测试文件 |\n"
-            content += "| docs/ | 文档 |\n\n"
+            content += "### dizinaciklama\n\n"
+            content += "| dizin | aciklama |\n|------|------|\n"
+            content += "| src/ | kaynakkoddizin |\n"
+            content += "| tests/ | testdosya |\n"
+            content += "| docs/ | dokumantasyon |\n\n"
 
         return content
 
     def _generate_module_details(self, modules: list[ModuleInfo]) -> str:
-        """生成模块详情"""
-        content = "## 模块详解\n\n"
+        """olusturmoduldetay"""
+        content = "## moduldetaycoz\n\n"
 
         for module in sorted(modules, key=lambda m: str(m.relative_path)):
             content += self._generate_module_section(module)
@@ -172,7 +172,7 @@ class WikiGenerator:
         return content
 
     def _generate_module_section(self, module: ModuleInfo) -> str:
-        """生成单个模块的文档"""
+        """olusturtekilmoduldokumantasyon"""
         rel_path = module.relative_path
 
         content = f"### `{rel_path}`\n\n"
@@ -180,36 +180,36 @@ class WikiGenerator:
         if module.docstring:
             content += f"{module.docstring}\n\n"
 
-        # 类列表
+        # sinifliste
         if module.classes:
-            content += "#### 类\n\n"
+            content += "#### sinif\n\n"
             for cls in module.classes:
                 content += self._generate_class(cls)
 
-        # 函数列表
+        # fonksiyonliste
         if module.functions:
-            content += "#### 函数\n\n"
+            content += "#### fonksiyon\n\n"
             for func in module.functions:
                 content += self._generate_function(func)
 
         return content
 
     def _generate_class(self, cls: ClassInfo) -> str:
-        """生成类文档"""
+        """olustursinifdokumantasyon"""
         content = f"##### `{cls.name}`\n\n"
 
         if cls.docstring:
-            # 截取文档字符串第一行作为简短描述
+            # kesaldokumantasyonkarakter dizisiincibirsatiryapicinbasitkisaaciklama
             doc_lines = cls.docstring.strip().split("\n")
             content += f"{doc_lines[0].strip()}\n\n"
 
         if cls.base_classes:
-            content += f"**继承**: {', '.join(cls.base_classes)}\n\n"
+            content += f"**devamustlen**: {', '.join(cls.base_classes)}\n\n"
 
-        # 公开方法
+        # ortakacyontem
         public_methods = cls.public_methods
         if public_methods:
-            content += "| 方法 | 说明 |\n|------|------|\n"
+            content += "| yontem | aciklama |\n|------|------|\n"
             for method in public_methods:
                 desc = (
                     method.docstring.split("\n")[0].strip() if method.docstring else ""
@@ -220,19 +220,19 @@ class WikiGenerator:
         return content
 
     def _generate_function(self, func: FunctionInfo) -> str:
-        """生成函数文档"""
+        """olusturfonksiyondokumantasyon"""
         content = f"##### `{func.signature}`\n\n"
 
         if func.docstring:
-            # 截取文档字符串第一段
+            # kesaldokumantasyonkarakter dizisiincibirblok
             doc_lines = func.docstring.strip().split("\n")
             content += f"{doc_lines[0].strip()}\n\n"
 
         return content
 
     def _generate_footer(self) -> str:
-        """生成文档尾部"""
+        """olusturdokumantasyonkuyrukkisim"""
         return """---
 
-*此文档由 [oh-my-coder](https://github.com/VOBC/oh-my-coder) 自动生成*
+*budokumantasyontarafindan [oh-my-coder](https://github.com/VOBC/oh-my-coder) otomatikolustur*
 """

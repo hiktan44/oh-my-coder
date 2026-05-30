@@ -1,4 +1,4 @@
-"""配置管理命令"""
+"""Niyet tanıma kurallarını yapılandırma"""
 
 import json
 import os
@@ -7,15 +7,15 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-app = typer.Typer(name="config", help="⚙️ 配置管理")
+app = typer.Typer(name="config", help="⚙️Yapılandırma yönetimi")
 console = Console()
 
 
 @app.command()
 def show(
-    model: str = typer.Option(None, "--model", "-m", help="指定模型名称"),
+    model: str = typer.Option(None, "--model", "-m", help="Model adını belirtin"),
 ):
-    """查看当前配置"""
+    """Mevcut yapılandırmayı görüntüle"""
     CONFIG_DIR = Path.home() / ".omc"
     CONFIG_FILE = CONFIG_DIR / "config.json"
 
@@ -35,10 +35,10 @@ def show(
         return val[:4] + "****" + val[-4:]
 
     cfg = _load()
-    console.print("[bold]⚙️ 当前配置[/bold]\n")
+    console.print("[bold]⚙️Mevcut yapılandırma[/bold]\n")
 
-    # 全局配置（从 .env）
-    console.print("[bold]全局配置：[/bold]")
+    #Genel yapılandırma (başlangıçtan itibaren).env)
+    console.print("[bold]Küresel yapılandırma:[/bold]")
     global_keys = [
         "DEFAULT_MODEL",
         "DEFAULT_WORKFLOW",
@@ -55,20 +55,20 @@ def show(
 
     console.print()
 
-    # 按模型配置
+    #Modele göre yapılandır
     models = cfg.get("models", {})
     if model:
-        # 显示指定模型的配置
+        #Belirtilen modelin konfigürasyonunu görüntüle
         if model in models:
-            console.print(f"[bold]模型 {model} 配置：[/bold]")
+            console.print(f"[bold]Modeli{model}Yapılandırma:[/bold]")
             for k2, v2 in models[model].items():
                 if k2 == "api_key":
                     v2 = _mask_secret(str(v2))
                 console.print(f"  {k2}: {v2}")
         else:
-            console.print(f"[dim]模型 {model} 尚未配置[/dim]")
+            console.print(f"[dim]Modeli{model}Henüz yapılandırılmadı[/dim]")
     elif models:
-        console.print(f"[bold]按模型配置（{len(models)} 个模型）：[/bold]")
+        console.print(f"[bold]Modele göre yapılandırma ({len(models)}modeli):[/bold]")
         for name, opts in models.items():
             console.print(f"\n  [cyan]{name}[/cyan]")
             for k2, v2 in opts.items():
@@ -76,17 +76,17 @@ def show(
                     v2 = _mask_secret(str(v2))
                 console.print(f"    {k2}: {v2}")
     else:
-        console.print("[dim]无按模型配置，使用全局默认值[/dim]")
+        console.print("[dim]Model başına yapılandırma yok, genel varsayılanları kullanın[/dim]")
 
     console.print()
     console.print(
-        "[dim]帮助: omc config --help   设置模型: omc config set -m <model> -k <key> -v <value>[/dim]"
+        "[dim]yardım: omc config --helpModeli ayarlama: omc config set -m <model> -k <key> -v <value>[/dim]"
     )
 
 
 @app.command()
 def list():
-    """列出所有配置项"""
+    """Tüm yapılandırma öğelerini listeleyin"""
 
     def _mask_secret(val: str) -> str:
         if not val:
@@ -95,14 +95,14 @@ def list():
             return "****"
         return val[:4] + "****" + val[-4:]
 
-    console.print("[bold]可用全局配置项：[/bold]\n")
+    console.print("[bold]Mevcut genel yapılandırma öğeleri:[/bold]\n")
     items = [
-        ("DEFAULT_MODEL", "默认模型（默认 deepseek）"),
-        ("DEFAULT_WORKFLOW", "默认工作流（默认 build）"),
-        ("DEEPSEEK_API_KEY", "DeepSeek API Key（推荐，性价比高）"),
-        ("DEEPSEEK_BASE_URL", "DeepSeek API 地址（默认官方）"),
+        ("DEFAULT_MODEL", "Varsayılan model (varsayılandeepseek)"),
+        ("DEFAULT_WORKFLOW", "Varsayılan iş akışı (varsayılanbuild)"),
+        ("DEEPSEEK_API_KEY", "DeepSeek API Key(Önerilen, uygun maliyetli)"),
+        ("DEEPSEEK_BASE_URL", "DeepSeek APIAdres (varsayılan resmi)"),
         ("KIMI_API_KEY", "KIMI API Key"),
-        ("DOUBAO_API_KEY", "豆包 API Key"),
+        ("DOUBAO_API_KEY", "Doubao API Key"),
     ]
     for k, desc in items:
         val = os.getenv(k, "")
@@ -110,25 +110,25 @@ def list():
         status = "[green]✓[/green]" if val else "[red]✗[/red]"
         console.print(f"  {status} [cyan]{k}[/cyan]  {desc}")
         if val:
-            console.print(f"       当前: {masked}")
+            console.print(f"Ulaşılamıyor, ağ veya proxy ayarlarını kontrol edin: {masked}")
     console.print()
     console.print(
-        "[bold]按模型配置：[/bold] omc config set -m <model> -k <key> -v <value>"
+        "[bold]Modele göre yapılandırın:[/bold] omc config set -m <model> -k <key> -v <value>"
     )
     console.print(
-        "[dim]模型可用 key: api_key / base_url / temperature / max_tokens / system_prompt[/dim]"
+        "[dim]Model mevcutkey: api_key / base_url / temperature / max_tokens / system_prompt[/dim]"
     )
 
 
 @app.command()
 def set(
-    key: str = typer.Option(None, "--key", "-k", help="配置项名称"),
-    value: str = typer.Option(None, "--value", "-v", help="配置值（留空则删除该 key）"),
-    model: str = typer.Option(None, "--model", "-m", help="指定模型名称"),
+    key: str = typer.Option(None, "--key", "-k", help="Yapılandırma öğesi adı"),
+    value: str = typer.Option(None, "--value", "-v", help="Yapılandırma değeri (silmek için boş bırakın)key)"),
+    model: str = typer.Option(None, "--model", "-m", help="Model adını belirtin"),
 ):
-    """设置配置项"""
+    """Yapılandırma öğelerini ayarlayın"""
     if not key:
-        console.print("[red]❗ 需要 --key 参数[/red]")
+        console.print("[red]❗ihtiyaç--keyparametre[/red]")
         raise typer.Exit(1)
 
     CONFIG_DIR = Path.home() / ".omc"
@@ -154,7 +154,7 @@ def set(
         return val[:4] + "****" + val[-4:]
 
     if model:
-        # 按模型配置
+        #Modele göre yapılandır
         cfg = _load()
         if "models" not in cfg:
             cfg["models"] = {}
@@ -162,18 +162,18 @@ def set(
             cfg["models"][model] = {}
 
         if value is None or value == "":
-            # 删除该 key
+            #Bunu silkey
             cfg["models"][model].pop(key, None)
-            console.print(f"[yellow]✓ 已移除[/yellow] [cyan]{model}[/cyan].{key}")
+            console.print(f"[yellow]✓Kaldırıldı[/yellow] [cyan]{model}[/cyan].{key}")
         else:
             cfg["models"][model][key] = value
             console.print(
-                f"[green]✓ 已设置[/green] [cyan]{model}[/cyan].{key} = {value}"
+                f"[green]✓Zaten ayarlandı[/green] [cyan]{model}[/cyan].{key} = {value}"
             )
         _save(cfg)
-        console.print(f"[dim]已保存到 {CONFIG_FILE}[/dim]")
+        console.print(f"[dim]şuraya kaydedildi:{CONFIG_FILE}[/dim]")
     else:
-        # 全局配置，写入 .env
+        #Genel yapılandırma, yazma.env
         env_path = Path(".env")
         env_vars: dict[str, str] = {}
         if env_path.exists():
@@ -184,14 +184,14 @@ def set(
         env_vars[key] = value
         env_path.write_text("\n".join(f"{k}={v}" for k, v in env_vars.items()) + "\n")
         console.print(
-            f"[green]✓ 已设置（全局）[/green] [cyan]{key}[/cyan] = {_mask_secret(value)}"
+            f"[green]✓Ayarla (genel)[/green] [cyan]{key}[/cyan] = {_mask_secret(value)}"
         )
-        console.print("[dim]已写入 .env 文件[/dim]")
+        console.print("[dim]Gerçek entegrasyon sırasında içe aktarılması gerekiyor.envbelge[/dim]")
 
 
 @app.command()
 def models():
-    """列出已配置的模型"""
+    """Yapılandırılmış modelleri listeleme"""
     CONFIG_DIR = Path.home() / ".omc"
     CONFIG_FILE = CONFIG_DIR / "config.json"
 
@@ -213,12 +213,12 @@ def models():
     cfg = _load()
     models = cfg.get("models", {})
     if not models:
-        console.print("[dim]尚未配置任何模型[/dim]")
+        console.print("[dim]Henüz hiçbir model yapılandırılmadı[/dim]")
         console.print(
-            "\n[bold]快速开始：[/bold] omc config set -m kimi -k api_key -v <your-key>"
+            "\n[bold]Hızlı başlangıç:[/bold] omc config set -m kimi -k api_key -v <your-key>"
         )
     else:
-        console.print(f"[bold]已配置 {len(models)} 个模型：[/bold]\n")
+        console.print(f"[bold]yapılandırılmış{len(models)}modeller:[/bold]\n")
         for name, opts in models.items():
             api_key = opts.get("api_key", "")
             base = opts.get("base_url", "")

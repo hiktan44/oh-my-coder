@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 """
-Agent 配置模块 - 支持 YAML/JSON 配置加载
+Agent yapilandirmamodul - destek YAML/JSON yapilandirmayukle
 
-用法:
+kullanyontem:
     from src.config.agent_config import AgentConfig, load_config_file
 
     config = load_config_file("agents/code_review.yaml")
@@ -21,13 +21,13 @@ from pathlib import Path
 from typing import Any, Optional
 
 # ─────────────────────────────────────────────────────────────
-# 数据模型
+# sayigoremodel
 # ─────────────────────────────────────────────────────────────
 
 
 @dataclass
 class ToolConfig:
-    """工具配置"""
+    """aracyapilandirma"""
 
     name: str
     enabled: bool = True
@@ -36,7 +36,7 @@ class ToolConfig:
 
 @dataclass
 class EnvironmentConfig:
-    """环境配置"""
+    """ortamyapilandirma"""
 
     max_tokens: int = 8000
     temperature: float = 0.7
@@ -46,7 +46,7 @@ class EnvironmentConfig:
 
 @dataclass
 class PromptTemplate:
-    """Prompt 模板"""
+    """Prompt sablon"""
 
     name: str
     template: str
@@ -55,7 +55,7 @@ class PromptTemplate:
 
 @dataclass
 class AgentConfig:
-    """Agent 配置"""
+    """Agent yapilandirma"""
 
     name: str
     description: str
@@ -67,22 +67,22 @@ class AgentConfig:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def get_system_prompt(self) -> str:
-        """获取 system prompt"""
-        return self.prompts.get("system", f"你是一个专业的 {self.name} Agent。")
+        """al system prompt"""
+        return self.prompts.get("system", f"sendirbirozelendustri {self.name} Agent. ")
 
     def get_prompt_template(self, key: str) -> str:
-        """获取指定 key 的 prompt 模板，支持 {{变量}} 替换"""
+        """albelirt key  prompt sablon, destek {{degismiktar}} degistir"""
         return self.prompts.get(key, "")
 
     def render_template(self, key: str, **kwargs: Any) -> str:
-        """渲染 prompt 模板，替换 {{变量}}"""
+        """render prompt sablon, degistir {{degismiktar}}"""
         template = self.get_prompt_template(key)
         for var_name, var_value in kwargs.items():
             template = template.replace(f"{{{{{var_name}}}}}", str(var_value))
         return template
 
     def to_dict(self) -> dict[str, Any]:
-        """序列化为 dict"""
+        """siraicin dict"""
         return {
             "name": self.name,
             "description": self.description,
@@ -101,7 +101,7 @@ class AgentConfig:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> AgentConfig:
-        """从 dict 反序列化"""
+        """ dict terssira"""
         env_data = data.get("environment", {})
         env = EnvironmentConfig(
             max_tokens=env_data.get("max_tokens", 8000),
@@ -121,17 +121,17 @@ class AgentConfig:
         )
 
     def validate(self) -> list[str]:
-        """验证配置合法性，返回错误列表"""
+        """dogrulamayapilandirmabirlestiryontem, donushataliste"""
         errors = []
 
         if not self.name or not re.match(r"^[a-z0-9_-]+$", self.name):
-            errors.append("name 必须是字母/数字/下划线/连字符组合")
+            errors.append("name zorunludirharfana/sayiharf/altplansatir/baglakaraktergrupbirlestir")
 
         if self.environment.max_tokens < 100:
-            errors.append("max_tokens 最小为 100")
+            errors.append("max_tokens enkucukicin 100")
 
         if not (0 <= self.environment.temperature <= 2):
-            errors.append("temperature 必须在 0-2 之间")
+            errors.append("temperature zorunluicinde 0-2 arasinda")
 
         denied = self.permissions.get("denied_patterns", [])
         if denied:
@@ -139,33 +139,33 @@ class AgentConfig:
                 try:
                     re.compile(pattern)
                 except re.error as e:
-                    errors.append(f"denied_patterns 正则错误: {e}")
+                    errors.append(f"denied_patterns regexhata: {e}")
 
         return errors
 
 
 # ─────────────────────────────────────────────────────────────
-# 加载器
+# yukle
 # ─────────────────────────────────────────────────────────────
 
 
 def load_config_file(path: str | Path) -> AgentConfig:
     """
-    加载 YAML 或 JSON 格式的 Agent 配置文件
+    yukle YAML veya JSON format Agent yapilandirma dosyasi
 
     Args:
-        path: 配置文件路径
+        path: yapilandirma dosyasiyol
 
     Returns:
-        AgentConfig 实例
+        AgentConfig ornek
 
     Raises:
-        FileNotFoundError: 文件不存在
-        ValueError: 格式不支持或解析失败
+        FileNotFoundError: dosyamevcut degil
+        ValueError: formathayirdestekveyaayristirma basarisiz
     """
     p = Path(path)
     if not p.exists():
-        raise FileNotFoundError(f"配置文件不存在: {path}")
+        raise FileNotFoundError(f"yapilandirma dosyasimevcut degil: {path}")
 
     raw = p.read_text(encoding="utf-8")
 
@@ -174,20 +174,20 @@ def load_config_file(path: str | Path) -> AgentConfig:
     elif p.suffix == ".json":
         data = json.loads(raw)
     else:
-        raise ValueError(f"不支持的文件格式: {p.suffix}，仅支持 .yaml/.yml/.json")
+        raise ValueError(f"hayirdestekdosyaformat: {p.suffix}, sadecedestek .yaml/.yml/.json")
 
     return AgentConfig.from_dict(data)
 
 
 def load_config_dir(dir_path: str | Path) -> list[AgentConfig]:
     """
-    加载目录下所有 YAML/JSON 配置文件
+    yukledizinaltvar YAML/JSON yapilandirma dosyasi
 
     Args:
-        dir_path: 目录路径
+        dir_path: dizin yolu
 
     Returns:
-        AgentConfig 列表
+        AgentConfig liste
     """
     p = Path(dir_path)
     if not p.is_dir():
@@ -199,30 +199,30 @@ def load_config_dir(dir_path: str | Path) -> list[AgentConfig]:
             try:
                 configs.append(load_config_file(fp))
             except Exception:
-                pass  # 跳过解析失败的文件
+                pass  # atlaayristirma basarisizdosya
 
     return configs
 
 
 def validate_config_file(path: str | Path) -> tuple[bool, list[str]]:
     """
-    验证配置文件合法性
+    dogrulamayapilandirma dosyasibirlestiryontem
 
     Returns:
-        (是否合法, 错误列表)
+        (olup olmadigibirlestiryontem, hataliste)
     """
     try:
         config = load_config_file(path)
         errors = config.validate()
         return len(errors) == 0, errors
     except FileNotFoundError:
-        return False, ["配置文件不存在"]
+        return False, ["yapilandirma dosyasimevcut degil"]
     except Exception as e:
-        return False, [f"解析失败: {type(e).__name__}"]
+        return False, [f"ayristirma basarisiz: {type(e).__name__}"]
 
 
 def list_configs_in_dir(dir_path: str | Path) -> list[str]:
-    """列出目录下所有配置文件的绝对路径"""
+    """listeledizinaltvaryapilandirma dosyasikesinicinyol"""
     p = Path(dir_path)
     if not p.is_dir():
         return []
@@ -235,12 +235,12 @@ def list_configs_in_dir(dir_path: str | Path) -> list[str]:
 
 
 # ─────────────────────────────────────────────────────────────
-# 内部
+# icindekisim
 # ─────────────────────────────────────────────────────────────
 
 
 def _load_yaml(raw: str) -> dict[str, Any]:
-    """解析 YAML（使用标准库实现，零依赖）"""
+    """ayristir YAML (kullanstandartkutuphaneuygula, sifirbagimlilik) """
     try:
         from ._yaml import yaml_safe_load
 
@@ -248,7 +248,7 @@ def _load_yaml(raw: str) -> dict[str, Any]:
     except ImportError:
         pass
 
-    # 标准库 fallback：手动解析简单 YAML
+    # standartkutuphane fallback: manuelayristirbasittekil YAML
     result: dict[str, Any] = {}
     current_key: Optional[str] = None
     current_list: Optional[list[str]] = None
@@ -260,16 +260,16 @@ def _load_yaml(raw: str) -> dict[str, Any]:
         if not stripped or stripped.startswith("#"):
             continue
 
-        # 检测缩进
+        # algilamakucultilerle
         content = stripped.rstrip()
 
-        # 列表项
+        # listeogre
         if content.startswith("- "):
             item = content[2:].strip()
             if current_list is not None:
                 current_list.append(item)
             elif current_dict is not None:
-                # dict 中的列表
+                # dict icindeliste
                 if current_key:
                     if current_key not in result:
                         result[current_key] = []
@@ -280,15 +280,15 @@ def _load_yaml(raw: str) -> dict[str, Any]:
             value = value.strip()
 
             if value:
-                # 简单键值对
+                # basittekilanahtardegericin
                 if current_dict is not None:
                     current_dict[key] = _parse_value(value)
                 else:
                     result[key] = _parse_value(value)
             else:
-                # 嵌套对象
+                # iciceicinnesne
                 if in_dict and current_dict is not None:
-                    # 处理 dict 结束
+                    # isle dict bitir
                     if current_key and current_key not in result:
                         result[current_key] = current_dict
                 current_key = key
@@ -302,7 +302,7 @@ def _load_yaml(raw: str) -> dict[str, Any]:
 
 
 def _parse_value(value: str) -> Any:
-    """解析 YAML 值"""
+    """ayristir YAML deger"""
     v = value.strip('"').strip("'")
     if v.lower() == "true":
         return True

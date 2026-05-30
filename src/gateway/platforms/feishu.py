@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 """
-飞书 / Lark 平台处理器
+Feishu / Lark platform isleyicisi
 
-支持飞书自建应用（接收消息 + 发送消息）。
-支持：文本消息、回复、Markdown。
+destekFeishukendiolusturuygulama (baglanalmesaj + mesaj gonder) . 
+destek: metinmesaj, geritekrar, Markdown. 
 
-文档：https://open.feishu.cn/document/server-docs/im-v1/message-content-description/create
+Dokumantasyon:https://open.feishu.cn/document/server-docs/im-v1/message-content-description/create
 """
 
 
@@ -26,21 +26,21 @@ try:
     _HAS_HTTPX = True
 except ImportError:
     _HAS_HTTPX = False
-    logger.warning("httpx not installed. 飞书支持需要: pip install httpx")
+    logger.warning("httpx not installed. Feishudestekgerekister: pip install httpx")
 
 
 class FeishuHandler(PlatformHandler):
     """
-    飞书自建应用处理器
+    Feishukendiolusturuygulamaisleyici
 
-    通过 HTTP Webhook + 轮询（Long Polling）接收消息。
-    支持文本、卡片消息、@ 机器人交互。
+    araciligiyla HTTP Webhook + tursor (Long Polling) baglanalmesaj. 
+    destekmetin, kartmesaj, @ makinekisietkilesim. 
 
-    环境变量：
-        FEISHU_APP_ID         - 飞书应用 App ID
-        FEISHU_APP_SECRET     - 飞书应用 App Secret
-        FEISHU_VERIFY_TOKEN   - 事件订阅的 Verify Token（可选）
-        FEISHU_ENCRYPT_KEY    - 事件订阅的加密 Key（可选，如有）
+    Ortam degiskenleri:
+        FEISHU_APP_ID         - Feishuuygulama App ID
+        FEISHU_APP_SECRET     - Feishuuygulama App Secret
+        FEISHU_VERIFY_TOKEN   - olayabone Verify Token (olabilirsec) 
+        FEISHU_ENCRYPT_KEY    - olayaboneeklegizli Key (olabilirsec, orneginvar) 
     """
 
     name = Platform.FEISHU
@@ -55,10 +55,10 @@ class FeishuHandler(PlatformHandler):
     ):
         """
         Args:
-            app_id: 飞书自建应用的 App ID（cli_xxx）
-            app_secret: 飞书自建应用的 App Secret
-            encrypt_key: 事件加密 Key（如配置了加密则填）
-            verify_token: 事件订阅 Verify Token
+            app_id: Feishukendiolusturuygulama App ID (cli_xxx) 
+            app_secret: Feishukendiolusturuygulama App Secret
+            encrypt_key: olayeklegizli Key (orneginyapilandirmaeklegizlikuraldoldur) 
+            verify_token: olayabone Verify Token
         """
         super().__init__(**kwargs)
         self.app_id = app_id
@@ -70,13 +70,13 @@ class FeishuHandler(PlatformHandler):
         self._stop_event = asyncio.Event()
         self._poll_task: Optional[asyncio.Task[None]] = None
 
-    # ---- PlatformHandler 实现 ----
+    # ---- PlatformHandler uygula ----
 
     async def start(self) -> None:
         if not _HAS_HTTPX:
-            raise RuntimeError("httpx 未安装。运行: pip install httpx")
+            raise RuntimeError("httpx kurulu degil. Calistirin: pip install httpx")
 
-        # 预获取 token
+        # onal token
         await self._refresh_token()
         self._stop_event.clear()
         self._poll_task = asyncio.create_task(self._long_poll_loop())
@@ -93,7 +93,7 @@ class FeishuHandler(PlatformHandler):
         logger.info("[feishu] Handler stopped")
 
     async def send(self, message: OutgoingMessage) -> bool:
-        """发送消息到飞书"""
+        """mesaj gonderkadarFeishu"""
         token = await self._get_token()
         if not token:
             return False
@@ -104,7 +104,7 @@ class FeishuHandler(PlatformHandler):
             "Content-Type": "application/json",
         }
 
-        # 飞书消息格式
+        # Feishumesajformat
         content = self._build_content(message.text, message.parse_mode)
 
         payload = {
@@ -113,7 +113,7 @@ class FeishuHandler(PlatformHandler):
             "content": content,
         }
 
-        # 根据 chat_id 格式判断类型
+        # gore chat_id formatkarar vertip
         if message.chat_id.startswith("oc_"):
             payload["receive_id_type"] = "open_id"
         elif message.chat_id.startswith("p_"):
@@ -121,9 +121,9 @@ class FeishuHandler(PlatformHandler):
         elif message.chat_id.startswith("u_"):
             payload["receive_id_type"] = "user_id"
         else:
-            payload["receive_id_type"] = "chat_id"  # 默认群组
+            payload["receive_id_type"] = "chat_id"  # varsayilangrupgrup
 
-        # 回复消息
+        # geritekrarmesaj
         if message.reply_to:
             url_with_type = f"{url}?receive_id_type={payload['receive_id_type']}"
         else:
@@ -143,10 +143,10 @@ class FeishuHandler(PlatformHandler):
             self.on_error(e)
             return False
 
-    # ---- 内部实现 ----
+    # ---- icindekisimuygula ----
 
     async def _refresh_token(self) -> None:
-        """获取 tenant_access_token"""
+        """al tenant_access_token"""
         url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
@@ -155,26 +155,26 @@ class FeishuHandler(PlatformHandler):
             data = resp.json()
             if data.get("code") == 0:
                 self._tenant_access_token = data["tenant_access_token"]
-                # token 有效期 2 小时，提前 5 分钟刷新
+                # token varetkidonem 2 kucukzaman, yukseltonce 5 puandakikayenileyeni
                 self._token_expires_at = time.time() + (data.get("expire", 7200) - 300)
                 logger.debug("[feishu] Token refreshed")
             else:
                 logger.error(f"[feishu] Token refresh failed: {data}")
 
     async def _get_token(self) -> Optional[str]:
-        """获取有效 token（自动刷新）"""
+        """alvaretki token (otomatikyenileyeni) """
         if self._tenant_access_token is None or time.time() >= self._token_expires_at:
             await self._refresh_token()
         return self._tenant_access_token
 
     async def _long_poll_loop(self) -> None:
         """
-        飞书消息事件拉取（使用 im/v1/messages 接口轮询）。
+        Feishumesajolaycek (kullan im/v1/messages baglanagiztursor) . 
 
-        实际生产环境推荐使用"事件订阅"Webhook 模式，
-        本实现作为无公网 Webhook 时的备选方案。
+        gercekyaraturetortamonerkullan"olayabone"Webhook mod, 
+        uygulayapicinyokortakag Webhook zamanhazirlasecplan. 
         """
-        last_msg_time = int(time.time() * 1000) - 30000  # 30秒前的消息
+        last_msg_time = int(time.time() * 1000) - 30000  # 30saniyeoncemesaj
 
         while not self._stop_event.is_set():
             try:
@@ -205,7 +205,7 @@ class FeishuHandler(PlatformHandler):
                 else:
                     logger.warning(f"[feishu] Poll failed: {data}")
 
-                # 轮询间隔 5 秒
+                # tursorarasindaayir 5 saniye
                 await asyncio.sleep(5)
 
             except asyncio.CancelledError:
@@ -215,7 +215,7 @@ class FeishuHandler(PlatformHandler):
                 await asyncio.sleep(10)
 
     async def _process_message(self, msg: dict[str, Any]) -> None:
-        """处理飞书消息"""
+        """isleFeishumesaj"""
         msg_type = msg.get("msg_type", "")
         if msg_type != "text":
             logger.debug(f"[feishu] Unsupported msg_type: {msg_type}")
@@ -223,7 +223,7 @@ class FeishuHandler(PlatformHandler):
 
         sender = msg.get("sender", {})
         chat_type = msg.get("chat_type", "")
-        if chat_type != "p2p":  # 只处理私聊
+        if chat_type != "p2p":  # sadeceisleozelsohbet
             logger.debug(f"[feishu] Ignoring non-p2p message: {chat_type}")
             return
 
@@ -245,7 +245,7 @@ class FeishuHandler(PlatformHandler):
         incoming = IncomingMessage(
             platform=Platform.FEISHU,
             user_id=user_id,
-            chat_id=user_id,  # 发回给同一用户
+            chat_id=user_id,  # gondergeriveraynibirkullanici
             text=text,
             raw={
                 "message_id": msg.get("message_id", ""),
@@ -265,15 +265,15 @@ class FeishuHandler(PlatformHandler):
 
     @staticmethod
     def _build_content(text: str, parse_mode: str) -> str:
-        """构建飞书消息内容"""
+        """olusturFeishumesajicerik"""
         import json
 
         return json.dumps({"text": text})
 
 
 def check_feishu_dependencies() -> bool:
-    """检查飞书依赖是否满足"""
+    """kontrolFeishubagimlilikolup olmadigidoluyeterli"""
     if not _HAS_HTTPX:
-        logger.error("httpx 未安装: pip install httpx")
+        logger.error("httpx kurulu degil: pip install httpx")
         return False
     return True

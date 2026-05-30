@@ -1,4 +1,4 @@
-"""FastAPI 主入口"""
+"""FastAPIana giriş"""
 
 from fastapi import FastAPI
 from rich.console import Console
@@ -18,7 +18,7 @@ async def health():
 
 
 if __name__ == "__main__":
-    console.print("[bold green]Oh My Coder[/bold green] 启动中...")
+    console.print("[bold green]Oh My Coder[/bold green]Başlangıç...")
     import uvicorn
 
     uvicorn.run(app, host="127.0.0.1", port=8000)

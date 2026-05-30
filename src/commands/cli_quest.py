@@ -3,9 +3,9 @@ from __future__ import annotations
 # mypy: disable-error-code="abstract,arg-type,assignment,attr-defined,call-arg,call-overload,dict-item,func-returns-value,import-untyped,index,misc,no-any-return,no-redef,operator,override,return,return-value,syntax,union-attr,var-annotated"
 
 """
-Quest Mode CLI - 异步自主编程
+Quest Mode CLI -Asenkron otonom programlama
 
-将需求交给 AI，自动生成 SPEC 文档，后台执行，完成后通知验收。
+Gereksinimleri verinAI, otomatik olarak oluşturulmuşSPECBelge arka planda yürütülür ve tamamlandıktan sonra kabul bilgisi verilir.
 """
 
 import asyncio
@@ -20,63 +20,63 @@ from rich.table import Table
 from src.quest import QuestStatus
 
 console = Console()
-app = typer.Typer(name="quest", help="Quest Mode 命令")
+app = typer.Typer(name="quest", help="Quest ModeEmir")
 
 
 def _print_fatal(msg: str):
-    """打印致命错误"""
+    """Önemli hatayı yazdır"""
     console.print(f"[bold red]❌ {msg}[/bold red]")
 
 
 @app.command()
 def quest(
     ctx: typer.Context,
-    description: str = typer.Argument(..., help="任务描述（自然语言）"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
-    title: str = typer.Option(None, "--title", "-t", help="任务标题（可选）"),
-    skip_spec: bool = typer.Option(False, "--skip-spec", help="跳过 SPEC 生成直接执行"),
-    auto_confirm: bool = typer.Option(False, "--yes", "-y", help="自动确认并执行"),
+    description: str = typer.Argument(..., help="Görev açıklaması (doğal dil)"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
+    title: str = typer.Option(None, "--title", "-t", help="Görev başlığı (isteğe bağlı)"),
+    skip_spec: bool = typer.Option(False, "--skip-spec", help="SPEC üretimini atla, doğrudan çalıştır"),
+    auto_confirm: bool = typer.Option(False, "--yes", "-y", help="Otomatik olarak onayla ve yürüt"),
 ):
     """
-    🧙 Quest Mode - 异步自主编程
+    🧙 Quest Mode -Asenkron otonom programlama
 
-    将需求交给 AI，自动生成 SPEC 文档，后台执行，完成后通知验收。
+Gereksinimleri verinAI, otomatik olarak oluşturulmuşSPECBelge arka planda yürütülür ve tamamlandıktan sonra kabul bilgisi verilir.
 
-    示例:
-      omc quest "实现用户认证模块，支持 JWT"
-      omc quest "添加缓存层" -p myproject/
-      omc quest "重构数据库访问层" --skip-spec
+Örnek:
+      omc quest "Desteklemek için kullanıcı kimlik doğrulama modülünü uygulayınJWT"
+      omc quest "Önbelleğe alma katmanı ekle" -p myproject/
+      omc quest "Veritabanı erişim katmanını yeniden düzenleyin" --skip-spec
     """
 
     project_path = project_path.resolve()
     if not project_path.exists():
-        _print_fatal(f"项目路径不存在: {project_path}")
+        _print_fatal(f"Proje yolu mevcut değil: {project_path}")
         raise typer.Exit(1)
 
     console.print(
         Panel.fit(
             f"[bold magenta]🧙 Quest Mode[/bold magenta]\n\n"
-            f"[cyan]需求:[/cyan] {description}\n"
-            f"[cyan]项目:[/cyan] {project_path}",
-            title="🚀 启动",
+            f"[cyan]ihtiyaç:[/cyan] {description}\n"
+            f"[cyan]proje:[/cyan] {project_path}",
+            title="🚀başlatmak",
             border_style="magenta",
         )
     )
 
     from src.quest import QuestManager
 
-    # 步骤验收回调（交互式）
+    #Adım doğrulama geri araması (etkileşimli)
     async def review_callback(quest_id: str, step_id: str, preview: str) -> str:
-        console.print(f"\n[bold cyan]📋 步骤验收: {step_id}[/bold cyan]")
+        console.print(f"\n[bold cyan]📋Adım kabulü: {step_id}[/bold cyan]")
         if preview:
             console.print(
-                Panel.fit(preview[:500], title="执行结果预览", border_style="dim")
+                Panel.fit(preview[:500], title="kod incelemesi", border_style="dim")
             )
 
         from rich.prompt import Prompt
 
         choice = Prompt.ask(
-            "请选择",
+            "Lütfen seçin",
             choices=["p", "r", "s"],
             default="p",
             show_choices=True,
@@ -87,22 +87,22 @@ def quest(
     manager = QuestManager(project_path, review_callback=review_callback)
 
     async def run():
-        # 1. 创建 Quest
+        # 1.yaratmakQuest
         quest_obj = await manager.create_quest(description, title=title)
-        console.print(f"[dim]📋 Quest 已创建: {quest_obj.id[:8]}[/dim]")
+        console.print(f"[dim]📋 QuestOluşturuldu: {quest_obj.id[:8]}[/dim]")
 
-        # 2. 生成 SPEC
+        # 2.oluşturmakSPEC
         if not skip_spec:
-            console.print("[yellow]⏳ 正在生成 SPEC...[/yellow]")
+            console.print("[yellow]⏳ÜretiliyorSPEC...[/yellow]")
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
                 console=console,
             ) as progress:
-                progress.add_task("生成 SPEC 规格文档...", total=None)
+                progress.add_task("oluşturmakSPECŞartname belgesi...", total=None)
                 quest_obj = await manager.generate_spec(quest_obj)
 
-            # 显示 SPEC
+            #göstermekSPEC
             spec = quest_obj.spec
             if spec:
                 spec_content = spec.to_markdown()
@@ -110,67 +110,67 @@ def quest(
                     Panel.fit(
                         spec_content[:3000]
                         + ("\n..." if len(spec_content) > 3000 else ""),
-                        title="📄 SPEC 规格文档",
+                        title="📄 SPECŞartname belgesi",
                         border_style="cyan",
                     )
                 )
 
             if not auto_confirm:
-                console.print("\n[yellow]⚠️ 审查 SPEC 后，运行以下命令执行:[/yellow]")
+                console.print("\n[yellow]⚠️gözden geçirmekSPECBundan sonra, yürütmek için aşağıdaki komutu çalıştırın:[/yellow]")
                 console.print(f"  [green]omc quest exec {quest_obj.id}[/green]")
-                console.print("  [dim]或使用 [green]-y[/green] 自动确认[/dim]")
+                console.print("  [dim]veya kullanın[green]-y[/green]otomatik onay[/dim]")
                 raise typer.Exit(0)
 
-        # 3. 开始执行
-        console.print("[yellow]⏳ 后台执行中...[/yellow]")
-        console.print("[dim]使用 [green]omc quest status[/green] 查看进度[/dim]")
-        console.print("[dim]使用 [green]omc quest log {id}[/green] 查看详细日志[/dim]")
+        # 3.Yürütmeyi başlat
+        console.print("[yellow]⏳Arka planda yürütülüyor...[/yellow]")
+        console.print("[dim]kullanmak[green]omc quest status[/green]İlerlemeyi görüntüle[/dim]")
+        console.print("[dim]kullanmak[green]omc quest log {id}[/green]Ayrıntılı günlüğü görüntüle[/dim]")
 
         manager.confirm_and_execute(quest_obj.id)
-        console.print(f"[green]✅ Quest 已启动 (ID: {quest_obj.id[:8]})[/green]")
-        console.print("[dim]完成时会收到通知[/dim]")
+        console.print(f"[green]✅ QuestBaşlatıldı(ID: {quest_obj.id[:8]})[/green]")
+        console.print("[dim]Tamamlandığında bildirim alın[/dim]")
 
     try:
         asyncio.run(run())
     except SystemExit:
         raise
     except Exception as e:
-        _print_fatal(f"Quest 执行出错: {e}")
+        _print_fatal(f"QuestYürütme hatası: {e}")
         raise typer.Exit(1)
 
 
 @app.command("quest-list")
 def quest_list(
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
     status_filter: str = typer.Option(
-        None, "--status", "-s", help="按状态筛选 (pending/executing/completed/failed)"
+        None, "--status", "-s", help="Duruma göre filtrele(pending/executing/completed/failed)"
     ),
-    all_quests: bool = typer.Option(False, "--all", "-a", help="显示所有 Quest"),
+    all_quests: bool = typer.Option(False, "--all", "-a", help="Tümünü gösterQuest"),
 ):
     """
-    📋 查看 Quest 列表
+    📋Kontrol etmekQuestliste
     """
     from src.quest import QuestManager, QuestStatus
 
     project_path = project_path.resolve()
     manager = QuestManager(project_path)
 
-    # 解析状态筛选
+    #Durum filtresini ayrıştır
     sf = None
     if status_filter:
         try:
             sf = QuestStatus(status_filter)
         except ValueError:
-            _print_fatal(f"未知状态: {status_filter}")
+            _print_fatal(f"bilinmeyen durum: {status_filter}")
             raise typer.Exit(1)
 
     quests = manager.list_quests(status_filter=sf)
 
     if not quests:
-        console.print("[dim]暂无 Quest[/dim]")
+        console.print("[dim]HiçbiriQuest[/dim]")
         return
 
-    # 状态颜色
+    #durum rengi
     status_colors = {
         QuestStatus.PENDING: "dim",
         QuestStatus.SPEC_GENERATING: "yellow",
@@ -182,13 +182,13 @@ def quest_list(
         QuestStatus.PAUSED: "yellow",
     }
 
-    table = Table(title=f"Quest 列表 ({len(quests)})")
+    table = Table(title=f"Questliste({len(quests)})")
     table.add_column("ID", style="cyan", width=8)
-    table.add_column("标题", style="white")
-    table.add_column("状态", width=14)
-    table.add_column("进度", width=12)
-    table.add_column("耗时", width=8)
-    table.add_column("创建时间", style="dim")
+    table.add_column("başlık", style="white")
+    table.add_column("durum", width=14)
+    table.add_column("takvim", width=12)
+    table.add_column("zaman tükeniyor", width=8)
+    table.add_column("yaratılış zamanı", style="dim")
 
     for q in quests:
         color = status_colors.get(q.status, "white")
@@ -209,10 +209,10 @@ def quest_list(
 @app.command("quest-status")
 def quest_status(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    📊 查看 Quest 详细状态
+    📊Kontrol etmekQuestayrıntılı durum
     """
     from src.quest import QuestManager
 
@@ -221,10 +221,10 @@ def quest_status(
 
     quest = manager.get_quest(quest_id)
     if quest is None:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
-    # 状态颜色
+    #durum rengi
     status_color = {
         QuestStatus.PENDING: "dim",
         QuestStatus.SPEC_GENERATING: "yellow",
@@ -239,35 +239,35 @@ def quest_status(
 
     lines = [
         f"[cyan]ID:[/cyan]     {quest.id}",
-        f"[cyan]标题:[/cyan]   {quest.title}",
-        f"[cyan]状态:[/cyan]   [{sc}]{quest.status.value}[/{sc}]",
-        f"[cyan]进度:[/cyan]   {int(quest.progress() * 100)}%",
+        f"[cyan]başlık:[/cyan]   {quest.title}",
+        f"[cyan]durum:[/cyan]   [{sc}]{quest.status.value}[/{sc}]",
+        f"[cyan]takvim:[/cyan]   {int(quest.progress() * 100)}%",
     ]
 
     if quest.duration():
-        lines.append(f"[cyan]耗时:[/cyan]   {quest.duration():.1f}s")
+        lines.append(f"[cyan]zaman tükeniyor:[/cyan]   {quest.duration():.1f}s")
 
     if quest.spec_path:
         lines.append(f"[cyan]SPEC:[/cyan]  {quest.spec_path}")
 
     if quest.error_message:
-        lines.append(f"[red]错误:[/red]   {quest.error_message}")
+        lines.append(f"[red]hata:[/red]   {quest.error_message}")
 
     if quest.result_summary:
-        lines.append(f"[green]结果:[/green]  {quest.result_summary}")
+        lines.append(f"[green]sonuç:[/green]  {quest.result_summary}")
 
     console.print(
         Panel("\n".join(lines), title=f"Quest {quest.id[:8]}", border_style="cyan")
     )
 
-    # 显示步骤
+    #Adımları göster
     if quest.steps:
-        console.print("\n[bold]📌 执行步骤:[/bold]")
+        console.print("\n[bold]📌Yürütme adımları:[/bold]")
         step_table = Table()
         step_table.add_column("ID", width=4)
-        step_table.add_column("步骤", width=20)
+        step_table.add_column("adım", width=20)
         step_table.add_column("Agent", width=15)
-        step_table.add_column("状态", width=12)
+        step_table.add_column("durum", width=12)
 
         step_colors = {
             QuestStatus.PENDING: "dim",
@@ -291,10 +291,10 @@ def quest_status(
 @app.command("quest-exec")
 def quest_exec(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    ▶️ 执行已就绪的 Quest
+    ▶️İnfaz hazırQuest
     """
     from src.quest import QuestManager
 
@@ -303,22 +303,22 @@ def quest_exec(
 
     quest = manager.get_quest(quest_id)
     if quest is None:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
     if quest.status != QuestStatus.SPEC_READY:
-        _print_fatal(f"Quest 状态为 {quest.status}，需要 SPEC_READY 状态")
-        console.print("[dim]使用 [green]omc quest[/green] 创建新 Quest[/dim]")
+        _print_fatal(f"QuestDurum:{quest.status},ihtiyaçSPEC_READYdurum")
+        console.print("[dim]kullanmak[green]omc quest[/green]Yol korumalı alan kapsamını aşıyorQuest[/dim]")
         raise typer.Exit(1)
 
     manager.confirm_and_execute(quest_id)
     console.print(
         Panel.fit(
-            f"[green]✅ Quest 已启动[/green]\n\n"
+            f"[green]✅ QuestBaşlatıldı[/green]\n\n"
             f"ID: {quest.id[:8]}\n"
-            f"标题: {quest.title}\n\n"
-            "[dim]使用 [green]omc quest status {id}[/green] 查看进度[/dim]",
-            title="🚀 启动成功",
+            f"başlık: {quest.title}\n\n"
+            "[dim]kullanmak[green]omc quest status {id}[/green]İlerlemeyi görüntüle[/dim]",
+            title="🚀Başarıyla başlatıldı",
             border_style="green",
         )
     )
@@ -327,10 +327,10 @@ def quest_exec(
 @app.command("quest-cancel")
 def quest_cancel(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    ⏹️ 取消 Quest
+    ⏹️İptal etmekQuest
     """
     from src.quest import QuestManager
 
@@ -338,19 +338,19 @@ def quest_cancel(
     manager = QuestManager(project_path)
 
     if manager.cancel(quest_id):
-        console.print(f"[yellow]⏹️ Quest {quest_id[:8]} 已取消[/yellow]")
+        console.print(f"[yellow]⏹️ Quest {quest_id[:8]}İptal edildi[/yellow]")
     else:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
 
 @app.command("quest-pause")
 def quest_pause(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    ⏸️ 暂停 Quest（在当前步骤完成后暂停）
+    ⏸️duraklatmaQuest(Geçerli adım tamamlandıktan sonra duraklatın)
     """
     from src.quest import QuestManager
 
@@ -358,20 +358,20 @@ def quest_pause(
     manager = QuestManager(project_path)
 
     if manager.pause(quest_id):
-        console.print(f"[yellow]⏸️ Quest {quest_id[:8]} 已暂停[/yellow]")
-        console.print("[dim]使用 [green]omc quest resume {id}[/green] 恢复[/dim]")
+        console.print(f"[yellow]⏸️ Quest {quest_id[:8]}yaygın[/yellow]")
+        console.print("[dim]kullanmak[green]omc quest resume {id}[/green]iyileşmek[/dim]")
     else:
-        _print_fatal(f"Quest {quest_id} 不存在或无法暂停")
+        _print_fatal(f"Quest {quest_id}Mevcut değil veya duraklatılamaz")
         raise typer.Exit(1)
 
 
 @app.command("quest-resume")
 def quest_resume(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
 ):
     """
-    ▶️ 恢复已暂停的 Quest（从断点继续）
+    ▶️Duraklatılmış bir işlemi devam ettirQuest(kesme noktasından devam edin)
     """
     from src.quest import QuestManager
 
@@ -380,21 +380,21 @@ def quest_resume(
 
     quest = manager.resume(quest_id)
     if quest:
-        console.print(f"[green]▶️ Quest {quest_id[:8]} 已恢复[/green]")
-        console.print("[dim]使用 [green]omc quest status {id}[/green] 查看进度[/dim]")
+        console.print(f"[green]▶️ Quest {quest_id[:8]}Geri yüklendi[/green]")
+        console.print("[dim]kullanmak[green]omc quest status {id}[/green]İlerlemeyi görüntüle[/dim]")
     else:
-        _print_fatal(f"Quest {quest_id} 不存在或未处于暂停状态")
+        _print_fatal(f"Quest {quest_id}Mevcut değil veya beklemede değil")
         raise typer.Exit(1)
 
 
 @app.command("quest-notify")
 def quest_notify(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
     dingtalk_webhook: str = typer.Option(
-        None, "--dingtalk", "-d", help="钉钉 Webhook URL"
+        None, "--dingtalk", "-d", help="DingTalkWebhook URL"
     ),
-    dingtalk_secret: str = typer.Option(None, "--secret", "-s", help="钉钉加签密钥"),
+    dingtalk_secret: str = typer.Option(None, "--secret", "-s", help="DingTalk imzalama anahtarı"),
     telegram_bot_token: str = typer.Option(
         None, "--telegram-bot-token", help="Telegram Bot Token"
     ),
@@ -409,13 +409,13 @@ def quest_notify(
         None, "--teams", help="Microsoft Teams Webhook URL"
     ),
     feishu_webhook: str = typer.Option(
-        None, "--feishu", help="飞书（Lark）Webhook URL"
+        None, "--feishu", help="Feishu (Lark)Webhook URL"
     ),
-    wecom_webhook: str = typer.Option(None, "--wecom", help="企业微信 Webhook URL"),
+    wecom_webhook: str = typer.Option(None, "--wecom", help="Kurumsal WeChatWebhook URL"),
     pushplus_token: str = typer.Option(None, "--pushplus", help="PushPlus Token"),
 ):
     """
-    🔔 订阅 Quest 通知（桌面 + 多种 Webhook 渠道）
+    🔔abonelikQuestBildirimler (Masaüstü+ÇeşitliWebhookkanal)
     """
 
     from src.quest import NotificationConfig, NotificationManager, QuestManager
@@ -425,10 +425,10 @@ def quest_notify(
 
     quest = manager.get_quest(quest_id)
     if quest is None:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
-    # 配置通知
+    #Bildirimleri yapılandırma
     config = NotificationConfig(
         desktop=True,
         dingtalk_webhook=dingtalk_webhook,
@@ -445,7 +445,7 @@ def quest_notify(
     notifier = NotificationManager(config)
 
     def on_progress(title: str, body: str, level: str) -> None:
-        """实时显示进度（控制台回调）"""
+        """İlerlemeyi gerçek zamanlı olarak görüntüleyin (konsol geri araması)"""
         color_map = {
             "info": "cyan",
             "success": "green",
@@ -455,18 +455,18 @@ def quest_notify(
         color = color_map.get(level, "white")
         console.print(f"[{color}]{title}[/{color}]: {body}")
 
-    # 添加控制台回调渠道
+    #Konsol geri çağırma kanalı ekle
     from src.quest.notifications import ConsoleNotificationChannel
 
     notifier._channels.append(ConsoleNotificationChannel(callback=on_progress))
 
-    # 跟踪进度直到完成
+    #Tamamlanana kadar ilerlemeyi takip edin
     last_status = quest.status.value
     last_step = -1
 
     async def watch():
         nonlocal last_status, last_step
-        console.print(f"[dim]⏳ 监控 Quest {quest_id[:8]}，按 Ctrl+C 退出...[/dim]\n")
+        console.print(f"[dim]⏳monitörQuest {quest_id[:8]},buna göreCtrl+Cçıkış yapmak...[/dim]\n")
         try:
             while True:
                 await asyncio.sleep(5)
@@ -474,7 +474,7 @@ def quest_notify(
                 if fresh is None:
                     break
 
-                # 实时进度（步骤变化时输出）
+                #Gerçek zamanlı ilerleme (adımlar değiştiğinde çıktı)
                 if fresh.steps:
                     completed = sum(
                         1 for s in fresh.steps if s.status == QuestStatus.COMPLETED
@@ -485,10 +485,10 @@ def quest_notify(
                         bar = "█" * completed + "░" * (total - completed)
                         console.print(
                             f"  [{fresh.status.value:12}] "
-                            f"{bar} {completed}/{total} 步骤"
+                            f"{bar} {completed}/{total}adım"
                         )
 
-                # 状态变化时发送桌面/钉钉通知
+                #Durum değiştiğinde masaüstünü gönder/DingTalk bildirimleri
                 if fresh.status.value != last_status:
                     last_status = fresh.status.value
                     if fresh.status.value == "completed":
@@ -498,20 +498,20 @@ def quest_notify(
                     elif fresh.status.value == "failed":
                         notifier.notify_failed(
                             fresh.title,
-                            fresh.error_message or "未知错误",
+                            fresh.error_message or "bilinmeyen hata",
                             fresh.id,
                         )
                     elif fresh.status.value == "paused":
                         notifier.send(
-                            "⏸️ Quest 已暂停",
+                            "⏸️ Questyaygın",
                             fresh.title,
                             event="paused",
                             quest_id=fresh.id,
                         )
 
-                # 完成或终止
+                #tamamlamak veya sonlandırmak
                 if fresh.status.value in ("completed", "failed", "cancelled"):
-                    console.print(f"\n[bold]最终状态: {fresh.status.value}[/bold]")
+                    console.print(f"\n[bold]son durum: {fresh.status.value}[/bold]")
                     break
         except asyncio.CancelledError:
             pass
@@ -519,19 +519,19 @@ def quest_notify(
     try:
         asyncio.run(watch())
     except KeyboardInterrupt:
-        console.print("\n[dim]监控已退出[/dim]")
+        console.print("\n[dim]bomba[/dim]")
 
 
 @app.command("quest-wait")
 def quest_wait(
     quest_id: str = typer.Argument(..., help="Quest ID"),
-    project_path: Path = typer.Option(".", "--project", "-p", help="项目路径"),
-    timeout: int = typer.Option(0, "--timeout", "-t", help="超时秒数（0=无限）"),
+    project_path: Path = typer.Option(".", "--project", "-p", help="Proje yolu"),
+    timeout: int = typer.Option(0, "--timeout", "-t", help="Zaman aşımı saniyeleri (0=sınırsız)"),
 ):
     """
-    ⏳ 阻塞等待 Quest 完成并展示验收结果
+    ⏳beklemeyi engelleQuestKabul sonuçlarını tamamlayın ve sunun
 
-    完成后展示详细验收报告，包括各步骤通过情况、结果摘要。
+Tamamlandıktan sonra, her adımın geçme durumunu ve sonuçların özetini içeren ayrıntılı bir kabul raporu görüntülenecektir.
     """
 
     from src.quest import QuestManager, QuestStatus
@@ -541,10 +541,10 @@ def quest_wait(
 
     quest = manager.get_quest(quest_id)
     if quest is None:
-        _print_fatal(f"Quest {quest_id} 不存在")
+        _print_fatal(f"Quest {quest_id}çubuk gösterilmiyor")
         raise typer.Exit(1)
 
-    # 已完成的情况直接显示结果
+    #Tamamlanan durumlar sonuçları doğrudan görüntüler
     if quest.status in (
         QuestStatus.COMPLETED,
         QuestStatus.FAILED,
@@ -553,7 +553,7 @@ def quest_wait(
         _show_acceptance_report(quest, console)
         return
 
-    # 实时跟踪直到完成
+    #Tamamlanana kadar gerçek zamanlı olarak takip edin
     elapsed = 0
 
     async def watch():
@@ -566,7 +566,7 @@ def quest_wait(
                 if fresh is None:
                     break
 
-                # 实时进度
+                #Komut listesi:
                 if fresh.steps:
                     completed = sum(
                         1 for s in fresh.steps if s.status == QuestStatus.COMPLETED
@@ -585,12 +585,12 @@ def quest_wait(
                     QuestStatus.FAILED,
                     QuestStatus.CANCELLED,
                 ):
-                    console.print()  # 换行
+                    console.print()  #yeni satır
                     _show_acceptance_report(fresh, console)
                     break
 
                 if timeout > 0 and elapsed >= timeout:
-                    console.print(f"\n[yellow]⏰ 超时（{timeout}s）[/yellow]")
+                    console.print(f"\n[yellow]⏰zaman aşımı({timeout}s)[/yellow]")
                     break
         except asyncio.CancelledError:
             console.print()
@@ -598,11 +598,11 @@ def quest_wait(
     try:
         asyncio.run(watch())
     except KeyboardInterrupt:
-        console.print("\n[dim]等待已中断[/dim]")
+        console.print("\n[dim]Bekleme kesintiye uğradı[/dim]")
 
 
 def _show_acceptance_report(quest, console):
-    """展示 Quest 验收报告"""
+    """sergilemekQuestKabul raporu"""
     from rich.panel import Panel
     from rich.table import Table
 
@@ -617,7 +617,7 @@ def _show_acceptance_report(quest, console):
     }
     sc = status_color_map.get(quest.status, "white")
 
-    # 标题
+    #başlık
     emoji = {
         QuestStatus.COMPLETED: "✅",
         QuestStatus.FAILED: "❌",
@@ -626,35 +626,35 @@ def _show_acceptance_report(quest, console):
     console.print(
         Panel.fit(
             f"[bold]{emoji} {quest.title}[/bold]",
-            title=f"验收报告 — {quest.status.value}",
+            title=f"Kabul Raporu —{quest.status.value}",
             border_style=sc.value if hasattr(sc, "value") else "green",
         )
     )
 
-    # 基本信息
+    #Temel bilgiler
     duration = quest.duration()
     duration_str = f"{duration:.1f}s" if duration else "—"
     console.print(
         f"  [cyan]ID:[/cyan]     {quest.id[:8]}\n"
-        f"  [cyan]耗时:[/cyan]   {duration_str}\n"
+        f"  [cyan]zaman tükeniyor:[/cyan]   {duration_str}\n"
         + (
-            f"  [cyan]摘要:[/cyan]  {quest.result_summary}\n"
+            f"  [cyan]özet:[/cyan]  {quest.result_summary}\n"
             if quest.result_summary
             else ""
         )
         + (
-            f"  [red]错误:[/red]   {quest.error_message}\n"
+            f"  [red]hata:[/red]   {quest.error_message}\n"
             if quest.error_message
             else ""
         )
     )
 
-    # 步骤验收表格
+    #adım kabul formu
     if quest.steps:
-        table = Table(title="📋 步骤验收", show_header=True)
-        table.add_column("步骤", width=6)
-        table.add_column("标题", width=30)
-        table.add_column("状态", width=12)
+        table = Table(title="📋Adım kabulü", show_header=True)
+        table.add_column("adım", width=6)
+        table.add_column("başlık", width=30)
+        table.add_column("durum", width=12)
 
         step_sc_map = {
             QuestStatus.PENDING: "dim",
@@ -679,9 +679,9 @@ def _show_acceptance_report(quest, console):
 
         console.print(table)
 
-        # 失败步骤详情
+        #Başarısız adım ayrıntıları
         failed_steps = [s for s in quest.steps if s.status == QuestStatus.FAILED]
         if failed_steps:
-            console.print("\n[bold red]❌ 失败详情:[/bold red]")
+            console.print("\n[bold red]❌Arıza ayrıntıları:[/bold red]")
             for s in failed_steps:
                 console.print(f"  [{s.step_id}] {s.title}: {s.error}")

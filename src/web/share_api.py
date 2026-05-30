@@ -4,14 +4,14 @@ from __future__ import annotations
 
 
 """
-Share API - 会话分享 Web 端点
+Share API - Oturum paylaşımı Web uç noktaları
 
-端点：
-- POST /api/share        生成分享
-- GET  /api/share/{id}   获取分享详情
-- GET  /api/share        列出分享
-- POST /api/share/{id}/import  导入分享
-- DELETE /api/share/{id} 删除分享
+Uç noktalar:
+- POST /api/share        Paylaşım oluştur
+- GET  /api/share/{id}   Paylaşım detayını al
+- GET  /api/share        Paylaşımları listele
+- POST /api/share/{id}/import  Paylaşımı içe aktar
+- DELETE /api/share/{id} Paylaşımı sil
 """
 
 import json
@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 router = APIRouter(prefix="/api/share", tags=["share"])
 
 # ========================================
-# Share Storage (复用 commands/share.py 逻辑)
+# Share Storage (commands/share.py mantığını yeniden kullanır)
 # ========================================
 
 SHARE_DIR = Path.home() / ".omc" / "shares"
@@ -41,7 +41,7 @@ def _share_path(share_id: str) -> Path:
 
 
 def _sanitize_config(config: dict[str, Any]) -> dict[str, Any]:
-    """脱敏配置"""
+    """Yapılandırma bilgilerini maskele"""
     safe = {}
     for key, value in config.items():
         if isinstance(value, dict):
@@ -64,22 +64,22 @@ def _sanitize_config(config: dict[str, Any]) -> dict[str, Any]:
 
 
 class ShareCreateRequest(BaseModel):
-    """创建分享请求"""
+    """Paylaşım oluşturma isteği"""
 
-    task_id: Optional[str] = Field(None, description="任务 ID，空则最近一次")
-    include_config: bool = Field(True, description="是否包含配置")
-    tags: list[str] = Field(default_factory=list, description="标签")
-    expires_hours: int = Field(0, description="过期时间（小时），0=永不过期")
+    task_id: Optional[str] = Field(None, description="Görev ID, boşsa en son görev")
+    include_config: bool = Field(True, description="Yapılandırma dahil edilsin mi")
+    tags: list[str] = Field(default_factory=list, description="Etiketler")
+    expires_hours: int = Field(0, description="Son kullanma süresi (saat), 0=hiç sona ermesin")
 
 
 class ShareImportRequest(BaseModel):
-    """导入分享请求"""
+    """Paylaşım içe aktarma isteği"""
 
-    target_dir: Optional[str] = Field(None, description="导入目标目录")
+    target_dir: Optional[str] = Field(None, description="İçe aktarma hedef dizini")
 
 
 class ShareResponse(BaseModel):
-    """分享响应"""
+    """Paylaşım yanıtı"""
 
     share_id: str
     created_at: str
@@ -90,7 +90,7 @@ class ShareResponse(BaseModel):
 
 
 class ShareDetailResponse(BaseModel):
-    """分享详情响应"""
+    """Paylaşım detay yanıtı"""
 
     share_id: str
     version: int = 1
@@ -107,10 +107,10 @@ class ShareDetailResponse(BaseModel):
 
 @router.post("", response_model=ShareDetailResponse)
 async def create_share(req: ShareCreateRequest) -> Any:
-    """生成分享"""
+    """Paylaşım oluştur"""
     _ensure_dir()
 
-    # 查找目标历史
+    # Hedef geçmişi bul
     target_file = None
     if req.task_id:
         for prefix in ["", "history_"]:
@@ -119,7 +119,7 @@ async def create_share(req: ShareCreateRequest) -> Any:
                 target_file = candidate
                 break
         if not target_file:
-            raise HTTPException(status_code=404, detail=f"任务不存在: {req.task_id}")
+            raise HTTPException(status_code=404, detail=f"Görev bulunamadı: {req.task_id}")
     else:
         json_files = sorted(
             HISTORY_DIR.glob("*.json"),
@@ -127,16 +127,16 @@ async def create_share(req: ShareCreateRequest) -> Any:
             reverse=True,
         )
         if not json_files:
-            raise HTTPException(status_code=404, detail="没有历史记录")
+            raise HTTPException(status_code=404, detail="Geçmiş kayıt yok")
         target_file = json_files[0]
 
     try:
         with open(target_file, encoding="utf-8") as f:
             history_data = json.load(f)
     except (json.JSONDecodeError, OSError) as e:
-        raise HTTPException(status_code=500, detail=f"读取失败: {e}")
+        raise HTTPException(status_code=500, detail=f"Okuma başarısız: {e}")
 
-    # 生成分享 ID
+    # Paylaşım ID oluştur
     import uuid
 
     share_id = uuid.uuid4().hex[:8]
@@ -178,7 +178,7 @@ async def create_share(req: ShareCreateRequest) -> Any:
 
 @router.get("", response_model=list[ShareResponse])
 async def list_shares() -> Any:
-    """列出所有分享"""
+    """Tüm paylaşımları listele"""
     _ensure_dir()
 
     shares = []
@@ -206,57 +206,57 @@ async def list_shares() -> Any:
 
 @router.get("/{share_id}", response_model=ShareDetailResponse)
 async def get_share(share_id: str) -> Any:
-    """获取分享详情"""
+    """Paylaşım detayını al"""
     share_file = _share_path(share_id)
     if not share_file.exists():
-        raise HTTPException(status_code=404, detail=f"分享不存在: {share_id}")
+        raise HTTPException(status_code=404, detail=f"Paylaşım bulunamadı: {share_id}")
 
     try:
         with open(share_file, encoding="utf-8") as f:
             data = json.load(f)
     except (json.JSONDecodeError, OSError) as e:
-        raise HTTPException(status_code=500, detail=f"读取失败: {e}")
+        raise HTTPException(status_code=500, detail=f"Okuma başarısız: {e}")
 
-    # 检查过期
+    # Süre dolumunu kontrol et
     if data.get("expires_at"):
         expires = datetime.fromisoformat(data["expires_at"])
         if datetime.now() > expires:
-            raise HTTPException(status_code=410, detail="分享已过期")
+            raise HTTPException(status_code=410, detail="Paylaşımın süresi dolmuş")
 
     return data
 
 
 @router.post("/{share_id}/import")
 async def import_share(share_id: str, req: ShareImportRequest) -> Any:
-    """通过分享 ID 导入会话"""
+    """Paylaşım ID ile oturumu içe aktar"""
     _ensure_dir()
 
     share_file = _share_path(share_id)
     if not share_file.exists():
-        raise HTTPException(status_code=404, detail=f"分享不存在: {share_id}")
+        raise HTTPException(status_code=404, detail=f"Paylaşım bulunamadı: {share_id}")
 
     try:
         with open(share_file, encoding="utf-8") as f:
             share_data = json.load(f)
     except (json.JSONDecodeError, OSError) as e:
-        raise HTTPException(status_code=500, detail=f"读取失败: {e}")
+        raise HTTPException(status_code=500, detail=f"Okuma başarısız: {e}")
 
-    # 检查过期
+    # Süre dolumunu kontrol et
     if share_data.get("expires_at"):
         expires = datetime.fromisoformat(share_data["expires_at"])
         if datetime.now() > expires:
-            raise HTTPException(status_code=410, detail="分享已过期")
+            raise HTTPException(status_code=410, detail="Paylaşımın süresi dolmuş")
 
     session = share_data.get("session", {})
     history_data = session.get("history", {})
 
     if not history_data:
-        raise HTTPException(status_code=400, detail="分享中没有历史数据")
+        raise HTTPException(status_code=400, detail="Paylaşımda geçmiş verisi yok")
 
     t_dir = Path(req.target_dir) if req.target_dir else HISTORY_DIR
     t_dir.mkdir(parents=True, exist_ok=True)
 
-    # 生成导入 ID
+    # İçe aktarma ID oluştur
     import uuid
 
     orig_id = history_data.get("history_id", uuid.uuid4().hex[:8])
@@ -280,10 +280,10 @@ async def import_share(share_id: str, req: ShareImportRequest) -> Any:
 
 @router.delete("/{share_id}")
 async def delete_share(share_id: str) -> Any:
-    """删除分享"""
+    """Paylaşımı sil"""
     share_file = _share_path(share_id)
     if not share_file.exists():
-        raise HTTPException(status_code=404, detail=f"分享不存在: {share_id}")
+        raise HTTPException(status_code=404, detail=f"Paylaşım bulunamadı: {share_id}")
 
     share_file.unlink()
     return {"status": "deleted", "share_id": share_id}

@@ -1,6 +1,6 @@
 """
-测试覆盖率 API 模块
-提供覆盖率数据收集和报告生成功能
+Test kapsama API modülü
+Kapsama verisi toplama ve rapor oluşturma işlevleri sağlar
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from typing import Any
 
 @dataclass
 class FileCoverage:
-    """单个文件的覆盖率数据"""
+    """Tek bir dosyanın kapsama verisi"""
 
     path: str
     statements: int = 0
@@ -28,7 +28,7 @@ class FileCoverage:
 
 @dataclass
 class CoverageSummary:
-    """覆盖率汇总数据"""
+    """Kapsama özet verisi"""
 
     total_files: int = 0
     total_statements: int = 0
@@ -41,10 +41,10 @@ class CoverageSummary:
 
 
 def run_coverage_analysis(project_root: Path) -> CoverageSummary:
-    """运行 pytest-cov 并解析结果"""
+    """pytest-cov çalıştır ve sonuçları ayrıştır"""
     summary = CoverageSummary()
 
-    # 运行 pytest with coverage
+    # pytest'i kapsama ile çalıştır
     cmd = [
         sys.executable,
         "-m",
@@ -71,10 +71,10 @@ def run_coverage_analysis(project_root: Path) -> CoverageSummary:
         summary.overall_coverage = -1.0
         return summary
 
-    # 解析 JSON 报告
+    # JSON raporunu ayrıştır
     json_path = project_root / "coverage.json"
     if not json_path.exists():
-        # 尝试从 stdout 解析
+        # stdout'tan ayrıştırmayı dene
         summary.overall_coverage = _parse_coverage_from_output(result.stdout)
         return summary
 
@@ -84,7 +84,7 @@ def run_coverage_analysis(project_root: Path) -> CoverageSummary:
     except Exception:
         summary.overall_coverage = _parse_coverage_from_output(result.stdout)
 
-    # 清理临时文件
+    # Geçici dosyaları temizle
     if json_path.exists():
         json_path.unlink()
 
@@ -92,7 +92,7 @@ def run_coverage_analysis(project_root: Path) -> CoverageSummary:
 
 
 def _parse_coverage_json(data: dict[str, Any], project_root: Path) -> CoverageSummary:
-    """解析 coverage.py 的 JSON 输出"""
+    """coverage.py'nin JSON çıktısını ayrıştır"""
     summary = CoverageSummary()
     files_data = data.get("files", {})
     totals = data.get("totals", {})
@@ -105,7 +105,7 @@ def _parse_coverage_json(data: dict[str, Any], project_root: Path) -> CoverageSu
     summary.total_files = len(files_data)
 
     for file_path, file_data in files_data.items():
-        # 只显示 src 目录下的文件
+        # Yalnızca src dizinindeki dosyaları göster
         rel_path = (
             Path(file_path).relative_to(project_root)
             if file_path.startswith(str(project_root))
@@ -125,13 +125,13 @@ def _parse_coverage_json(data: dict[str, Any], project_root: Path) -> CoverageSu
         )
         summary.files.append(fc)
 
-    # 按覆盖率排序
+    # Kapsama oranına göre sırala
     summary.files.sort(key=lambda x: x.coverage)
     return summary
 
 
 def _parse_coverage_from_output(stdout: str) -> float:
-    """从 pytest-cov 终端输出解析总体覆盖率"""
+    """pytest-cov terminal çıktısından toplam kapsama oranını ayrıştır"""
     for line in stdout.split("\n"):
         if "TOTAL" in line and "%" in line:
             parts = line.split()
@@ -145,7 +145,7 @@ def _parse_coverage_from_output(stdout: str) -> float:
 
 
 def get_coverage_badge_color(coverage: float) -> str:
-    """根据覆盖率返回颜色"""
+    """Kapsama oranına göre renk döndür"""
     if coverage >= 80:
         return "#22c55e"  # green
     elif coverage >= 60:
@@ -157,7 +157,7 @@ def get_coverage_badge_color(coverage: float) -> str:
 
 
 def format_coverage_report(summary: CoverageSummary) -> dict[str, Any]:
-    """格式化覆盖率报告为 API 响应"""
+    """Kapsama raporunu API yanıtı olarak biçimlendir"""
     return {
         "overall": {
             "coverage": round(summary.overall_coverage, 2),
@@ -176,7 +176,7 @@ def format_coverage_report(summary: CoverageSummary) -> dict[str, Any]:
                 "partial": f.partial_branches,
                 "coverage": round(f.coverage, 2),
                 "color": get_coverage_badge_color(f.coverage),
-                "missing_lines": f.missing_lines[:20],  # 限制数量
+                "missing_lines": f.missing_lines[:20],  # Sayıyı sınırla
             }
             for f in summary.files
         ],

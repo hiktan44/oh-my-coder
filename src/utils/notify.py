@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Optional
 
 """
-系统通知工具 - 零依赖，使用 macOS 原生 osascript + 钉钉 webhook
+sistembildirimarac - sifirbagimlilik, kullan macOS asilyarat osascript + DingTalk webhook
 """
 
 import json
@@ -21,16 +21,16 @@ def send_notification(
     sound: bool = True,
 ) -> bool:
     """
-    发送系统通知（macOS）。
+    gondergondersistembildirim (macOS) . 
 
     Args:
-        title: 通知标题
-        message: 通知内容
-        subtitle: 副标题（可选）
-        sound: 是否播放提示音
+        title: bildirimbaslik
+        message: bildirimicerik
+        subtitle: ikincilbaslik (olabilirsec) 
+        sound: olup olmadigiyayinlakoyipucuses
 
     Returns:
-        True 发送成功，False 失败
+        True gondergonderbasarili, False basarisiz
     """
     if sys.platform != "darwin":
         return False
@@ -73,17 +73,17 @@ def notify_workflow_complete(
     steps_completed: int,
     execution_time: float,
 ) -> bool:
-    """通知工作流完成"""
+    """bildirimis akisitamamla"""
     status_icon = "✅" if status == "completed" else "❌"
     return send_notification(
-        title=f"Oh My Coder {status_icon} 工作流完成",
-        message=f"{workflow}: {steps_completed} 步骤，{execution_time:.1f}s",
-        subtitle=f"状态: {status}",
+        title=f"Oh My Coder {status_icon} is akisitamamla",
+        message=f"{workflow}: {steps_completed} adim, {execution_time:.1f}s",
+        subtitle=f"durum: {status}",
     )
 
 
 def notify_quest_update(quest_name: str, message: str) -> bool:
-    """通知 Quest 更新（用于异步任务）"""
+    """bildirim Quest guncelle (kullandeasenkrongorev) """
     return send_notification(
         title=f"📋 Quest: {quest_name}",
         message=message,
@@ -91,7 +91,7 @@ def notify_quest_update(quest_name: str, message: str) -> bool:
 
 
 # ============================================================
-# 钉钉通知
+# DingTalkbildirim
 # ============================================================
 
 
@@ -102,19 +102,19 @@ def send_dingtalk_notification(
     at_all: bool = False,
 ) -> bool:
     """
-    发送钉钉群机器人通知。
+    gondergonderDingTalkgrupmakinekisibildirim. 
 
     Args:
-        webhook_url: 钉钉机器人 webhook URL
-        title: 消息标题
-        message: 消息内容
-        at_all: 是否 @所有人
+        webhook_url: DingTalkmakinekisi webhook URL
+        title: mesajbaslik
+        message: mesajicerik
+        at_all: olup olmadigi @varkisi
 
     Returns:
-        True 发送成功，False 失败
+        True gondergonderbasarili, False basarisiz
     """
     try:
-        # 限制只允许 https webhook
+        # sinirsadeceizin ver https webhook
         from urllib.parse import urlparse
 
         if urlparse(webhook_url).scheme not in ("http", "https"):
@@ -154,7 +154,7 @@ def notify_workflow_complete_dingtalk(
     execution_time: float,
     project_path: str = "",
 ) -> bool:
-    """通过钉钉通知工作流完成"""
+    """araciligiylaDingTalkbildirimis akisitamamla"""
     if not webhook_url:
         webhook_url = os.environ.get("DINGTALK_WEBHOOK")
 
@@ -162,19 +162,19 @@ def notify_workflow_complete_dingtalk(
         return False
 
     status_icon = "✅" if status == "completed" else "❌"
-    status_text = "成功" if status == "completed" else "失败"
+    status_text = "basarili" if status == "completed" else "basarisiz"
 
-    message = f"""**工作流**: {workflow}
-**状态**: {status_text} {status_icon}
-**完成步骤**: {steps_completed}
-**执行时间**: {execution_time:.1f}s
+    message = f"""**is akisi**: {workflow}
+**durum**: {status_text} {status_icon}
+**tamamlaadim**: {steps_completed}
+**yurutzamanarasinda**: {execution_time:.1f}s
 """
     if project_path:
-        message += f"**项目路径**: `{project_path}`"
+        message += f"**proje yolu**: `{project_path}`"
 
     return send_dingtalk_notification(
         webhook_url=webhook_url,
-        title="Oh My Coder - 工作流完成通知",
+        title="Oh My Coder - is akisitamamlabildirim",
         message=message,
     )
 
@@ -185,7 +185,7 @@ def notify_quest_update_dingtalk(
     message: str,
     status: str = "running",
 ) -> bool:
-    """通过钉钉通知 Quest 更新"""
+    """araciligiylaDingTalkbildirim Quest guncelle"""
     if not webhook_url:
         webhook_url = os.environ.get("DINGTALK_WEBHOOK")
 

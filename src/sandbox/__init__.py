@@ -1,4 +1,4 @@
-"""沙箱安全模块"""
+"""sandboxguvenlikmodul"""
 
 from .dangerous_command_blocker import (
     BlockedCommandError,

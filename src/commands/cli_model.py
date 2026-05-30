@@ -4,21 +4,21 @@ from __future__ import annotations
 
 
 """
-Model CLI - 模型切换 + Catwalk 模型仓库 + 模型配置分享 + 模型推荐
+Model CLI -Model değiştirme+ Catwalkmodeli depo+Model yapılandırma paylaşımı+Model önerisi
 
-命令：
-- omc model list [--extended]  # 列出模型（普通/详细）
-- omc model current            # 显示当前模型
-- omc model switch <name>      # 切换默认模型
-- omc model catwalk            # 交互式浏览模型（Catwalk）
-- omc model import <url>      # 从 URL 导入模型配置
-- omc model export <name> [--yaml]  # 导出模型配置
-- omc model recommend [--task] # 模型精选推荐
-- omc model share              # 分享模型配置到社区
-- omc model browse             # 浏览社区分享的模型配置
-- omc model show <id>          # 查看模型配置详情
-- omc model shared             # 列出本地分享的配置
-- omc model remove <id>        # 删除已分享的配置
+Emir:
+- omc model list [--extended]  #Modelleri listele (normal/ayrıntılı)
+- omc model current            #Mevcut modeli göster
+- omc model switch <name>      #Varsayılan modeli değiştir
+- omc model catwalk            #Etkileşimli tarama modeli (Catwalk)
+- omc model import <url>      #itibarenURLModel yapılandırmasını içe aktar
+- omc model export <name> [--yaml]  #Model yapılandırmasını dışa aktar
+- omc model recommend [--task] #Öne Çıkan Model Önerileri
+- omc model share              #Model yapılandırmasını toplulukla paylaşın
+- omc model browse             #Topluluk tarafından paylaşılan model yapılandırmalarına göz atın
+- omc model show <id>          #Model yapılandırma ayrıntılarını görüntüleyin
+- omc model shared             #Yerel olarak paylaşılan konfigürasyonları listeleyin
+- omc model remove <id>        #Paylaşılan yapılandırmayı sil
 """
 
 
@@ -38,7 +38,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-# 导入模型发现模块
+#Model bulma modülünü içe aktar
 try:
     from model_discovery import ModelDiscovery, get_discovery_summary
 except ImportError:
@@ -52,23 +52,23 @@ console = Console()
 
 app = typer.Typer(
     name="model",
-    help="模型管理 - 查看/切换默认模型，浏览社区模型仓库（Catwalk），分享/推荐模型配置",
+    help="Mevcut tüm modelleri listeleyin (destekler)-Kontrol etmek/Varsayılan modeli değiştirin ve topluluk modeli deposuna göz atın (Catwalk128'i destekleyen güçlü kod oluşturma ve tamamlama yetenekleri/Önerilen model konfigürasyonu",
     add_completion=False,
 )
 
 # =============================================================================
-# 本地模型管理子命令 (from cli_local_models.py)
+#Yerel model yönetimi alt komutları(from cli_local_models.py)
 # =============================================================================
 
-local_app = typer.Typer(help="本地模型管理 - Ollama 支持")
+local_app = typer.Typer(help="Yerel model yönetimi- OllamaDestek")
 
 
 @local_app.command("status")
 def local_check_status():
     """
-    检查 Ollama 服务状态
+incelemekOllamaHizmet durumu
 
-    示例:
+Örnek:
         omc model local status
     """
     import os
@@ -77,9 +77,9 @@ def local_check_status():
 
     base_url = os.getenv("OLLAMA_BASE_URL", OLLAMA_DEFAULT_URL)
 
-    console.print(f"[cyan]检测 Ollama 服务 ({base_url})...[/cyan]")
+    console.print(f"[cyan]AlgılamaOllamaSert({base_url})...[/cyan]")
 
-    # 尝试使用健康检查模块（增强版）
+    #Durum denetimi modülünü deneyin (gelişmiş sürüm)
     try:
         from ..core.ollama_health import OllamaHealthChecker
 
@@ -87,25 +87,25 @@ def local_check_status():
         status = health.check_ollama()
 
         if status.running:
-            console.print("[green]✓ Ollama 服务运行中[/green]")
-            console.print(f"  版本: {status.version or '未知'}")
-            console.print(f"  模型数: {status.model_count}")
-            console.print(f"  延迟: {status.latency_ms:.0f}ms")
+            console.print("[green]✓ OllamaHizmet çalışıyor[/green]")
+            console.print(f"Sürüm: {status.version or 'bilinmiyor'}")
+            console.print(f"Model sayısı: {status.model_count}")
+            console.print(f"Gecikme: {status.latency_ms:.0f}ms")
 
-            # 列出本地模型（使用模型发现）
+            #Yerel modelleri listeleme (model keşfini kullanarak)
             if status.available_models:
                 console.print(
-                    f"\n[bold]本地可用模型 ({len(status.available_models)} 个):[/bold]"
+                    f"\n[bold]Yerel olarak mevcut modeller({len(status.available_models)}bireysel):[/bold]"
                 )
                 try:
                     from ..core.local_model_discovery import discover_ollama_models
 
                     discovered = discover_ollama_models(base_url)
                     table = Table()
-                    table.add_column("模型名称", style="cyan")
-                    table.add_column("大小")
-                    table.add_column("参数量")
-                    table.add_column("量化")
+                    table.add_column("Model adı", style="cyan")
+                    table.add_column("boyut")
+                    table.add_column("Parametre miktarı")
+                    table.add_column("Ölçün")
 
                     for m in discovered:
                         size_str = (
@@ -124,27 +124,27 @@ def local_check_status():
                     for name in status.available_models:
                         console.print(f"  • {name}")
             else:
-                console.print("[yellow]暂无本地模型[/yellow]")
-                console.print("\n[dim]运行以下命令拉取模型：[/dim]")
+                console.print("[yellow]Henüz yerli model yok[/yellow]")
+                console.print("\n[dim]Modeli çekmek için aşağıdaki komutu çalıştırın:[/dim]")
                 console.print("[green]  omc model local pull qwen2:7b[/green]")
         else:
-            console.print("[red]✗ Ollama 服务未运行[/red]")
-            console.print("\n[yellow]请先启动 Ollama：[/yellow]")
+            console.print("[red]✗ OllamaHizmet çalışmıyor[/red]")
+            console.print("\n[yellow]Lütfen önce başlayınOllama:[/yellow]")
             console.print("[green]  ollama serve[/green]")
-            console.print("\n或安装 Ollama：https://ollama.ai/")
+            console.print("\nveya yükleyinOllama:https://ollama.ai/")
         return
     except ImportError:
-        # 回退到基础检测
+        #Temel algılamaya geri dönme
         if OllamaModel.is_available(base_url):
-            console.print("[green]✓ Ollama 服务运行中[/green]")
+            console.print("[green]✓ OllamaHizmet çalışıyor[/green]")
             models = OllamaModel.list_models(base_url)
             if models:
-                console.print(f"\n[bold]本地可用模型 ({len(models)} 个):[/bold]")
+                console.print(f"\n[bold]Yerel olarak mevcut modeller({len(models)}bireysel):[/bold]")
 
                 table = Table()
-                table.add_column("模型名称", style="cyan")
-                table.add_column("大小")
-                table.add_column("修改时间")
+                table.add_column("Model adı", style="cyan")
+                table.add_column("boyut")
+                table.add_column("değişiklik zamanı")
 
                 for m in models:
                     size = m.get("size", 0)
@@ -161,92 +161,92 @@ def local_check_status():
 
                 console.print(table)
             else:
-                console.print("[yellow]暂无本地模型[/yellow]")
-                console.print("\n[dim]运行以下命令拉取模型：[/dim]")
+                console.print("[yellow]Henüz yerli model yok[/yellow]")
+                console.print("\n[dim]Modeli çekmek için aşağıdaki komutu çalıştırın:[/dim]")
                 console.print("[green]  omc model local pull qwen2:7b[/green]")
         else:
-            console.print("[red]✗ Ollama 服务未运行[/red]")
-            console.print("\n[yellow]请先启动 Ollama：[/yellow]")
+            console.print("[red]✗ OllamaHizmet çalışmıyor[/red]")
+            console.print("\n[yellow]Lütfen önce başlayınOllama:[/yellow]")
             console.print("[green]  ollama serve[/green]")
-            console.print("\n或安装 Ollama：https://ollama.ai/")
+            console.print("\nveya yükleyinOllama:https://ollama.ai/")
 
 
 @local_app.command("list")
 def local_list_models():
     """
-    列出本地可用的模型
+Yerel olarak mevcut modelleri listeleyin
 
-    示例:
+Örnek:
         omc model local list
     """
     from src.models.base import ModelTier
     from src.models.ollama import OLLAMA_MODELS, OllamaModel
 
-    console.print("[bold]本地模型状态:[/bold]\n")
+    console.print("[bold]yerel model durumu:[/bold]\n")
 
-    # 检查已安装模型
+    #Kurulu modelleri kontrol edin
     installed = OllamaModel.list_models()
     installed_names = {m["name"] for m in installed}
 
-    # 显示推荐模型
+    #Önerilen modelleri göster
     for tier in [ModelTier.LOW, ModelTier.MEDIUM, ModelTier.HIGH]:
         console.print(f"\n[cyan]{tier.value.upper()} Tier:[/cyan]")
 
         table = Table()
-        table.add_column("模型", style="cyan")
-        table.add_column("描述")
-        table.add_column("状态")
+        table.add_column("Modeli", style="cyan")
+        table.add_column("betimlemek")
+        table.add_column("durum")
 
         for m in OLLAMA_MODELS.get(tier, []):
             status = (
-                "[green]✓ 已安装[/green]"
+                "[green]✓Yüklendi[/green]"
                 if m["name"] in installed_names
-                else "[dim]未安装[/dim]"
+                else "[dim]Kurulu değil[/dim]"
             )
             table.add_row(m["name"], m["desc"], status)
 
         console.print(table)
 
-    console.print(f"\n[dim]已安装 {len(installed)} 个本地模型[/dim]")
+    console.print(f"\n[dim]Yüklendi{len(installed)}yerel modeller[/dim]")
 
 
 @local_app.command("pull")
 def local_pull_model(
-    model_name: str = typer.Argument(..., help="模型名称（如 qwen2:7b）"),
+    model_name: str = typer.Argument(..., help="Model adı (ör.qwen2:7b)"),
 ):
     """
-    拉取模型到本地
+Modeli yerele çekin
 
-    示例:
+Örnek:
         omc model local pull qwen2:7b
         omc model local pull llama3:8b
     """
     from src.models.ollama import OllamaModel
 
-    console.print(f"[cyan]拉取模型: {model_name}[/cyan]")
-    console.print("[dim]这可能需要几分钟，取决于模型大小...[/dim]\n")
+    console.print(f"[cyan]Çekme modeli: {model_name}[/cyan]")
+    console.print("[dim]Bu, model boyutuna bağlı olarak birkaç dakika sürebilir...[/dim]\n")
 
     success = OllamaModel.pull_model(model_name)
 
     if success:
-        console.print(f"\n[green]✓ 模型 {model_name} 拉取成功[/green]")
-        console.print("[dim]使用 [green]omc model local status[/dim] 查看已安装模型[/dim]")
+        console.print(f"\n[green]✓Modeli{model_name}Başarılı bir şekilde çekin[/green]")
+        console.print("[dim]kullanmak[green]omc model local status[/dim]Kurulu modelleri görüntüle[/dim]")
     else:
-        console.print("\n[red]✗ 拉取失败[/red]")
-        console.print("\n[yellow]请确保：[/yellow]")
-        console.print("  1. Ollama 已安装并运行：ollama serve")
-        console.print("  2. 模型名称正确：https://ollama.ai/library")
+        console.print("\n[red]✗Çekme başarısız oldu[/red]")
+        console.print("\n[yellow]Lütfen şunlardan emin olun:[/yellow]")
+        console.print("  1. OllamaKurulu ve çalışıyor:ollama serve")
+        console.print("  2.Model adı doğrudur:https://ollama.ai/library")
 
 
 @local_app.command("run")
 def local_run_ollama(
-    model_name: str = typer.Argument("qwen2:7b", help="默认模型"),
-    port: int = typer.Option(11434, "--port", "-p", help="端口"),
+    model_name: str = typer.Argument("qwen2:7b", help="Varsayılan model"),
+    port: int = typer.Option(11434, "--port", "-p", help="liman"),
 ):
     """
-    启动 Ollama 服务（如果未运行）
+başlatmakOllamaServis (çalışmıyorsa)
 
-    示例:
+Örnek:
         omc model local run
         omc model local run --port 11435
     """
@@ -255,10 +255,10 @@ def local_run_ollama(
     from src.models.ollama import OllamaModel
 
     if OllamaModel.is_available():
-        console.print("[green]✓ Ollama 已在运行[/green]")
+        console.print("[green]✓ OllamaZaten çalışıyor[/green]")
         return
 
-    console.print("[cyan]启动 Ollama 服务...[/cyan]")
+    console.print("[cyan]başlatmakOllamaSert...[/cyan]")
 
     try:
         subprocess.Popen(
@@ -266,28 +266,28 @@ def local_run_ollama(
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        console.print(f"[green]✓ Ollama 已启动 (端口 {port})[/green]")
-        console.print("[dim]默认模型:[/dim] " + model_name)
+        console.print(f"[green]✓ OllamaBaşlatıldı(liman{port})[/green]")
+        console.print("[dim]Varsayılan model:[/dim] " + model_name)
     except FileNotFoundError:
-        console.print("[red]✗ Ollama 未安装[/red]")
-        console.print("\n[yellow]请先安装 Ollama：[/yellow]")
+        console.print("[red]✗ OllamaKurulu değil[/red]")
+        console.print("\n[yellow]Lütfen önce yükleyinOllama:[/yellow]")
         console.print("[green]  https://ollama.ai/[/green]")
 
 
 @local_app.command("info")
 def local_model_info(
-    model_name: str = typer.Argument(..., help="模型名称"),
+    model_name: str = typer.Argument(..., help="Model adı"),
 ):
     """
-    显示模型详细信息
+Model ayrıntılarını göster
 
-    示例:
+Örnek:
         omc model local info qwen2:7b
     """
     from src.models.ollama import OLLAMA_MODELS
 
-    # 查找模型描述
-    desc = "开源大语言模型"
+    #Model açıklamasını bulun
+    desc = "Açık kaynak büyük dil modeli"
     tier = "medium"
 
     for t, models in OLLAMA_MODELS.items():
@@ -300,12 +300,12 @@ def local_model_info(
     console.print(
         Panel.fit(
             f"[bold cyan]{model_name}[/bold cyan]\n\n"
-            f"[dim]描述:[/dim] {desc}\n"
-            f"[dim]层级:[/dim] {tier}\n\n"
-            f"[dim]使用方法:[/dim]\n"
-            f"  1. 拉取模型: [green]omc model local pull {model_name}[/green]\n"
-            f"  2. 设为默认: [green]export OLLAMA_MODEL={model_name}[/green]",
-            title="模型信息",
+            f"[dim]betimlemek:[/dim] {desc}\n"
+            f"[dim]Hiyerarşi:[/dim] {tier}\n\n"
+            f"[dim]Nasıl kullanılır:[/dim]\n"
+            f"  1.Çekme modeli: [green]omc model local pull {model_name}[/green]\n"
+            f"  2.Varsayılan olarak ayarla: [green]export OLLAMA_MODEL={model_name}[/green]",
+            title="Model bilgisi",
             border_style="cyan",
         )
     )
@@ -313,18 +313,18 @@ def local_model_info(
 
 @local_app.command("chat")
 def local_chat_model(
-    model_name: str = typer.Argument("qwen2:7b", help="模型名称"),
-    system: str = typer.Option(None, "--system", "-s", help="系统提示词"),
-    temperature: float = typer.Option(0.7, "--temp", "-t", help="温度参数"),
-    no_stream: bool = typer.Option(False, "--no-stream", help="禁用流式输出"),
+    model_name: str = typer.Argument("qwen2:7b", help="Model adı"),
+    system: str = typer.Option(None, "--system", "-s", help="Sistem istemi sözcüğü"),
+    temperature: float = typer.Option(0.7, "--temp", "-t", help="Sıcaklık parametreleri"),
+    no_stream: bool = typer.Option(False, "--no-stream", help="Akış çıkışını devre dışı bırak"),
 ):
     """
-    与本地模型聊天（交互式）
+Projelerdeki gereksiz kodları tarayın ve temizleyin
 
-    示例:
+Örnek:
         omc model local chat
         omc model local chat llama3:8b
-        omc model local chat qwen2:7b --system "你是Python专家"
+        omc model local chat qwen2:7b --system "Sen kimsinPythonuzman"
     """
     import asyncio
     import os
@@ -334,25 +334,25 @@ def local_chat_model(
 
     base_url = os.getenv("OLLAMA_BASE_URL", OLLAMA_DEFAULT_URL)
 
-    # 检查服务状态
-    console.print(f"[cyan]连接 Ollama 服务 ({base_url})...[/cyan]")
+    #Hizmet durumunu kontrol edin
+    console.print(f"[cyan]bağlamakOllamaSert({base_url})...[/cyan]")
     if not OllamaModel.is_available(base_url):
-        console.print("[red]✗ Ollama 服务未运行[/red]")
-        console.print("\n[yellow]请先启动 Ollama：[/yellow]")
+        console.print("[red]✗ OllamaHizmet çalışmıyor[/red]")
+        console.print("\n[yellow]Lütfen önce başlayınOllama:[/yellow]")
         console.print("[green]  ollama serve[/green]")
         raise typer.Exit(1)
 
-    # 检查模型是否存在
+    #Modelin mevcut olup olmadığını kontrol edin
     models = OllamaModel.list_models(base_url)
     model_names = {m.get("name", "").split(":")[0] for m in models}
     full_names = {m.get("name", "") for m in models}
 
-    # 尝试精确匹配和前缀匹配
+    #Tam eşleşmeyi ve önek eşleşmesini deneyin
     target_model = None
     if model_name in full_names:
         target_model = model_name
     elif model_name.split(":")[0] in model_names:
-        # 用户输入了简短名称（如 qwen2），找到完整名称
+        #Kullanıcı kısa bir ad girdi (ör.qwen2), tam adı bulun
         for m in models:
             name = m.get("name", "")
             if name.startswith(model_name.split(":")[0]):
@@ -360,138 +360,138 @@ def local_chat_model(
                 break
 
     if not target_model:
-        console.print(f"[red]✗ 模型 {model_name} 未安装[/red]")
-        console.print("\n[yellow]可用模型：[/yellow]")
+        console.print(f"[red]✗Modeli{model_name}Kurulu değil[/red]")
+        console.print("\n[yellow]Mevcut modeller:[/yellow]")
         for m in models[:10]:
             console.print(f"  • {m.get('name', 'unknown')}")
-        console.print(f"\n[dim]拉取模型: omc model local pull {model_name}[/dim]")
+        console.print(f"\n[dim]Çekme modeli: omc model local pull {model_name}[/dim]")
         raise typer.Exit(1)
 
-    console.print(f"[green]✓ 已连接模型: {target_model}[/green]")
-    console.print("[dim]输入 /exit 或 /quit 退出，/clear 清空历史[/dim]\n")
+    console.print(f"[green]✓Bağlı model: {target_model}[/green]")
+    console.print("[dim]girmek/exitveya/quitçıkış yapmak,/clearGeçmişi temizle[/dim]\n")
 
-    # 初始化模型
+    #Modeli başlat
     from src.models.base import ModelConfig
 
     config = ModelConfig(api_key="", base_url=base_url)
     model = OllamaModel(config, model_name=target_model)
 
-    # 聊天历史
+    #Sohbet geçmişi
     messages: list[Message] = []
     if system:
         messages.append(Message(role="system", content=system))
 
-    # 交互循环
-    console.print("[bold cyan]💬 开始聊天[/bold cyan]\n")
+    #etkileşimli döngü
+    console.print("[bold cyan]💬Sohbete başla[/bold cyan]\n")
     while True:
         try:
-            # 读取用户输入
+            #Kullanıcı girişini oku
             user_input = console.input("[bold green]You:[/bold green] ").strip()
 
             if not user_input:
                 continue
 
-            # 命令处理
+            #komut işleme
             if user_input in ("/exit", "/quit", "/q"):
-                console.print("\n[dim]退出聊天[/dim]")
+                console.print("\n[dim]Sohbetten çık[/dim]")
                 break
             elif user_input == "/clear":
                 messages = [m for m in messages if m.role == "system"]
-                console.print("[dim]已清空对话历史[/dim]\n")
+                console.print("[dim]Konuşma geçmişi temizlendi[/dim]\n")
                 continue
             elif user_input == "/help":
                 console.print(
-                    "\n[dim]命令列表：[/dim]\n"
-                    "  /exit, /quit  - 退出聊天\n"
-                    "  /clear        - 清空历史\n"
-                    "  /help         - 显示帮助\n"
+                    "\n[dim]Komut listesi:[/dim]\n"
+                    "  /exit, /quit  -Sohbetten çık\n"
+                    "  /clear        -Geçmişi temizle\n"
+                    "  /help         -yardım göster\n"
                 )
                 continue
 
-            # 添加用户消息
+            #Kullanıcı mesajı ekle
             messages.append(Message(role="user", content=user_input))
 
-            # 调用模型
+            #çağrı modeli
             console.print("[bold blue]Assistant:[/bold blue] ", end="")
 
             if no_stream:
-                # 非流式
+                #akış dışı
                 response = asyncio.run(
                     model.complete(messages, temperature=temperature)
                 )
                 console.print(response.content)
                 messages.append(Message(role="assistant", content=response.content))
             else:
-                # 流式
+                #akış
                 async def stream_chat():
                     full_response = ""
                     async for chunk in model.stream(messages, temperature=temperature):
                         full_response += chunk
                         console.print(chunk, end="")
-                    console.print()  # 换行
+                    console.print()  #yeni satır
                     return full_response
 
                 response_text = asyncio.run(stream_chat())
                 messages.append(Message(role="assistant", content=response_text))
 
-            console.print()  # 空行
+            console.print()  #boş satır
 
         except KeyboardInterrupt:
-            console.print("\n[dim]中断，输入 /exit 退出[/dim]\n")
+            console.print("\n[dim]kesinti, giriş/exitçıkış yapmak[/dim]\n")
             continue
         except Exception as e:
-            console.print(f"\n[red]错误: {e}[/red]\n")
-            # 移除失败的用户消息
+            console.print(f"\n[red]hata: {e}[/red]\n")
+            #Başarısız kullanıcı mesajlarını kaldırın
             if messages and messages[-1].role == "user":
                 messages.pop()
 
 
-# 注册 local 子命令到主 app
+#kayıt olmaklocalana alt komutapp
 app.add_typer(local_app, name="local")
 
-# 配置文件路径
+#Yapılandırma dosyası yolu
 CONFIG_DIR = Path.home() / ".omc"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
-# Catwalk 模型仓库目录（项目内嵌 + 用户扩展）
+# CatwalkModel ambar dizini (proje yerleşik+kullanıcı uzantısı)
 CATWALK_DIR = Path(__file__).parent.parent / "models"
 USER_MODELS_DIR = Path.home() / ".omc" / "models"
 
-# 分享配置存储路径
+#Yapılandırma depolama yolunu paylaşın
 SHARED_MODELS_DIR = Path.home() / ".oh-my-coder" / "shared_models"
 
-# 内置模型信息（Tier 1 - 免费/低成本）
+#Yerleşik model bilgisi (Tier 1 -özgür/düşük maliyetli)
 SUPPORTED_MODELS = {
-    # 低成本/免费模型
-    "deepseek": {"name": "DeepSeek", "tier": "low", "note": "高性价比，推荐"},
-    "glm": {"name": "智谱 GLM", "tier": "low", "note": "GLM-4.7-Flash 免费使用"},
-    # 主流模型
-    "wenxin": {"name": "文心一言", "tier": "medium", "note": "百度"},
-    "tongyi": {"name": "通义千问", "tier": "medium", "note": "阿里"},
+    #düşük maliyetli/ücretsiz model
+    "deepseek": {"name": "DeepSeek", "tier": "low", "note": "Yüksek maliyet performansı, önerilir"},
+    "glm": {"name": "Bilgelik spektrumuGLM", "tier": "low", "note": "GLM-4.7-Flashkullanımı ücretsiz"},
+    #Ana akım model
+    "wenxin": {"name": "Wenxinyiyan", "tier": "medium", "note": "Baidu"},
+    "tongyi": {"name": "Tongyi", "tier": "medium", "note": "Ali"},
     "minimax": {"name": "MiniMax", "tier": "medium", "note": ""},
-    "kimi": {"name": "Kimi", "tier": "medium", "note": "月之暗面"},
-    "hunyuan": {"name": "腾讯混元", "tier": "medium", "note": "腾讯"},
-    "doubao": {"name": "字节豆包", "tier": "medium", "note": "字节跳动"},
-    # 其他模型
-    "tiangong": {"name": "天工 AI", "tier": "medium", "note": ""},
-    "spark": {"name": "讯飞星火", "tier": "medium", "note": ""},
-    "baichuan": {"name": "百川智能", "tier": "medium", "note": ""},
-    "mimo": {"name": "小米 MiMo", "tier": "medium", "note": "小米"},
+    "kimi": {"name": "Kimi", "tier": "medium", "note": "ayın karanlık yüzü"},
+    "hunyuan": {"name": "Tencent Hunyuan", "tier": "medium", "note": "Tencent"},
+    "doubao": {"name": "Doubao (ByteDance)", "tier": "medium", "note": "ByteDance"},
+    #Diğer modeller
+    "tiangong": {"name": "TiangongAI", "tier": "medium", "note": ""},
+    "spark": {"name": "Yalnızca onarım önerilerinin gösterilip gösterilmeyeceği", "tier": "medium", "note": ""},
+    "baichuan": {"name": "Baichuan İstihbaratı", "tier": "medium", "note": ""},
+    "mimo": {"name": "DarıMiMo", "tier": "medium", "note": "Darı"},
 }
 
 
 # =============================================================================
-# 工具函数
+#Fayda fonksiyonu
 # =============================================================================
 
 
 def _ensure_config_dir() -> None:
-    """确保配置目录存在"""
+    """Yapılandırma dizininin mevcut olduğundan emin olun"""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _load_config() -> dict:
-    """加载配置文件"""
+    """Yapılandırma dosyasını yükle"""
     if CONFIG_FILE.exists():
         try:
             with open(CONFIG_FILE, encoding="utf-8") as f:
@@ -502,14 +502,14 @@ def _load_config() -> dict:
 
 
 def _save_config(config: dict) -> None:
-    """保存配置文件"""
+    """Yapılandırma dosyasını kaydet"""
     _ensure_config_dir()
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
 
 def _get_current_model() -> str:
-    """获取当前默认模型"""
+    """Geçerli varsayılan modeli alın"""
     env_model = os.getenv("OMC_DEFAULT_MODEL")
     if env_model:
         return env_model
@@ -518,7 +518,7 @@ def _get_current_model() -> str:
 
 
 def _get_current_api_key(model_id: str) -> Optional[str]:
-    """获取当前模型的 API Key（从环境变量推断）"""
+    """Mevcut modeli alınAPI Key(ortam değişkenlerinden çıkarılmıştır)"""
     key_map = {
         "deepseek": "DEEPSEEK_API_KEY",
         "glm": "ZHIPUAI_API_KEY",
@@ -540,24 +540,24 @@ def _get_current_api_key(model_id: str) -> Optional[str]:
 
 
 def _tier_style(tier: str) -> str:
-    """根据 tier 返回颜色"""
+    """buna göretierDönüş rengi"""
     return {"free": "green", "low": "cyan", "medium": "yellow", "high": "red"}.get(
         tier, "white"
     )
 
 
 # =============================================================================
-# 分享配置工具函数（from cli_models.py）
+#Yapılandırma aracı işlevini paylaşma (from cli_models.py)
 # =============================================================================
 
 
 def _ensure_shared_dir() -> None:
-    """确保分享目录存在"""
+    """Paylaşılan dizinin mevcut olduğundan emin olun"""
     SHARED_MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _list_shared_configs() -> list[dict]:
-    """列出所有已分享的配置"""
+    """Tüm paylaşılan konfigürasyonları listele"""
     configs = []
     if not SHARED_MODELS_DIR.exists():
         return configs
@@ -575,8 +575,8 @@ def _list_shared_configs() -> list[dict]:
 
 
 def _get_author_name() -> str:
-    """获取作者名称（优先环境变量，其次 git config）"""
-    # 1. 环境变量
+    """Yazar adını alın (ilk olarak ortam değişkenleri, ikincigit config)"""
+    # 1.ortam değişkenleri
     author = os.getenv("OMC_AUTHOR_NAME")
     if author:
         return author
@@ -594,12 +594,12 @@ def _get_author_name() -> str:
     except Exception:
         pass
 
-    # 3. 默认
+    # 3.varsayılan
     return "Anonymous"
 
 
 # =============================================================================
-# 模型推荐数据与函数（from cli_models_recommend.py）
+#Model öneri verileri ve işlevleri (from cli_models_recommend.py)
 # =============================================================================
 
 RECOMMENDATIONS: dict[str, list[dict]] = {
@@ -607,117 +607,117 @@ RECOMMENDATIONS: dict[str, list[dict]] = {
         {
             "model": "deepseek-chat",
             "provider": "DeepSeek",
-            "reason": "代码生成与补全能力强，支持 128K 上下文",
-            "free_quota": "500万 tokens/月",
+            "reason": "YüklendiKbağlam",
+            "free_quota": "5 milyontokens/ay",
         },
         {
             "model": "qwen2.5-coder-32b-instruct",
-            "provider": "通义千问",
-            "reason": "专为代码场景优化，多语言编程表现出色",
-            "free_quota": "500万 tokens/月",
+            "provider": "Tongyi",
+            "reason": "Çoklu dil programlamada mükemmel performansla kodlama senaryoları için özel olarak optimize edilmiştir",
+            "free_quota": "5 milyontokens/ay",
         },
         {
             "model": "glm-4-flash",
-            "provider": "智谱 AI",
-            "reason": "代码理解与生成速度快，零成本起步",
-            "free_quota": "免费无限量",
+            "provider": "Bilgelik spektrumuAI",
+            "reason": "Hızlı kod anlama ve oluşturma, sıfır başlangıç ​​maliyeti",
+            "free_quota": "Ücretsiz sınırsız",
         },
     ],
     "reasoning": [
         {
             "model": "qwen3-235b-a22b",
-            "provider": "通义千问",
-            "reason": "MoE 架构推理出色，思维链完整透明",
-            "free_quota": "500万 tokens/月",
+            "provider": "Tongyi",
+            "reason": "MoEMükemmel mimari akıl yürütme, eksiksiz ve şeffaf düşünme zinciri",
+            "free_quota": "5 milyontokens/ay",
         },
         {
             "model": "glm-4-plus",
-            "provider": "智谱 AI",
-            "reason": "复杂推理与知识问答表现优异",
-            "free_quota": "赠送额度",
+            "provider": "Bilgelik spektrumuAI",
+            "reason": "Karmaşık akıl yürütme ve bilgi soru ve cevaplarında mükemmel performans",
+            "free_quota": "Hediye kotası",
         },
     ],
     "creative": [
         {
             "model": "qwen-max",
-            "provider": "通义千问",
-            "reason": "创意写作与多风格文本生成能力突出",
-            "free_quota": "500万 tokens/月",
+            "provider": "Tongyi",
+            "reason": "Yaratıcı yazma ve çok stilde metin oluşturmada üstün yetenek",
+            "free_quota": "5 milyontokens/ay",
         },
         {
             "model": "deepseek-chat",
             "provider": "DeepSeek",
-            "reason": "长文本创作流畅，中文表达自然",
-            "free_quota": "500万 tokens/月",
+            "reason": "Uzun metin oluşturma işlemi sorunsuzdur ve Çince ifadeler doğaldır",
+            "free_quota": "5 milyontokens/ay",
         },
         {
             "model": "glm-4-flash",
-            "provider": "智谱 AI",
-            "reason": "快速生成创意内容，零成本迭代",
-            "free_quota": "免费无限量",
+            "provider": "Bilgelik spektrumuAI",
+            "reason": "Hızla yaratıcı içerik oluşturun ve sıfır maliyetle yineleyin",
+            "free_quota": "Ücretsiz sınırsız",
         },
     ],
     "fast": [
         {
             "model": "glm-4-flash",
-            "provider": "智谱 AI",
-            "reason": "响应速度极快，适合高频调用场景",
-            "free_quota": "免费无限量",
+            "provider": "Bilgelik spektrumuAI",
+            "reason": "Yüksek frekanslı arama senaryolarına uygun son derece hızlı yanıt hızı",
+            "free_quota": "Ücretsiz sınırsız",
         },
         {
             "model": "deepseek-chat",
             "provider": "DeepSeek",
-            "reason": "首 token 延迟低，吞吐量大",
-            "free_quota": "500万 tokens/月",
+            "reason": "KAFAtokenDüşük gecikme süresi, yüksek verim",
+            "free_quota": "5 milyontokens/ay",
         },
         {
             "model": "qwen2.5-7b-instruct",
-            "provider": "通义千问",
-            "reason": "小模型极速推理，适合简单任务",
-            "free_quota": "500万 tokens/月",
+            "provider": "Tongyi",
+            "reason": "Basit görevlere uygun, küçük modellerle son derece hızlı akıl yürütme",
+            "free_quota": "5 milyontokens/ay",
         },
     ],
     "chat": [
         {
             "model": "glm-4-flash",
-            "provider": "智谱 AI",
-            "reason": "日常对话流畅自然，完全免费",
-            "free_quota": "免费无限量",
+            "provider": "Bilgelik spektrumuAI",
+            "reason": "Günlük konuşmalar sorunsuz ve doğaldır, tamamen ücretsizdir",
+            "free_quota": "Ücretsiz sınırsız",
         },
         {
             "model": "deepseek-chat",
             "provider": "DeepSeek",
-            "reason": "对话连贯性好，知识面广",
-            "free_quota": "500万 tokens/月",
+            "reason": "İyi konuşma tutarlılığı ve geniş bilgi",
+            "free_quota": "5 milyontokens/ay",
         },
         {
             "model": "qwen-turbo",
-            "provider": "通义千问",
-            "reason": "轻量对话模型，响应快成本低",
-            "free_quota": "500万 tokens/月",
+            "provider": "Tongyi",
+            "reason": "Hafif diyalog modeli, hızlı yanıt ve düşük maliyet",
+            "free_quota": "5 milyontokens/ay",
         },
     ],
 }
 
 TASK_ALIASES: dict[str, str] = {
     "code": "coding",
-    "写代码": "coding",
-    "编程": "coding",
-    "推理": "reasoning",
-    "逻辑": "reasoning",
-    "创意": "creative",
-    "写作": "creative",
-    "快": "fast",
-    "速度": "fast",
-    "聊天": "chat",
-    "对话": "chat",
+    "kod yaz": "coding",
+    "programlama": "coding",
+    "muhakeme": "reasoning",
+    "mantık": "reasoning",
+    "yaratıcılık": "creative",
+    "Yenilemeye zorla": "creative",
+    "hızlı": "fast",
+    "hız": "fast",
+    "sohbet": "chat",
+    "modeli):": "chat",
 }
 
 VALID_TASKS = list(RECOMMENDATIONS.keys())
 
 
 def _resolve_task(task: str) -> str:
-    """解析任务类型（支持别名）"""
+    """Ayrıştırma görev türü (takma adları destekler)"""
     task_lower = task.lower().strip()
     if task_lower in VALID_TASKS:
         return task_lower
@@ -727,11 +727,11 @@ def _resolve_task(task: str) -> str:
 
 
 def _show_all_recommendations() -> None:
-    """显示所有类型的推荐表"""
+    """Tüm öneri formlarını göster"""
     console.print()
     console.print(
         Panel.fit(
-            "[bold cyan]🏆 模型精选推荐[/bold cyan]  — 免费模型，按场景优选",
+            "[bold cyan]🏆Öne Çıkan Model Önerileri[/bold cyan]— Senaryolara göre seçilen ücretsiz modeller",
             border_style="cyan",
         )
     )
@@ -744,10 +744,10 @@ def _show_all_recommendations() -> None:
             title_style="bold yellow",
             expand=True,
         )
-        table.add_column("模型", style="cyan", no_wrap=True)
-        table.add_column("提供商", style="blue")
-        table.add_column("推荐理由", style="white", no_wrap=False)
-        table.add_column("免费额度", style="green")
+        table.add_column("Modeli", style="cyan", no_wrap=True)
+        table.add_column("sağlayıcı", style="blue")
+        table.add_column("Tavsiye nedenleri", style="white", no_wrap=False)
+        table.add_column("Ücretsiz kota", style="green")
 
         for m in models:
             table.add_row(m["model"], m["provider"], m["reason"], m["free_quota"])
@@ -756,19 +756,19 @@ def _show_all_recommendations() -> None:
         console.print()
 
     console.print(
-        "[dim]💡 使用 [cyan]omc model recommend --task <type>[/cyan] 查看特定类型推荐[/dim]"
+        "[dim]💡kullanmak[cyan]omc model recommend --task <type>[/cyan]Türe özel önerilere bakın[/dim]"
     )
-    console.print(f"[dim]   可用类型: {', '.join(VALID_TASKS)}[/dim]")
+    console.print(f"[dim]Mevcut türler: {', '.join(VALID_TASKS)}[/dim]")
     console.print()
 
 
 def _show_task_recommendation(task: str) -> None:
-    """显示特定任务类型的推荐"""
+    """Belirli görev türleri için önerileri göster"""
     resolved = _resolve_task(task)
 
     if resolved not in RECOMMENDATIONS:
-        console.print(f"[red]✗ 未知任务类型: {task}[/red]")
-        console.print(f"[dim]可用类型: {', '.join(VALID_TASKS)}[/dim]")
+        console.print(f"[red]✗Bilinmeyen görev türü: {task}[/red]")
+        console.print(f"[dim]Mevcut türler: {', '.join(VALID_TASKS)}[/dim]")
         raise typer.Exit(1)
 
     models = RECOMMENDATIONS[resolved]
@@ -777,17 +777,17 @@ def _show_task_recommendation(task: str) -> None:
     console.print()
     console.print(
         Panel.fit(
-            f"[bold cyan]🏆 {label} 场景推荐[/bold cyan]",
+            f"[bold cyan]🏆 {label}Senaryo önerisi[/bold cyan]",
             border_style="cyan",
         )
     )
     console.print()
 
     table = Table(show_lines=False, expand=True)
-    table.add_column("模型", style="cyan", no_wrap=True)
-    table.add_column("提供商", style="blue")
-    table.add_column("推荐理由", style="white", no_wrap=False)
-    table.add_column("免费额度", style="green")
+    table.add_column("Modeli", style="cyan", no_wrap=True)
+    table.add_column("sağlayıcı", style="blue")
+    table.add_column("Tavsiye nedenleri", style="white", no_wrap=False)
+    table.add_column("Ücretsiz kota", style="green")
 
     for m in models:
         table.add_row(m["model"], m["provider"], m["reason"], m["free_quota"])
@@ -797,12 +797,12 @@ def _show_task_recommendation(task: str) -> None:
 
 
 # =============================================================================
-# YAML 模型配置管理
+# YAMLModel konfigürasyon yönetimi
 # =============================================================================
 
 
 def _list_yaml_configs() -> list[dict[str, Any]]:
-    """扫描所有 YAML 模型配置文件"""
+    """Tümünü taraYAMLModel yapılandırma dosyası"""
     configs: list[dict[str, Any]] = []
 
     for models_dir in [CATWALK_DIR, USER_MODELS_DIR]:
@@ -825,16 +825,16 @@ def _list_yaml_configs() -> list[dict[str, Any]]:
 
 
 def _validate_model_config(data: dict) -> tuple[bool, str]:
-    """验证模型配置是否合法"""
+    """Model yapılandırmasının yasal olup olmadığını doğrulayın"""
     required = ["name", "provider", "model"]
     for field in required:
         if field not in data:
-            return False, f"缺少必填字段: {field}"
+            return False, f"Gerekli alanlar eksik: {field}"
 
     valid_tiers = ["free", "low", "medium", "high"]
     tier = data.get("tier", "medium")
     if tier not in valid_tiers:
-        return False, f"tier 必须是 {valid_tiers} 之一，当前: {tier}"
+        return False, f"tierolmalıdır{valid_tiers}bir, şu anda: {tier}"
 
     valid_providers = [
         "deepseek",
@@ -855,15 +855,15 @@ def _validate_model_config(data: dict) -> tuple[bool, str]:
     ]
     provider = data.get("provider", "")
     if provider not in valid_providers:
-        return False, f"provider '{provider}' 不在支持列表中"
+        return False, f"provider '{provider}'Destek listesinde yok"
 
     return True, "OK"
 
 
 def _save_model_config(data: dict) -> Path:
-    """保存模型配置到用户目录，返回保存路径"""
+    """Model konfigürasyonunu kullanıcı dizinine kaydedin ve kaydetme yolunu döndürün"""
     USER_MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    # 文件名：provider-model.yaml
+    #dosya adı:provider-model.yaml
     filename = f"{data['provider']}-{data['model'].replace('/', '-')}.yaml"
     filepath = USER_MODELS_DIR / filename
     with open(filepath, "w", encoding="utf-8") as f:
@@ -874,10 +874,10 @@ def _save_model_config(data: dict) -> Path:
 
 
 # =============================================================================
-# 内置 Catwalk 模型配置数据（10+ 个）
+#yerleşikCatwalkModel yapılandırma verileri (10+bireysel)
 # =============================================================================
 
-# 内嵌模型数据，避免依赖外部 models/ 目录
+#Dış kaynaklara bağımlı olmaktan kaçınmak için model verilerini ekleyinmodels/İçindekiler
 BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
     {
         "name": "DeepSeek V4",
@@ -913,7 +913,7 @@ BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
         "features": ["function_call", "streaming"],
     },
     {
-        "name": "文心一言 4.0",
+        "name": "Wenxinyiyan 4.0",
         "provider": "wenxin",
         "api_key_env": "ERNIE_API_KEY",
         "endpoint": "https://aip.baidubce.com/rpc/2.0/ai_custom/v1",
@@ -924,7 +924,7 @@ BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
         "features": ["function_call", "vision", "streaming"],
     },
     {
-        "name": "通义千问 2.5",
+        "name": "Tongyi 2.5",
         "provider": "tongyi",
         "api_key_env": "DASHSCOPE_API_KEY",
         "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1",
@@ -946,7 +946,7 @@ BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
         "features": ["function_call", "streaming"],
     },
     {
-        "name": "豆包 Doubao-Pro",
+        "name": "Doubao-Pro",
         "provider": "doubao",
         "api_key_env": "DOUBAO_API_KEY",
         "endpoint": "https://ark.cn-beijing.volces.com/api/v3",
@@ -957,7 +957,7 @@ BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
         "features": ["function_call", "streaming"],
     },
     {
-        "name": "混元 Turbo",
+        "name": "yolu ayrıştırTurbo",
         "provider": "hunyuan",
         "api_key_env": "HUNYUAN_APP_ID",
         "endpoint": "https://hunyuan.cloud.tencent.com",
@@ -979,7 +979,7 @@ BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
         "features": ["function_call", "streaming"],
     },
     {
-        "name": "天工 3.0",
+        "name": "Tiangong 3.0",
         "provider": "tiangong",
         "api_key_env": "TIANGONG_API_KEY",
         "endpoint": "https://api.tiangong.cn/v1",
@@ -990,7 +990,7 @@ BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
         "features": ["function_call", "streaming"],
     },
     {
-        "name": "讯飞星火 4.0",
+        "name": "iFlytek Kıvılcım 4.0",
         "provider": "spark",
         "api_key_env": "SPARK_API_KEY",
         "endpoint": "https://spark-api.xf-yun.com/v4.0/chat",
@@ -1001,7 +1001,7 @@ BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
         "features": ["function_call", "vision", "streaming"],
     },
     {
-        "name": "百川 4",
+        "name": "Baiçuan 4",
         "provider": "baichuan",
         "api_key_env": "BAICHUAN_API_KEY",
         "endpoint": "https://api.baichuan-ai.com/v1",
@@ -1048,35 +1048,35 @@ BUILTIN_CATWALK_MODELS: list[dict[str, Any]] = [
 
 
 # =============================================================================
-# 命令实现 - 原有命令
+#Komut uygulaması-orijinal komut
 # =============================================================================
 
 
 @app.command("list")
 def list_models(
     extended: bool = typer.Option(
-        False, "--extended", "-e", help="显示完整 YAML 配置详情（Catwalk 模式）"
+        False, "--extended", "-e", help="Tamamlandı gösterYAMLYapılandırma ayrıntıları (Catwalkmodeli)"
     ),
-    tier: str = typer.Option(None, "--tier", help="按层级过滤: free/low/medium/high"),
-    provider: str = typer.Option(None, "--provider", "-p", help="按供应商过滤"),
+    tier: str = typer.Option(None, "--tier", help="Seviyeye göre filtrele: free/low/medium/high"),
+    provider: str = typer.Option(None, "--provider", "-p", help="Tedarikçiye göre filtrele"),
     status: str = typer.Option(
         None,
         "--status",
-        help="按就绪状态过滤: production/beta/deprecated/all (默认 production)",
+        help="Hazır durumuna göre filtrele: production/beta/deprecated/all (varsayılanproduction)",
     ),
     all: bool = typer.Option(
         False,
         "--all",
         "-a",
-        help="显示全部模型（含 beta/deprecated，等效于 --status all）",
+        help="Tüm modelleri göster (dahil)beta/deprecated, eşdeğer--status all)",
     ),
-    beta: bool = typer.Option(False, "--beta", "-b", help="显示 beta 模型"),
-    json_output: bool = typer.Option(False, "--json", help="JSON 输出"),
+    beta: bool = typer.Option(False, "--beta", "-b", help="göstermekbetaModeli"),
+    json_output: bool = typer.Option(False, "--json", help="JSONçıktı"),
     source: str = typer.Option(
-        None, "--source", "-s", help="数据源: builtin(内置)/user(用户)/all"
+        None, "--source", "-s", help="veri kaynağı: builtin(yerleşik)/user(kullanıcı)/all"
     ),
 ) -> None:
-    """列出所有可用模型（支持 Catwalk 详细视图）"""
+    """Mevcut tüm modelleri listeleyin (destekler)CatwalkAyrıntılı görünüm)"""
     from src.models import (
         enrich_with_status,
         filter_by_status,
@@ -1096,16 +1096,16 @@ def list_models(
         _show_prod, _show_beta, _show_dep = True, False, False
 
     if extended or json_output:
-        # Catwalk 详细模式
+        # Catwalkayrıntılı mod
         all_configs: list[dict[str, Any]] = []
 
-        # 内嵌数据
+        #Gömülü veriler
         for cfg in BUILTIN_CATWALK_MODELS:
             cfg_copy = dict(cfg)
             cfg_copy["_source"] = "builtin"
             all_configs.append(cfg_copy)
 
-        # YAML 文件（用户自定义）
+        # YAMLDosya (kullanıcı tanımlı)
         for cfg in _list_yaml_configs():
             all_configs.append(cfg)
 
@@ -1138,7 +1138,7 @@ def list_models(
             )
 
         if json_output:
-            # JSON 输出（供 AI 消费）
+            # JSONçıktı (içinAITüketim)
             import json
 
             out = []
@@ -1160,18 +1160,18 @@ def list_models(
             console.print_json(json.dumps(out, ensure_ascii=False, indent=2))
             return
 
-        # 详细表格
+        #Detaylı form
         table = Table(
-            title=f"Catwalk 模型仓库（共 {len(all_configs)} 个模型）",
+            title=f"CatwalkGörev yürütmeyle ilgili komutlar{len(all_configs)}modeli)",
             show_lines=True,
         )
-        table.add_column("模型", style="cyan", no_wrap=False)
-        table.add_column("供应商", style="blue")
+        table.add_column("Modeli", style="cyan", no_wrap=False)
+        table.add_column("tedarikçi", style="blue")
         table.add_column("Tier", style="yellow", no_wrap=True)
-        table.add_column("就绪", style="magenta", no_wrap=True)
-        table.add_column("价格（元/百万token）", style="dim")
-        table.add_column("上下文", style="green")
-        table.add_column("来源", style="white")
+        table.add_column("hazır", style="magenta", no_wrap=True)
+        table.add_column("Fiyat (yuan/milyontoken)", style="dim")
+        table.add_column("bağlam", style="green")
+        table.add_column("kaynak", style="white")
 
         current = _get_current_model()
 
@@ -1188,12 +1188,12 @@ def list_models(
             # Status badge
             raw_status = cfg.get("model_status", "beta")
             status_badge = {
-                "production": "✅生产",
+                "production": "✅Üretme",
                 "beta": "🔶Beta",
-                "deprecated": "⛔废弃",
+                "deprecated": "⛔terk edilmiş",
             }.get(raw_status, raw_status)
 
-            # 高亮当前模型
+            #Mevcut modeli vurgula
             provider_id = cfg.get("provider", "")
             is_current = "★" if provider_id == current else ""
 
@@ -1210,20 +1210,20 @@ def list_models(
         console.print(table)
         console.print()
         console.print(
-            f"[dim]内置: {len([c for c in all_configs if c.get('_source') == 'builtin'])} 个 | "
-            f"用户: {len([c for c in all_configs if c.get('_source') == 'user'])} 个[/dim]"
+            f"[dim]yerleşik: {len([c for c in all_configs if c.get('_source') == 'builtin'])}bireysel| "
+            f"kullanıcı: {len([c for c in all_configs if c.get('_source') == 'user'])}bireysel[/dim]"
         )
-        console.print(f"[dim]内置模型目录: {CATWALK_DIR}（只读）[/dim]")
-        console.print(f"[dim]用户模型目录: {USER_MODELS_DIR}[/dim]")
-        console.print("[dim]提示: 使用 [cyan]omc model catwalk[/cyan] 交互式浏览[/dim]")
+        console.print(f"[dim]Yerleşik model dizini: {CATWALK_DIR}(salt okunur)[/dim]")
+        console.print(f"[dim]Kullanıcı modeli dizini: {USER_MODELS_DIR}[/dim]")
+        console.print("[dim]ipucu:kullanmak[cyan]omc model catwalk[/cyan]etkileşimli tarama[/dim]")
     else:
-        # 简单模式
-        table = Table(title="支持的模型列表")
-        table.add_column("模型 ID", style="cyan")
-        table.add_column("名称", style="green")
-        table.add_column("层级", style="yellow")
-        table.add_column("就绪", style="magenta")
-        table.add_column("当前", style="white")
+        #Basit mod
+        table = Table(title="Desteklenen model listesi")
+        table.add_column("ModeliID", style="cyan")
+        table.add_column("isim", style="green")
+        table.add_column("Hiyerarşi", style="yellow")
+        table.add_column("hazır", style="magenta")
+        table.add_column("Komut yürütme başarısız oldu", style="white")
 
         current = _get_current_model()
 
@@ -1231,9 +1231,9 @@ def list_models(
             is_current = "★" if model_id == current else ""
             status_raw = get_model_status(model_id)
             status_map = {
-                "production": "✅生产",
+                "production": "✅Üretme",
                 "beta": "🔶Beta",
-                "deprecated": "⛔废弃",
+                "deprecated": "⛔terk edilmiş",
             }
             status_str = status_map.get(status_raw, status_raw)
             # Filtering logic:
@@ -1253,18 +1253,18 @@ def list_models(
 
         console.print(table)
         console.print()
-        console.print(f"[dim]配置文件: {CONFIG_FILE}[/dim]")
-        console.print(f"[dim]当前模型: {current}[/dim]")
-        console.print("[dim]使用 [cyan]--extended[/cyan] 查看 Catwalk 详细模式[/dim]")
+        console.print(f"[dim]Yenilemeye zorla: {CONFIG_FILE}[/dim]")
+        console.print(f"[dim]mevcut model: {current}[/dim]")
+        console.print("[dim]kullanmak[cyan]--extended[/cyan]Kontrol etmekCatwalkayrıntılı mod[/dim]")
 
-        # 检查新模型（非阻塞，使用缓存或快速发现）
+        #Yeni modelleri kontrol edin (engellenmeyen, önbellek kullanan veya hızlı bulma)
         if get_discovery_summary and not json_output:
             try:
                 summary = get_discovery_summary(BUILTIN_CATWALK_MODELS)
                 if summary.get("has_new"):
                     new_models = summary.get("new_models", [])
                     if new_models:
-                        # 只显示前3个新模型
+                        #Yalnızca ilk 3 yeni modeli göster
                         display_models = new_models[:3]
                         model_names = ", ".join(
                             [
@@ -1273,38 +1273,38 @@ def list_models(
                             ]
                         )
                         if len(new_models) > 3:
-                            model_names += f" 等 {len(new_models)} 个"
+                            model_names += f"Beklemek{len(new_models)}bireysel"
                         console.print()
                         console.print(
-                            f"[bold yellow]💡 发现新模型:[/] [cyan]{model_names}[/]"
+                            f"[bold yellow]💡Yeni modelleri keşfedin:[/] [cyan]{model_names}[/]"
                         )
                         console.print(
-                            "[dim]   运行 [cyan]omc model sync[/cyan] 查看详情并同步[/dim]"
+                            "[dim]koşmak[cyan]omc model sync[/cyan]Ayrıntıları görüntüleyin ve senkronize edin[/dim]"
                         )
             except Exception:
-                # 静默失败，不影响主功能
+                #Sessizce başarısız olur ve ana işlevi etkilemez
                 pass
 
 
 @app.command("catwalk")
 def catwalk(
     tier: str = typer.Option(
-        None, "--tier", "-t", help="按层级过滤: free/low/medium/high"
+        None, "--tier", "-t", help="Seviyeye göre filtrele: free/low/medium/high"
     ),
-    provider: str = typer.Option(None, "--provider", "-p", help="按供应商过滤"),
-    search: str = typer.Option(None, "--search", "-s", help="搜索模型名称/特性"),
+    provider: str = typer.Option(None, "--provider", "-p", help="Tedarikçiye göre filtrele"),
+    search: str = typer.Option(None, "--search", "-s", help="Model adını ara/karakteristik"),
 ) -> None:
-    """交互式浏览 Catwalk 模型仓库（交互模式）"""
+    """etkileşimli taramaCatwalkModel deposu (etkileşimli mod)"""
     console.print()
     console.print(
         Panel.fit(
-            "[bold cyan]🐱 Catwalk 模型仓库[/bold cyan] — 社区驱动的模型配置共享",
+            "[bold cyan]🐱 Catwalkmodeli depo[/bold cyan]— Topluluk odaklı model yapılandırma paylaşımı",
             border_style="cyan",
         )
     )
     console.print()
 
-    # 过滤数据
+    #Özet
     models = list(BUILTIN_CATWALK_MODELS)
 
     if tier:
@@ -1322,25 +1322,25 @@ def catwalk(
         ]
 
     if not models:
-        console.print("[red]没有找到匹配的模型[/red]")
+        console.print("[red]Eşleşen model bulunamadı[/red]")
         return
 
-    # 显示列表
+    #listeyi göster
     table = Table(
-        title=f"共 {len(models)} 个模型（输入编号选择）",
+        title=f"yaygın{len(models)}modeller (giriş numarası seçimi)",
         show_lines=True,
     )
     table.add_column("#", style="dim", width=3)
-    table.add_column("模型名称", style="cyan")
-    table.add_column("供应商", style="blue")
+    table.add_column("Model adı", style="cyan")
+    table.add_column("tedarikçi", style="blue")
     table.add_column("Tier", style="yellow")
-    table.add_column("输入价格", style="magenta")
-    table.add_column("上下文", style="green")
-    table.add_column("特性", style="dim")
+    table.add_column("Fiyatı girin", style="magenta")
+    table.add_column("bağlam", style="green")
+    table.add_column("karakteristik", style="dim")
 
     for i, cfg in enumerate(models, 1):
         pricing = cfg.get("pricing", {})
-        price_str = f"{pricing.get('input', '-')}元/MTok"
+        price_str = f"{pricing.get('input', '-')}Yuan/MTok"
         features = ", ".join(cfg.get("features", [])[:2])
 
         table.add_row(
@@ -1356,10 +1356,10 @@ def catwalk(
     console.print(table)
     console.print()
 
-    # 交互选择
+    #etkileşimli seçim
     choices = [str(i) for i in range(1, len(models) + 1)]
     choice = Prompt.ask(
-        "[bold]输入编号选择模型[/bold]（回车退出，l=列表，s=保存）",
+        "[bold]Modeli seçmek için numarayı girin[/bold](Çıkmak için Enter tuşuna basın,l=liste,s=kaydetmek)",
         default="",
     )
 
@@ -1371,12 +1371,12 @@ def catwalk(
         return
 
     if choice.strip().lower() == "s":
-        # 批量保存所有过滤后的模型
+        #Filtrelenen tüm modelleri gruplar halinde kaydedin
         USER_MODELS_DIR.mkdir(parents=True, exist_ok=True)
         for cfg in models:
             _save_model_config(cfg)
         console.print(
-            f"[green]✓ 已保存 {len(models)} 个模型配置到 {USER_MODELS_DIR}[/green]"
+            f"[green]✓kaydedildi{len(models)}için yapılandırılmış modeller{USER_MODELS_DIR}[/green]"
         )
         return
 
@@ -1384,7 +1384,7 @@ def catwalk(
         idx = int(choice) - 1
         cfg = models[idx]
 
-        # 显示详细信息
+        #Ayrıntıları göster
         console.print()
         console.print(
             Panel.fit(
@@ -1393,54 +1393,54 @@ def catwalk(
             )
         )
         console.print()
-        console.print(f"  [dim]供应商:[/] {cfg.get('provider')}")
+        console.print(f"  [dim]tedarikçi:[/] {cfg.get('provider')}")
         console.print(f"  [dim]Tier:[/]   {cfg.get('tier')}")
-        console.print(f"  [dim]模型 ID:[/] {cfg.get('model')}")
-        console.print(f"  [dim]端点:[/]   {cfg.get('endpoint')}")
-        console.print(f"  [dim]上下文:[/] {cfg.get('context')} tokens")
+        console.print(f"  [dim]ModeliID:[/] {cfg.get('model')}")
+        console.print(f"  [dim]uç nokta:[/]   {cfg.get('endpoint')}")
+        console.print(f"  [dim]bağlam:[/] {cfg.get('context')} tokens")
         pricing = cfg.get("pricing", {})
         console.print(
-            f"  [dim]价格:[/]   输入 {pricing.get('input', '-')} / 输出 {pricing.get('output', '-')} 元/百万token"
+            f"  [dim]fiyat:[/]girmek{pricing.get('input', '-')} /çıktı{pricing.get('output', '-')}Yuan/milyontoken"
         )
-        console.print(f"  [dim]特性:[/]   {', '.join(cfg.get('features', []))}")
+        console.print(f"  [dim]karakteristik:[/]   {', '.join(cfg.get('features', []))}")
         console.print()
 
-        # 操作
+        #Yapılandırma içe aktarıldı
         do_save = Confirm.ask(
-            f"[bold]保存 '{cfg['name']}' 到用户模型库？[/bold]", default=True
+            f"[bold]kaydetmek'{cfg['name']}'Kullanıcı modeli kitaplığına mı?[/bold]", default=True
         )
         if do_save:
             path = _save_model_config(cfg)
-            console.print(f"[green]✓ 已保存到 {path}[/green]")
+            console.print(f"[green]✓şuraya kaydedildi:{path}[/green]")
 
-        do_switch = Confirm.ask(f"[bold]切换到 '{cfg['name']}'？[/bold]", default=False)
+        do_switch = Confirm.ask(f"[bold]geçiş yapmak'{cfg['name']}'?[/bold]", default=False)
         if do_switch:
             provider_id = cfg.get("provider", "")
-            # 找到对应的简短 ID
+            #İlgili kısayı bulunID
             for mid, minfo in SUPPORTED_MODELS.items():
                 if minfo["name"] in cfg["name"] or mid == provider_id:
-                    # 直接内联切换逻辑（避免循环导入）
+                    #Doğrudan satır içi anahtarlama mantığı (döngüsel içe aktarmalardan kaçınma)
                     config = _load_config()
                     config["default_model"] = mid
                     _save_config(config)
-                    console.print(f"[green]✓ 已切换默认模型为 {mid}[/green]")
+                    console.print(f"[green]✓Varsayılan modele geçildi{mid}[/green]")
                     break
     else:
-        console.print(f"[red]无效选择: {choice}[/red]")
+        console.print(f"[red]Geçersiz seçim: {choice}[/red]")
 
 
 @app.command("import")
 def import_model(
-    url: str = typer.Argument(..., help="模型配置的 YAML URL 或本地文件路径"),
+    url: str = typer.Argument(..., help="model yapılandırılmışYAML URLveya yerel dosya yolu"),
     name: str = typer.Option(
-        None, "--name", "-n", help="保存时的名称（默认从 URL 推断）"
+        None, "--name", "-n", help="Kaydederken ad (varsayılan:URLçıkarım)"
     ),
-    force: bool = typer.Option(False, "--force", "-f", help="覆盖已存在的同名配置"),
+    force: bool = typer.Option(False, "--force", "-f", help="Aynı adı taşıyan mevcut konfigürasyonun üzerine yaz"),
 ) -> None:
-    """从 URL 或本地文件导入 YAML 模型配置"""
-    console.print(f"[dim]正在获取配置: {url}[/dim]")
+    """itibarenURLVeya yerel dosyadan içe aktarınYAMLModel konfigürasyonu"""
+    console.print(f"[dim]Yapılandırma alınıyor: {url}[/dim]")
 
-    # 获取 YAML 内容
+    #Elde etmekYAMLiçerik
     if url.startswith(("http://", "https://")):
         try:
             req = urllib.request.Request(
@@ -1450,65 +1450,65 @@ def import_model(
             with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310
                 content = resp.read().decode("utf-8")
         except Exception as e:
-            console.print(f"[red]✗ 获取失败: {e}[/red]")
+            console.print(f"[red]✗Alınamadı: {e}[/red]")
             raise typer.Exit(1)
     else:
-        # 本地文件
+        #yerel dosya
         filepath = Path(url)
         if not filepath.exists():
-            console.print(f"[red]✗ 文件不存在: {url}[/red]")
+            console.print(f"[red]✗Dosya mevcut değil: {url}[/red]")
             raise typer.Exit(1)
         content = filepath.read_text(encoding="utf-8")
 
-    # 解析 YAML
+    #ayrıştırmakYAML
     try:
         data = yaml.safe_load(content)
     except yaml.YAMLError as e:
-        console.print(f"[red]✗ YAML 解析失败: {e}[/red]")
+        console.print(f"[red]✗ YAMLAyrıştırma başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
     if not isinstance(data, dict):
-        console.print("[red]✗ YAML 内容不是字典格式的模型配置[/red]")
+        console.print("[red]✗ YAMLİçerik sözlük formatında bir model konfigürasyonu değil[/red]")
         raise typer.Exit(1)
 
-    # 验证
+    #doğrulamak
     valid, msg = _validate_model_config(data)
     if not valid:
-        console.print(f"[red]✗ 配置验证失败: {msg}[/red]")
+        console.print(f"[red]✗Sıcaklık parametrelerini ayarlayın: {msg}[/red]")
         raise typer.Exit(1)
 
-    # 检查重复
+    #Yinelenenleri kontrol edin
     existing = _list_yaml_configs()
     provider_model = f"{data['provider']}/{data['model']}"
     for cfg in existing:
         pm = f"{cfg.get('provider')}/{cfg.get('model')}"
         if pm == provider_model and not force:
             console.print(
-                "[yellow]⚠ 同名配置已存在，使用 [cyan]--force[/cyan] 覆盖[/yellow]"
+                "[yellow]⚠Aynı ada sahip bir konfigürasyon zaten mevcut, şunu kullanın:[cyan]--force[/cyan]kapak[/yellow]"
             )
             raise typer.Exit(1)
 
-    # 保存
+    #kaydetmek
     path = _save_model_config(data)
-    console.print(f"[green]✓ 已导入: {data['name']}[/green]")
-    console.print(f"[dim]保存路径: {path}[/dim]")
+    console.print(f"[green]✓İthal: {data['name']}[/green]")
+    console.print(f"[dim]yolu kaydet: {path}[/dim]")
 
 
 @app.command("export")
 def export_model(
-    name: str = typer.Argument(..., help="模型名称（完整名称，如 'DeepSeek V4'）"),
-    yaml_out: bool = typer.Option(False, "--yaml", help="输出 YAML 格式（默认 JSON）"),
-    copy: bool = typer.Option(False, "--copy", help="复制配置文本到剪贴板"),
+    name: str = typer.Argument(..., help="Model adı (tam ad, ör.'DeepSeek V4')"),
+    yaml_out: bool = typer.Option(False, "--yaml", help="çıktıYAMLbiçim (varsayılanJSON)"),
+    copy: bool = typer.Option(False, "--copy", help="Yapılandırma metnini panoya kopyala"),
 ) -> None:
-    """导出模型配置（支持 YAML/JSON）"""
-    # 搜索
+    """Model yapılandırmasını dışa aktar (destekler)YAML/JSON)"""
+    #aramak
     target = None
-    # 先在内嵌数据中查找
+    #Önce gömülü verilerde bulun
     for cfg in BUILTIN_CATWALK_MODELS:
         if name.lower() in cfg["name"].lower():
             target = dict(cfg)
             break
-    # 再在用户配置中查找
+    #Daha sonra kullanıcı yapılandırmasında arama yapın
     if target is None:
         for cfg in _list_yaml_configs():
             if name.lower() in cfg.get("name", "").lower():
@@ -1516,13 +1516,13 @@ def export_model(
                 break
 
     if target is None:
-        console.print(f"[red]✗ 未找到模型: {name}[/red]")
+        console.print(f"[red]✗etkileşimli tarama: {name}[/red]")
         console.print(
-            "[dim]使用 [cyan]omc model list --extended[/cyan] 查看所有模型[/dim]"
+            "[dim]kullanmak[cyan]omc model list --extended[/cyan]Tüm modelleri görüntüle[/dim]"
         )
         raise typer.Exit(1)
 
-    # 移除内部字段
+    #Dahili alanları kaldır
     target.pop("_source", None)
     target.pop("_file", None)
 
@@ -1538,9 +1538,9 @@ def export_model(
             import pyperclip
 
             pyperclip.copy(output)
-            console.print("[green]✓ 已复制到剪贴板[/green]")
+            console.print("[green]✓Panoya kopyalandı[/green]")
         except Exception:
-            console.print("[yellow]⚠ pyperclip 未安装，复制功能不可用[/yellow]")
+            console.print("[yellow]⚠ pyperclipKurulu değil, kopyalama işlevi mevcut değil[/yellow]")
             console.print("[dim]pip install pyperclip[/dim]")
     else:
         console.print(output)
@@ -1548,106 +1548,106 @@ def export_model(
 
 @app.command("current")
 def show_current() -> None:
-    """显示当前默认模型"""
+    """Geçerli varsayılan modeli göster"""
     current = _get_current_model()
     info = SUPPORTED_MODELS.get(current, {})
 
     console.print()
-    console.print(f"[bold cyan]当前模型:[/] [green]{current}[/]")
+    console.print(f"[bold cyan]mevcut model:[/] [green]{current}[/]")
 
     if info:
-        console.print(f"[bold cyan]名称:[/] {info.get('name', '-')}")
-        console.print(f"[bold cyan]层级:[/] {info.get('tier', '-')}")
-        console.print(f"[bold cyan]备注:[/] [dim]{info.get('note', '-')}[/dim]")
+        console.print(f"[bold cyan]isim:[/] {info.get('name', '-')}")
+        console.print(f"[bold cyan]Hiyerarşi:[/] {info.get('tier', '-')}")
+        console.print(f"[bold cyan]Açıklama:[/] [dim]{info.get('note', '-')}[/dim]")
 
     api_key = _get_current_api_key(current)
     if api_key:
-        console.print("[bold cyan]API Key:[/] [green]✓ 已配置[/green]")
+        console.print("[bold cyan]API Key:[/] [green]✓yapılandırılmış[/green]")
     else:
-        console.print("[bold cyan]API Key:[/] [red]✗ 未配置（需设置环境变量）[/red]")
+        console.print("[bold cyan]API Key:[/] [red]✗Yapılandırılmadı (ortam değişkenlerinin ayarlanması gerekiyor)[/red]")
     console.print()
 
 
 @app.command("switch")
 def switch_model_cmd(
-    model_name: str = typer.Argument(..., help="模型 ID（如 deepseek, glm）"),
+    model_name: str = typer.Argument(..., help="ModeliID(beğenmekdeepseek, glm)"),
 ) -> None:
-    """切换默认模型（写入配置文件，无需重启）"""
+    """Varsayılan modeli değiştir (yapılandırma dosyasını yaz, yeniden başlatmaya gerek yok)"""
     if model_name not in SUPPORTED_MODELS:
-        console.print(f"[red]错误: 不支持的模型 '{model_name}'[/red]")
+        console.print(f"[red]hata:Desteklenmeyen model'{model_name}'[/red]")
         console.print()
-        console.print("支持的模型:")
+        console.print("Desteklenen modeller:")
         for model_id in SUPPORTED_MODELS:
             console.print(f"  - {model_id}")
         raise typer.Exit(1)
 
     config = _load_config()
-    old_model = config.get("default_model", "未设置")
+    old_model = config.get("default_model", "ayarlanmamış")
     config["default_model"] = model_name
     _save_config(config)
 
     info = SUPPORTED_MODELS[model_name]
     console.print()
-    console.print("[bold green]✓ 模型切换成功[/]")
-    console.print(f"  [dim]旧模型:[/] {old_model}")
-    console.print(f"  [dim]新模型:[/] {info['name']} ({model_name})")
-    console.print(f"  [dim]配置文件:[/] {CONFIG_FILE}")
+    console.print("[bold green]✓Model değiştirme başarılı[/]")
+    console.print(f"  [dim]eski model:[/] {old_model}")
+    console.print(f"  [dim]yeni model:[/] {info['name']} ({model_name})")
+    console.print(f"  [dim]Yenilemeye zorla:[/] {CONFIG_FILE}")
     console.print()
-    console.print("[dim]提示: 环境变量 OMC_DEFAULT_MODEL 会覆盖配置文件[/dim]")
+    console.print("[dim]ipucu:ortam değişkenleriOMC_DEFAULT_MODELYapılandırma dosyasının üzerine yazacak[/dim]")
 
 
 @app.command("sync")
 def sync_models(
-    force: bool = typer.Option(False, "--force", "-f", help="强制刷新，忽略缓存"),
-    timeout: int = typer.Option(5, "--timeout", "-t", help="请求超时时间（秒）"),
+    force: bool = typer.Option(False, "--force", "-f", help="Yenilemeye zorla, önbelleği yoksay"),
+    timeout: int = typer.Option(5, "--timeout", "-t", help="İstek zaman aşımı (saniye)"),
 ) -> None:
-    """同步检查各厂商最新模型"""
+    """Yapılandırma yönetimi"""
     if ModelDiscovery is None:
-        console.print("[red]✗ 模型发现模块未加载[/red]")
+        console.print("[red]✗Model bulma modülü yüklü değil[/red]")
         raise typer.Exit(1)
 
     console.print()
-    console.print("[bold cyan]🔍 正在检查各厂商最新模型...[/bold cyan]")
+    console.print("[bold cyan]🔍Çeşitli üreticilerin en son modellerini kontrol etme...[/bold cyan]")
     console.print()
 
     discovery = ModelDiscovery()
 
-    # 检查缓存状态
+    #Önbellek durumunu kontrol edin
     if not force:
         cached = discovery.get_cached()
         if cached:
-            cached_at = cached.get("cached_at", "未知")
+            cached_at = cached.get("cached_at", "bilinmiyor")
             console.print(
-                f"[dim]使用缓存数据（{cached_at}），使用 --force 强制刷新[/dim]"
+                f"[dim]Kod Teşhis Kontrolü{cached_at}),kullanmak--forceYenilemeye zorla[/dim]"
             )
             console.print()
 
-    # 执行同步
+    #Senkronizasyon gerçekleştir
     result = discovery.sync(force=force, timeout=timeout)
 
     if result.get("status") == "cached":
         discovered = result.get("data", {})
-        console.print("[yellow]⚠ 使用缓存数据，跳过实时检查[/yellow]")
+        console.print("[yellow]⚠çıkış yapmak[/yellow]")
     else:
         discovered = result.get("data", {})
         providers_stats = result.get("providers", {})
 
-        # 显示各厂商状态
+        #Her üreticinin durumunu görüntüleyin
         for provider, count in providers_stats.items():
             if count > 0:
-                console.print(f"  [green]✅[/] {provider}: 发现 {count} 个模型")
+                console.print(f"  [green]✅[/] {provider}:Keşfetmek{count}Komut tanımı")
             else:
-                # 检查是否有 API key
+                #Var olup olmadığını kontrol edinAPI key
                 config = discovery.PROVIDER_APIS.get(provider, {})
                 if config.get("skip"):
-                    reason = config.get("reason", "不支持动态发现")
+                    reason = config.get("reason", "Dinamik keşif desteklenmiyor")
                     console.print(f"  [dim]⏭️  {provider}: {reason}[/dim]")
                 elif config.get("key_env") and not os.getenv(config["key_env"]):
-                    console.print(f"  [yellow]⚠️[/] {provider}: API Key 未配置")
+                    console.print(f"  [yellow]⚠️[/] {provider}: API KeyYapılandırılmadı")
                 else:
-                    console.print(f"  [dim]⚪ {provider}: 无可用模型或请求失败[/dim]")
+                    console.print(f"  [dim]⚪ {provider}:Model yok veya istek başarısız oldu[/dim]")
 
-    # 对比内置模型
+    #Yerleşik modelleri karşılaştırın
     comparison = discovery.compare_with_builtin(discovered, BUILTIN_CATWALK_MODELS)
     new_models = comparison.get("new_models", [])
     removed_models = comparison.get("removed_models", [])
@@ -1655,42 +1655,42 @@ def sync_models(
     console.print()
 
     if new_models:
-        console.print(f"[bold green]✨ 发现 {len(new_models)} 个新模型:[/bold green]")
-        for m in new_models[:10]:  # 最多显示10个
+        console.print(f"[bold green]✨Keşfetmek{len(new_models)}yeni modeller:[/bold green]")
+        for m in new_models[:10]:  #10'a kadar görüntüle
             console.print(f"   • {m['model_id']} ({m['provider']})")
         if len(new_models) > 10:
-            console.print(f"   ... 还有 {len(new_models) - 10} 个")
+            console.print(f"   ...Ayrıca{len(new_models) - 10}bireysel")
         console.print()
         console.print(
-            "[dim]💡 提示: 使用 [cyan]omc model import <url>[/cyan] 添加新模型[/dim]"
+            "[dim]💡ipucu:kullanmak[cyan]omc model import <url>[/cyan]Yeni model ekle[/dim]"
         )
     else:
-        console.print("[dim]未发现新模型[/dim]")
+        console.print("[dim]Yeni model bulunamadı[/dim]")
 
     if removed_models:
         console.print()
-        console.print(f"[yellow]⚠️  {len(removed_models)} 个模型可能已下线:[/yellow]")
+        console.print(f"[yellow]⚠️  {len(removed_models)}modeller çevrimdışı olabilir:[/yellow]")
         for m in removed_models[:5]:
             console.print(f"   • {m['name']} ({m['model_id']})")
 
     console.print()
-    console.print(f"[dim]缓存文件: {discovery.CACHE_FILE}[/dim]")
+    console.print(f"[dim]Önbellek dosyaları: {discovery.CACHE_FILE}[/dim]")
 
 
 # =============================================================================
-# 命令实现 - 从 cli_models_recommend.py 合并
+#Komut uygulaması-itibarencli_models_recommend.pybirleştirme
 # =============================================================================
 
 
 @app.command("recommend")
 def recommend_model(
     task: str = typer.Option(
-        None, "--task", "-t", help="任务类型: coding/reasoning/creative/fast/chat"
+        None, "--task", "-t", help="Görev türü: coding/reasoning/creative/fast/chat"
     ),
 ) -> None:
-    """模型精选推荐 — 按场景推荐免费模型
+    """Model Önerileri — Senaryolara göre ücretsiz modeller önerin
 
-    示例:
+Örnek:
         omc model recommend
         omc model recommend --task coding
         omc model recommend --task fast
@@ -1702,27 +1702,27 @@ def recommend_model(
 
 
 # =============================================================================
-# 命令实现 - 从 cli_models.py 合并
+#Komut uygulaması-itibarencli_models.pybirleştirme
 # =============================================================================
 
 
 @app.command("share")
 def share_model(
-    name: str = typer.Option(None, "--name", "-n", help="模型配置名称"),
+    name: str = typer.Option(None, "--name", "-n", help="Model konfigürasyon adı"),
     provider: str = typer.Option(
-        None, "--provider", "-p", help="提供商（如 deepseek, glm）"
+        None, "--provider", "-p", help="sağlayıcı (örn.deepseek, glm)"
     ),
     base_url: str = typer.Option(None, "--url", "-u", help="API Base URL"),
-    model: str = typer.Option(None, "--model", "-m", help="模型 ID"),
-    description: str = typer.Option(None, "--desc", "-d", help="使用说明/描述"),
-    author: str = typer.Option(None, "--author", "-a", help="作者名称"),
+    model: str = typer.Option(None, "--model", "-m", help="ModeliID"),
+    description: str = typer.Option(None, "--desc", "-d", help="Kullanım talimatları/betimlemek"),
+    author: str = typer.Option(None, "--author", "-a", help="Yazar adı"),
     interactive: bool = typer.Option(
-        True, "--interactive/--no-interactive", help="交互式输入"
+        True, "--interactive/--no-interactive", help="etkileşimli giriş"
     ),
 ) -> None:
-    """分享模型配置到社区目录
+    """Model yapılandırmasını topluluk dizininde paylaşın
 
-    示例:
+Örnek:
         omc model share
         omc model share --name "My DeepSeek" --provider deepseek --url https://api.deepseek.com --model deepseek-chat
     """
@@ -1731,29 +1731,29 @@ def share_model(
     console.print()
     console.print(
         Panel.fit(
-            "[bold cyan]📤 分享模型配置[/bold cyan]",
+            "[bold cyan]📤Model yapılandırmasını paylaş[/bold cyan]",
             border_style="cyan",
         )
     )
     console.print()
 
-    # 交互式输入
+    #etkileşimli giriş
     if interactive and not all([name, provider, base_url, model]):
-        console.print("[dim]请输入模型配置信息（Ctrl+C 取消）:[/dim]")
+        console.print("[dim]Lütfen model yapılandırma bilgilerini girin (Ctrl+Cİptal etmek):[/dim]")
         console.print()
 
         if not name:
-            name = Prompt.ask("[bold]配置名称[/]", default="My Model Config")
+            name = Prompt.ask("[bold]Yapılandırma adı[/]", default="My Model Config")
 
         if not provider:
             provider = Prompt.ask(
-                "[bold]提供商[/]",
+                "[bold]sağlayıcı[/]",
                 default="deepseek",
             )
 
         if not model:
             model = Prompt.ask(
-                "[bold]模型 ID[/]",
+                "[bold]ModeliID[/]",
                 default="deepseek-chat",
             )
 
@@ -1765,20 +1765,20 @@ def share_model(
 
         if not description:
             description = Prompt.ask(
-                "[bold]描述/使用说明[/]",
+                "[bold]betimlemek/Kullanım talimatları[/]",
                 default="",
             )
 
-    # 验证必填字段
+    #Gerekli alanları doğrulayın
     if not all([name, provider, base_url, model]):
-        console.print("[red]✗ 缺少必填参数: name, provider, base_url, model[/red]")
+        console.print("[red]✗Gerekli parametre eksik: name, provider, base_url, model[/red]")
         raise typer.Exit(1)
 
-    # 作者
+    #yazar
     if not author:
         author = _get_author_name()
 
-    # 构建配置
+    #Yapı yapılandırması
     config_id = str(uuid.uuid4())[:8]
     config = {
         "id": config_id,
@@ -1792,22 +1792,22 @@ def share_model(
         "version": "1.0",
     }
 
-    # 确认
+    #onaylamak
     console.print()
-    console.print("[dim]配置预览:[/dim]")
-    console.print(f"  [cyan]名称:[/] {config['name']}")
-    console.print(f"  [cyan]提供商:[/] {config['provider']}")
-    console.print(f"  [cyan]模型 ID:[/] {config['model']}")
+    console.print("[dim]Yapılandırma önizlemesi:[/dim]")
+    console.print(f"  [cyan]isim:[/] {config['name']}")
+    console.print(f"  [cyan]sağlayıcı:[/] {config['provider']}")
+    console.print(f"  [cyan]ModeliID:[/] {config['model']}")
     console.print(f"  [cyan]API URL:[/] {config['base_url']}")
-    console.print(f"  [cyan]作者:[/] {config['author']}")
+    console.print(f"  [cyan]Varsayılan modeli seçin:[/] {config['author']}")
     console.print()
 
     if interactive:
-        if not Confirm.ask("[bold]确认分享此配置？[/]", default=True):
-            console.print("[yellow]已取消[/yellow]")
+        if not Confirm.ask("[bold]Bu yapılandırmayı paylaşmak istediğinizden emin misiniz?[/]", default=True):
+            console.print("[yellow]İptal edildi[/yellow]")
             return
 
-    # 保存
+    #kaydetmek
     filename = f"{config_id}-{provider}-{model.replace('/', '-')}.json"
     filepath = SHARED_MODELS_DIR / filename
 
@@ -1815,39 +1815,39 @@ def share_model(
         json.dump(config, f, ensure_ascii=False, indent=2)
 
     console.print()
-    console.print("[green]✓ 已分享模型配置[/green]")
-    console.print(f"[dim]保存路径: {filepath}[/dim]")
+    console.print("[green]✓Paylaşılan model yapılandırması[/green]")
+    console.print(f"[dim]yolu kaydet: {filepath}[/dim]")
     console.print()
     console.print(
-        "[dim]💡 提示: 可通过 [cyan]omc model browse[/cyan] 查看社区配置[/dim]"
+        "[dim]💡ipucu:Geçilebilir[cyan]omc model browse[/cyan]Topluluk yapılandırmasını görüntüle[/dim]"
     )
 
 
 @app.command("browse")
 def browse_models(
-    provider: str = typer.Option(None, "--provider", "-p", help="按提供商过滤"),
-    author: str = typer.Option(None, "--author", "-a", help="按作者过滤"),
-    search: str = typer.Option(None, "--search", "-s", help="搜索关键词"),
-    limit: int = typer.Option(20, "--limit", "-l", help="显示数量限制"),
+    provider: str = typer.Option(None, "--provider", "-p", help="Sağlayıcıya göre filtrele"),
+    author: str = typer.Option(None, "--author", "-a", help="Yazara göre filtrele"),
+    search: str = typer.Option(None, "--search", "-s", help="Anahtar kelimeleri arayın"),
+    limit: int = typer.Option(20, "--limit", "-l", help="Miktar sınırını görüntüle"),
 ) -> None:
-    """浏览社区分享的模型配置
+    """Topluluk tarafından paylaşılan model yapılandırmalarına göz atın
 
-    示例:
+Örnek:
         omc model browse
         omc model browse --provider deepseek
-        omc model browse --search "免费"
+        omc model browse --search "özgür"
     """
     _ensure_shared_dir()
     configs = _list_shared_configs()
 
     if not configs:
         console.print()
-        console.print("[yellow]暂无分享的模型配置[/yellow]")
+        console.print("[yellow]Henüz paylaşılan bir model yapılandırması yok.[/yellow]")
         console.print()
-        console.print("[dim]💡 使用 [cyan]omc model share[/cyan] 分享你的配置[/dim]")
+        console.print("[dim]💡kullanmak[cyan]omc model share[/cyan]Yapılandırmanızı paylaşın[/dim]")
         return
 
-    # 过滤
+    #filtre
     if provider:
         configs = [c for c in configs if c.get("provider") == provider]
     if author:
@@ -1862,14 +1862,14 @@ def browse_models(
             or q in c.get("model", "").lower()
         ]
 
-    # 限制数量
+    #sınırlı miktar
     configs = configs[:limit]
 
-    # 显示
+    #göstermek
     console.print()
     console.print(
         Panel.fit(
-            f"[bold cyan]📚 社区模型配置[/bold cyan] — 共 {len(configs)} 个",
+            f"[bold cyan]📚Topluluk modeli yapılandırması[/bold cyan]- yaygın{len(configs)}bireysel",
             border_style="cyan",
         )
     )
@@ -1877,11 +1877,11 @@ def browse_models(
 
     table = Table(show_lines=True)
     table.add_column("ID", style="dim", width=8)
-    table.add_column("名称", style="cyan", no_wrap=False)
-    table.add_column("提供商", style="blue")
-    table.add_column("模型", style="green")
-    table.add_column("作者", style="magenta")
-    table.add_column("描述", style="dim", no_wrap=False)
+    table.add_column("isim", style="cyan", no_wrap=False)
+    table.add_column("sağlayıcı", style="blue")
+    table.add_column("Modeli", style="green")
+    table.add_column("Varsayılan modeli seçin", style="magenta")
+    table.add_column("betimlemek", style="dim", no_wrap=False)
 
     for cfg in configs:
         table.add_row(
@@ -1895,24 +1895,24 @@ def browse_models(
 
     console.print(table)
     console.print()
-    console.print(f"[dim]配置目录: {SHARED_MODELS_DIR}[/dim]")
-    console.print("[dim]💡 使用 [cyan]omc model show <id>[/cyan] 查看详情[/dim]")
+    console.print(f"[dim]Yapılandırma dizini: {SHARED_MODELS_DIR}[/dim]")
+    console.print("[dim]💡kullanmak[cyan]omc model show <id>[/cyan]ayrıntıları kontrol et[/dim]")
 
 
 @app.command("show")
 def show_shared_model(
-    config_id: str = typer.Argument(..., help="配置 ID（前 8 位）"),
-    export: bool = typer.Option(False, "--export", "-e", help="导出为 JSON"),
+    config_id: str = typer.Argument(..., help="YapılandırmaID(İlk 8)"),
+    export: bool = typer.Option(False, "--export", "-e", help="Farklı dışa aktarJSON"),
 ) -> None:
-    """查看模型配置详情
+    """Model yapılandırma ayrıntılarını görüntüleyin
 
-    示例:
+Örnek:
         omc model show abc12345
         omc model show abc12345 --export
     """
     configs = _list_shared_configs()
 
-    # 查找
+    #Bulmak
     target = None
     for cfg in configs:
         if cfg.get("id", "").startswith(config_id):
@@ -1920,17 +1920,17 @@ def show_shared_model(
             break
 
     if not target:
-        console.print(f"[red]✗ 未找到配置: {config_id}[/red]")
+        console.print(f"[red]✗Yapılandırma bulunamadı: {config_id}[/red]")
         raise typer.Exit(1)
 
     if export:
-        # 移除内部字段
+        #Dahili alanları kaldır
         output = dict(target)
         output.pop("_file", None)
         console.print_json(json.dumps(output, ensure_ascii=False, indent=2))
         return
 
-    # 详细显示
+    #Ayrıntılı ekran
     console.print()
     console.print(
         Panel.fit(
@@ -1940,35 +1940,35 @@ def show_shared_model(
     )
     console.print()
     console.print(f"  [dim]ID:[/]       {target.get('id', '-')}")
-    console.print(f"  [dim]提供商:[/]   {target.get('provider', '-')}")
-    console.print(f"  [dim]模型 ID:[/]  {target.get('model', '-')}")
+    console.print(f"  [dim]sağlayıcı:[/]   {target.get('provider', '-')}")
+    console.print(f"  [dim]ModeliID:[/]  {target.get('model', '-')}")
     console.print(f"  [dim]API URL:[/]  {target.get('base_url', '-')}")
-    console.print(f"  [dim]作者:[/]     {target.get('author', '-')}")
-    console.print(f"  [dim]创建时间:[/] {target.get('created_at', '-')}")
-    console.print(f"  [dim]版本:[/]     {target.get('version', '-')}")
+    console.print(f"  [dim]Varsayılan modeli seçin:[/]     {target.get('author', '-')}")
+    console.print(f"  [dim]yaratılış zamanı:[/] {target.get('created_at', '-')}")
+    console.print(f"  [dim]Sürüm:[/]     {target.get('version', '-')}")
     console.print()
     if target.get("description"):
-        console.print(f"  [dim]描述:[/] {target['description']}")
+        console.print(f"  [dim]betimlemek:[/] {target['description']}")
         console.print()
-    console.print(f"  [dim]文件:[/] {target.get('_file', '-')}")
+    console.print(f"  [dim]belge:[/] {target.get('_file', '-')}")
     console.print()
 
 
 @app.command("shared")
 def list_shared() -> None:
-    """列出本地分享的所有配置
+    """Yerel olarak paylaşılan tüm yapılandırmaları listeleyin
 
-    示例:
+Örnek:
         omc model shared
     """
     configs = _list_shared_configs()
 
     if not configs:
-        console.print("[yellow]暂无分享的配置[/yellow]")
+        console.print("[yellow]Henüz paylaşılan yapılandırma yok[/yellow]")
         return
 
     console.print()
-    console.print(f"[bold cyan]本地分享的配置 ({len(configs)} 个):[/]")
+    console.print(f"[bold cyan]Yerel paylaşılan yapılandırma({len(configs)}bireysel):[/]")
     console.print()
 
     for cfg in configs:
@@ -1977,23 +1977,23 @@ def list_shared() -> None:
         )
 
     console.print()
-    console.print(f"[dim]目录: {SHARED_MODELS_DIR}[/dim]")
+    console.print(f"[dim]İçindekiler: {SHARED_MODELS_DIR}[/dim]")
 
 
 @app.command("remove")
 def remove_shared_model(
-    config_id: str = typer.Argument(..., help="配置 ID"),
-    force: bool = typer.Option(False, "--force", "-f", help="跳过确认"),
+    config_id: str = typer.Argument(..., help="YapılandırmaID"),
+    force: bool = typer.Option(False, "--force", "-f", help="Onayı atla"),
 ) -> None:
-    """删除已分享的配置
+    """Paylaşılan yapılandırmayı sil
 
-    示例:
+Örnek:
         omc model remove abc12345
         omc model remove abc12345 --force
     """
     configs = _list_shared_configs()
 
-    # 查找
+    #Bulmak
     target = None
     for cfg in configs:
         if cfg.get("id", "").startswith(config_id):
@@ -2001,26 +2001,26 @@ def remove_shared_model(
             break
 
     if not target:
-        console.print(f"[red]✗ 未找到配置: {config_id}[/red]")
+        console.print(f"[red]✗Yapılandırma bulunamadı: {config_id}[/red]")
         raise typer.Exit(1)
 
     filepath = SHARED_MODELS_DIR / target["_file"]
 
     if not force:
         console.print(
-            f"[yellow]即将删除:[/] {target.get('name', '-')} ({target.get('id', '-')})"
+            f"[yellow]Silinmek üzere:[/] {target.get('name', '-')} ({target.get('id', '-')})"
         )
-        if not Confirm.ask("[bold]确认删除？[/]", default=False):
-            console.print("[dim]已取消[/dim]")
+        if not Confirm.ask("[bold]Silme işlemi onaylansın mı?[/]", default=False):
+            console.print("[dim]İptal edildi[/dim]")
             return
 
     filepath.unlink()
-    console.print(f"[green]✓ 已删除: {target.get('name', '-')}[/green]")
+    console.print(f"[green]✓Silindi: {target.get('name', '-')}[/green]")
 
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context) -> None:
-    """模型管理 - 查看/切换/分享/推荐"""
+    """Mevcut tüm modelleri listeleyin (destekler)-Kontrol etmek/anahtar/paylaşmak/tavsiye etmek"""
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
 

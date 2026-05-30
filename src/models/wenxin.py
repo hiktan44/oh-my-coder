@@ -4,19 +4,19 @@ from __future__ import annotations
 from typing import Optional
 
 """
-文心一言 (Wenxin) 模型适配器
+Wenxin (Wenxin) modeladaptor
 
-百度文心一言 API 文档：https://cloud.baidu.com/doc/WENXINWORKSHOP/index.html
+yuzdereceWenxin API Dokumantasyon:https://cloud.baidu.com/doc/WENXINWORKSHOP/index.html
 
-特点：
-1. 百度出品，中文能力强
-2. 支持多轮对话
-3. 多种模型可选（ERNIE-Bot-4, ERNIE-Bot, ERNIE-Bot-turbo）
+Ozellikler:
+1. yuzdereceurun, icindemetinyetenekguclu
+2. destekcokturicinkonusma
+3. cokturmodelolabilirsec (ERNIE-Bot-4, ERNIE-Bot, ERNIE-Bot-turbo) 
 
-模型：
-- ERNIE-Bot-4：最强模型（对应 HIGH tier）
-- ERNIE-Bot：通用模型（对应 MEDIUM tier）
-- ERNIE-Bot-turbo：快速模型（对应 LOW tier）
+model: 
+- ERNIE-Bot-4: enguclumodel (karsilik gelen HIGH tier) 
+- ERNIE-Bot: kullanmodel (karsilik gelen MEDIUM tier) 
+- ERNIE-Bot-turbo: hizlihizmodel (karsilik gelen LOW tier) 
 """
 
 import json
@@ -35,7 +35,7 @@ from .base import (
     Usage,
 )
 
-# 文心一言模型配置
+# Wenxinmodelyapilandirma
 WENXIN_MODELS = {
     ModelTier.LOW: {
         "name": "eb-instant",  # ERNIE-Bot-turbo
@@ -54,15 +54,15 @@ WENXIN_MODELS = {
     },
 }
 
-# 文心一言 API 端点
+# Wenxin API uc nokta
 WENXIN_API_URL = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat"
 
 
 class WenxinModel(BaseModel):
     """
-    文心一言模型适配器
+    Wenxinmodeladaptor
 
-    注意：文心一言 API 需要 Access Token，通过 API Key 和 Secret Key 获取
+    dikkat: Wenxin API gerekister Access Token, araciligiyla API Key ve Secret Key al
     """
 
     def __init__(
@@ -73,11 +73,11 @@ class WenxinModel(BaseModel):
     ):
         """
         Args:
-            config: 模型配置（api_key 为 API Key）
-            tier: 性能层级
-            secret_key: Secret Key（用于获取 Access Token）
+            config: modelyapilandirma (api_key icin API Key) 
+            tier: performanskatmanseviye
+            secret_key: Secret Key (kullandeal Access Token) 
         """
-        # 设置文心一言特定配置
+        # ayarlaayarWenxinozelyapilandirma
         model_info = WENXIN_MODELS[tier]
         config.cost_per_1k_prompt = model_info["cost_per_1k_prompt"]
         config.cost_per_1k_completion = model_info["cost_per_1k_completion"]
@@ -98,12 +98,12 @@ class WenxinModel(BaseModel):
         return WENXIN_MODELS[self.tier]["name"]
 
     async def _get_access_token(self) -> str:
-        """获取 Access Token（有缓存）"""
-        # 检查缓存是否有效
+        """al Access Token (varonbellek) """
+        # kontrolonbellekolup olmadigivaretki
         if self._access_token and time.time() < self._token_expire_time:
             return self._access_token
 
-        # 获取新的 Access Token
+        # alyeni Access Token
         client = await self._get_client()
 
         url = f"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={self.config.api_key}&client_secret={self.secret_key}"
@@ -115,12 +115,12 @@ class WenxinModel(BaseModel):
         self._access_token = data["access_token"]
         self._token_expire_time = (
             time.time() + data["expires_in"] - 300
-        )  # 提前 5 分钟过期
+        )  # yukseltonce 5 puandakikadonem
 
         return self._access_token
 
     async def _get_client(self) -> httpx.AsyncClient:
-        """获取或创建 HTTP 客户端"""
+        """alveyaolustur HTTP istemci"""
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 timeout=self.config.timeout,
@@ -128,16 +128,16 @@ class WenxinModel(BaseModel):
         return self._client
 
     async def close(self):
-        """关闭 HTTP 客户端"""
+        """kapat HTTP istemci"""
         if self._client and not self._client.is_closed:
             await self._client.aclose()
             self._client = None
 
     def _format_messages(self, messages: list[Message]) -> list[dict[str, str]]:
         """
-        将统一消息格式转换为文心一言 API 格式
+        birmesajformatdonusturicinWenxin API format
 
-        注意：文心一言不支持 system role，需要合并到第一条 user 消息
+        dikkat: Wenxinhayirdestek system role, gerekisterbirlestirvekadarincibirogre user mesaj
         """
         formatted = []
         system_content = ""
@@ -153,24 +153,24 @@ class WenxinModel(BaseModel):
                     item["tool_call_id"] = msg.tool_call_id
                 formatted.append(item)
 
-        # 如果有 system 内容，合并到第一条 user 消息
+        # egervar system icerik, birlestirvekadarincibirogre user mesaj
         if system_content and formatted and formatted[0]["role"] == "user":
             formatted[0]["content"] = f"{system_content}\n\n{formatted[0]['content']}"
 
         return formatted
 
     async def generate(self, messages: list[Message], **kwargs) -> ModelResponse:
-        """非流式生成"""
+        """olmayanakisolustur"""
         client = await self._get_client()
         access_token = await self._get_access_token()
 
-        # 构建请求体
+        # olusturistek
         request_body = {
             "messages": self._format_messages(messages),
             "temperature": kwargs.get("temperature", self.config.temperature),
         }
 
-        # 添加可选参数
+        # ekleolabilirsecparametre
         if "max_tokens" in kwargs:
             request_body["max_output_tokens"] = kwargs["max_tokens"]
         if "top_p" in kwargs:
@@ -192,12 +192,12 @@ class WenxinModel(BaseModel):
             data = response.json()
             latency_ms = (time.time() - start_time) * 1000
 
-            # 解析响应
+            # ayristiryanit
             content = data.get("result", "")
             finish_reason = data.get("finish_reason", "stop")
             tool_calls = []
 
-            # 使用统计
+            # kullanistatistik
             usage_data = data.get("usage", {})
             usage = Usage(
                 prompt_tokens=usage_data.get("prompt_tokens", 0),
@@ -230,12 +230,12 @@ class WenxinModel(BaseModel):
             except Exception:
                 error_detail = f"HTTP {e.response.status_code}"
 
-            raise WenxinAPIError(f"文心一言 API 错误: {error_detail}")
+            raise WenxinAPIError(f"Wenxin API hata: {error_detail}")
         except httpx.RequestError as e:
-            raise WenxinAPIError(f"网络请求失败: {type(e).__name__}")
+            raise WenxinAPIError(f"ag istegibasarisiz: {type(e).__name__}")
 
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
-        """流式生成"""
+        """akisolustur"""
         client = await self._get_client()
         access_token = await self._get_access_token()
 
@@ -255,7 +255,7 @@ class WenxinModel(BaseModel):
                     if not line:
                         continue
 
-                    # 解析 SSE 数据
+                    # ayristir SSE sayigore
                     if line.startswith("data: "):
                         line = line[6:]
 
@@ -275,12 +275,12 @@ class WenxinModel(BaseModel):
             except Exception:
                 error_detail = f"HTTP {e.response.status_code}"
 
-            raise WenxinAPIError(f"文心一言 API 错误: {error_detail}")
+            raise WenxinAPIError(f"Wenxin API hata: {error_detail}")
         except httpx.RequestError as e:
-            raise WenxinAPIError(f"网络请求失败: {type(e).__name__}")
+            raise WenxinAPIError(f"ag istegibasarisiz: {type(e).__name__}")
 
 
 class WenxinAPIError(Exception):
-    """文心一言 API 错误"""
+    """Wenxin API hata"""
 
     pass

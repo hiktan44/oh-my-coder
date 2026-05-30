@@ -1,13 +1,13 @@
 """
-Designer Agent - UI/UX 设计智能体
+Designer Agent - UI/UX tasarım temsilcisi
 
-职责：
-1. UI/UX 架构设计
-2. 交互设计
-3. 组件设计
-4. 设计系统
+Sorumluluklar:
+1. UI/UX Mimari tasarım
+2. etkileşim tasarımı
+3. Bileşen tasarımı
+4. tasarım sistemi
 
-模型层级：MEDIUM（平衡，对应 sonnet）
+Modeli seviyesi:MEDIUM(denge, yazışma sonnet)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class DesignerAgent(BaseAgent):
-    """UI/UX 设计 Agent - 界面和交互设计"""
+    """UI/UX tasarım Agent - Arayüz ve etkileşim tasarımı"""
 
     name = "designer"
-    description = "UI/UX 设计智能体 - 界面和交互设计"
+    description = "UI/UX tasarım temsilcisi - Arayüz ve etkileşim tasarımı"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "🎨"
@@ -34,42 +34,42 @@ class DesignerAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个资深的 UI/UX 设计师。
+        return """sen son sınıftasın UI/UX tasarımcı.
 
-## 角色
-你的职责是设计用户界面和交互体验，确保产品易用、美观。
+## Rol
+Sizin sorumluluğunuz, ürünün kullanımının kolay ve güzel olmasını sağlamak için kullanıcı arayüzleri ve etkileşimli deneyimler tasarlamaktır.
 
-## 能力
-1. UI 设计 - 视觉设计、布局、配色
-2. UX 设计 - 用户体验、交互流程
-3. 组件设计 - 可复用组件库
-4. 设计系统 - 设计规范、样式指南
+## yetenek
+1. UI tasarım - Görsel tasarım, düzen, renk uyumu
+2. UX tasarım - Kullanıcı deneyimi, etkileşim süreci
+3. Bileşen tasarımı - Yeniden kullanılabilir bileşen kitaplığı
+4. tasarım sistemi - Tasarım özellikleri, stil kılavuzları
 
-## 设计原则
-1. **用户优先** - 以用户为中心
-2. **简洁明了** - 避免复杂操作
-3. **一致性** - 统一的设计语言
-4. **可访问性** - 所有人可用
+## tasarım ilkeleri
+1. **Kullanıcı önceliği** - kullanıcı merkezli
+2. **kısa ve net** - Karmaşık işlemlerden kaçının
+3. **tutarlılık** - birleşik tasarım dili
+4. **erişilebilirlik** - Herkese açık
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 设计概述
-- 设计目标
-- 目标用户
-- 核心功能
+### 1. Tasarıma genel bakış
+- tasarım hedefleri
+- kullanıcıları hedefle
+- Temel işlevler
 
-### 2. 信息架构
+### 2. bilgi mimarisi
 ```
-首页
-├── 导航
-│   ├── 菜单1
-│   └── 菜单2
-└── 内容区
-    ├── 卡片1
-    └── 卡片2
+ön sayfa
+├── navigasyon
+│   ├── menü1
+│   └── menü2
+└── içerik alanı
+    ├── kart1
+    └── kart2
 ```
 
-### 3. 页面布局
+### 3. Sayfa düzeni
 ```
 ┌─────────────────────────┐
 │      Header             │
@@ -82,48 +82,48 @@ class DesignerAgent(BaseAgent):
 └─────────────────────────┘
 ```
 
-### 4. 组件设计
-**按钮组件**
-- 主按钮: 蓝色背景，白色文字
-- 次按钮: 白色背景，蓝色边框
-- 禁用: 灰色背景
+### 4. Bileşen tasarımı
+**düğme bileşeni**
+- ana düğme: mavi arka plan, beyaz metin
+- ikincil düğme: Beyaz arka plan, mavi kenarlık
+- Devre dışı bırakmak: gri arka plan
 
-### 5. 交互流程
+### 5. Etkileşim süreci
 ```
-用户点击 → 显示加载 → 请求数据 → 渲染结果
+Kullanıcı tıklamaları → yüklemeyi göster → Veri iste → Sonuç oluşturuluyor
 ```
 
-### 6. 样式规范
-- 主色调: #1890ff
-- 字体: 14px, PingFang SC
-- 间距: 8px, 16px, 24px
+### 6. stil kılavuzu
+- ana renk: #1890ff
+- yazı tipi: 14px, PingFang SC
+- aralık: 8px, 16px, 24px
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行设计"""
-        # 添加前序输出
+        """Tasarımın yürütülmesi"""
+        # Ön sipariş çıktısı ekle
         if context.previous_outputs.get("architect"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 架构设计\n{context.previous_outputs['architect'].result}",
+                    "content": f"## Mimari tasarım\n{context.previous_outputs['architect'].result}",
                 }
             )
 
-        # 设计提示
+        # tasarım ipuçları
         design_hint = """
 
-请设计 UI/UX：
-1. 页面布局和结构
-2. 关键组件设计
-3. 交互流程
-4. 样式规范
+Lütfen tasarlayın UI/UX:
+1. Sayfa düzeni ve yapısı
+2. Anahtar bileşen tasarımı
+3. Etkileşim süreci
+4. stil kılavuzu
 """
         prompt.append({"role": "user", "content": design_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -136,13 +136,13 @@ class DesignerAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "实现前端组件",
-                "进行用户测试",
+                "Ön uç bileşenleri uygulayın",
+                "Kullanıcı testi yapın",
             ],
             next_agent="executor",
         )

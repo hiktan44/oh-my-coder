@@ -1,21 +1,21 @@
 from __future__ import annotations
 
 """
-MCP Resources — 把 .omc/ 工作区暴露为 MCP resources
+MCP Resources -  .omc/ isbolgeaciga cikaricin MCP resources
 
-resource URI 格式：
-- omc://workspace/summary     — 工作区摘要
-- omc://workspace/structure    — 项目目录结构
-- omc://workspace/files        — 关键文件内容
-- omc://checkpoint/list       — 所有 checkpoint 列表
-- omc://skill/list             — 所有 Skill 列表
+resource URI format: 
+- omc://workspace/summary     - isbolgealintiister
+- omc://workspace/structure    - projedizinyapi
+- omc://workspace/files        - anahtardosyaicerik
+- omc://checkpoint/list       - var checkpoint liste
+- omc://skill/list             - var Skill liste
 """
 
 import contextlib
 from pathlib import Path
 from typing import Any, Optional
 
-# 工作区根目录
+# isbolgekokdizin
 _WORKSPACE: Optional[Path] = None
 
 
@@ -29,28 +29,28 @@ def get_workspace() -> Path:
 
 
 # ------------------------------------------------------------------
-# Resource 内容生成
+# Resource icerikolustur
 # ------------------------------------------------------------------
 
 
 def _generate_summary(workspace: Path) -> str:
-    """生成工作区摘要"""
+    """olusturisbolgealintiister"""
     stats = _project_stats(workspace)
     omc_dir = workspace / ".omc"
 
     lines = [
-        f"# 工作区摘要: {workspace.name}",
+        f"# isbolgealintiister: {workspace.name}",
         "",
-        f"**路径**: `{workspace}`",
-        f"**文件总数**: {stats['total_files']}",
-        f"**代码行数**: {stats['code_lines']}",
+        f"**yol**: `{workspace}`",
+        f"**dosyatoplamsayi**: {stats['total_files']}",
+        f"**kodsatirsayi**: {stats['code_lines']}",
         "",
-        "## 语言分布",
+        "## dilpuan",
     ]
     for lang, count in stats.get("by_language", {}).items():
-        lines.append(f"  - {lang}: {count} 文件")
+        lines.append(f"  - {lang}: {count} dosya")
 
-    # Checkpoint 数量
+    # Checkpoint sayimiktar
     checkpoint_dir = omc_dir / "checkpoints"
     if checkpoint_dir.exists():
         import json
@@ -60,12 +60,12 @@ def _generate_summary(workspace: Path) -> str:
             try:
                 data = json.loads(index_file.read_text(encoding="utf-8"))
                 lines.append("")
-                lines.append("## 快照")
-                lines.append(f"  - Checkpoints: {len(data)} 个")
+                lines.append("## hizligore")
+                lines.append(f"  - Checkpoints: {len(data)} ")
             except Exception:
                 pass
 
-    # Skill 数量
+    # Skill sayimiktar
     skill_dir = omc_dir / "skills"
     if skill_dir.exists():
         import json
@@ -75,8 +75,8 @@ def _generate_summary(workspace: Path) -> str:
             try:
                 data = json.loads(index_file.read_text(encoding="utf-8"))
                 lines.append("")
-                lines.append("## 经验沉淀")
-                lines.append(f"  - Skills: {len(data)} 个")
+                lines.append("## gecdogrulabiriktir")
+                lines.append(f"  - Skills: {len(data)} ")
             except Exception:
                 pass
 
@@ -84,8 +84,8 @@ def _generate_summary(workspace: Path) -> str:
 
 
 def _generate_structure(workspace: Path, depth: int = 3) -> str:
-    """生成项目目录结构"""
-    lines = [f"# 项目结构: {workspace.name}", ""]
+    """olusturprojedizinyapi"""
+    lines = [f"# proje yapisi: {workspace.name}", ""]
 
     ignore_dirs = {
         ".git",
@@ -128,7 +128,7 @@ def _generate_structure(workspace: Path, depth: int = 3) -> str:
 
 
 def _generate_files(workspace: Path) -> str:
-    """生成关键文件内容"""
+    """olusturanahtardosyaicerik"""
     extensions = {".py", ".js", ".ts", ".jsx", ".tsx", ".go", ".rs", ".java"}
     key_files = []
 
@@ -143,15 +143,15 @@ def _generate_files(workspace: Path) -> str:
                 key_files.append(f)
 
     key_files.sort(key=lambda f: f.stat().st_size, reverse=True)
-    key_files = key_files[:20]  # 最多 20 个文件
+    key_files = key_files[:20]  # en fazla 20 dosya
 
-    lines = ["# 关键文件内容（按大小排序）", ""]
+    lines = ["# anahtardosyaicerik (gorebuyukkucuksirala) ", ""]
     for f in key_files:
         try:
             rel = f.relative_to(workspace)
             lines.append(f"## {rel}")
             content = f.read_text(encoding="utf-8", errors="replace")
-            # 限制每个文件最多显示 100 行
+            # sinirherdosyaen fazlagoster 100 satir
             content_lines = content.splitlines()[:100]
             lines.append("```")
             lines.extend(content_lines)
@@ -164,7 +164,7 @@ def _generate_files(workspace: Path) -> str:
 
 
 def _project_stats(workspace: Path) -> dict[str, Any]:
-    """统计项目信息"""
+    """istatistikprojebilgi"""
     extensions = {
         ".py": "Python",
         ".js": "JavaScript",
@@ -220,28 +220,28 @@ def _project_stats(workspace: Path) -> dict[str, Any]:
 
 
 # ------------------------------------------------------------------
-# MCP Resource 定义
+# MCP Resource tanim
 # ------------------------------------------------------------------
 
 MCP_RESOURCES: list[dict[str, Any]] = [
     {
         "uri": "omc://workspace/summary",
         "name": "workspace_summary",
-        "description": "当前工作区摘要（文件统计、语言分布、checkpoint、skill 数量）",
+        "description": "mevcutisbolgealintiister (dosyaistatistik, dilpuan, checkpoint, skill sayimiktar) ",
         "mimeType": "text/markdown",
         "generator": lambda: _generate_summary(get_workspace()),
     },
     {
         "uri": "omc://workspace/structure",
         "name": "workspace_structure",
-        "description": "项目目录结构（目录树，深度 3）",
+        "description": "projedizinyapi (dizinagac, derinlik 3) ",
         "mimeType": "text/markdown",
         "generator": lambda: _generate_structure(get_workspace()),
     },
     {
         "uri": "omc://workspace/files",
         "name": "workspace_key_files",
-        "description": "关键文件内容（按大小排序，最多 20 个，每个最多 100 行）",
+        "description": "anahtardosyaicerik (gorebuyukkucuksirala, en fazla 20 , heren fazla 100 satir) ",
         "mimeType": "text/markdown",
         "generator": lambda: _generate_files(get_workspace()),
     },
@@ -249,5 +249,5 @@ MCP_RESOURCES: list[dict[str, Any]] = [
 
 
 def get_mcp_resources() -> list[dict[str, Any]]:
-    """获取所有 MCP resources（dict 格式）"""
+    """tumunu al MCP resources (dict format) """
     return MCP_RESOURCES

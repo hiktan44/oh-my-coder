@@ -1,35 +1,35 @@
 """
-API Key 脱敏工具
+API Key maskelearac
 
-提供 API Key 脱敏功能，避免在日志、错误信息中泄露敏感信息。
+saglar API Key maskeleislev, kacinicindelog, hata mesajiicindesizintihassasbilgi. 
 """
 
 import re
 from typing import Optional
 
-# 常见 API Key 模式
+# sikgor API Key mod
 API_KEY_PATTERNS = [
-    # OpenAI / DeepSeek / Zhipu AI 等 (sk-...)
+    # OpenAI / DeepSeek / Zhipu AI vb. (sk-...)
     (r"(sk-[a-zA-Z0-9]{4})[a-zA-Z0-9]{4,}([a-zA-Z0-9]{4})", r"\1....\2"),
     # Bearer Token
     (r"(Bearer\s+[a-zA-Z0-9]{4})[a-zA-Z0-9]{4,}([a-zA-Z0-9]{4})", r"\1....\2"),
     # ZHIPUAI_API_KEY (zai-...)
     (r"(zai-[a-zA-Z0-9]{4})[a-zA-Z0-9]{4,}([a-zA-Z0-9]{4})", r"\1....\2"),
-    # 通用 API Key (至少8字符，字母数字+少量特殊字符)
+    # kullan API Key (kadaraz8karakter, harfanasayiharf+azmiktarozelkarakter)
     (r"([a-zA-Z0-9]{4})[a-zA-Z0-9+/=_-]{4,}([a-zA-Z0-9]{4})", r"\1....\2"),
 ]
 
 
 def mask_api_key(text: str, mask_char: str = "....") -> str:
     """
-    对文本中的 API Key 进行脱敏处理。
+    icinmetinicinde API Key ilerlesatirmaskeleisle. 
 
     Args:
-        text: 原始文本（可能包含 API Key）
-        mask_char: 脱敏替换字符，默认 "...."
+        text: hammetin (olabiliredebiliricerir API Key) 
+        mask_char: maskeledegistirkarakter, varsayilan "...."
 
     Returns:
-        脱敏后的文本
+        maskelesonrametin
 
     Examples:
         >>> mask_api_key("my key is sk-abc123def456")
@@ -49,13 +49,13 @@ def mask_api_key(text: str, mask_char: str = "....") -> str:
 
 def mask_headers(headers: dict) -> dict:
     """
-    对 HTTP Headers 中的敏感信息进行脱敏。
+    icin HTTP Headers icindehassasbilgiilerlesatirmaskele. 
 
     Args:
-        headers: HTTP Headers 字典
+        headers: HTTP Headers sozluk
 
     Returns:
-        脱敏后的 Headers 字典
+        maskelesonra Headers sozluk
 
     Examples:
         >>> mask_headers({"Authorization": "Bearer sk-abc123"})
@@ -76,12 +76,12 @@ def mask_headers(headers: dict) -> dict:
 
 def safe_log(message: str, logger_func, *args, **kwargs) -> None:
     """
-    安全的日志记录函数，自动脱敏 API Key。
+    guvenliklogkayitfonksiyon, otomatikmaskele API Key. 
 
     Args:
-        message: 日志消息（可能包含 API Key）
-        logger_func: 日志函数（如 logger.info, logger.debug）
-        *args, **kwargs: 传递给 logger_func 的参数
+        message: logmesaj (olabiliredebiliricerir API Key) 
+        logger_func: logfonksiyon (ornegin logger.info, logger.debug) 
+        *args, **kwargs: iletiletver logger_func parametre
     """
     masked_message = mask_api_key(message)
     logger_func(masked_message, *args, **kwargs)
@@ -89,18 +89,18 @@ def safe_log(message: str, logger_func, *args, **kwargs) -> None:
 
 class APIKeyMasker:
     """
-    API Key 脱敏器（类版本，支持自定义规则）。
+    API Key maskele (sinifsurum, destekozelkural) . 
     """
 
     def __init__(self, custom_patterns: Optional[list] = None) -> None:
         """
         Args:
-            custom_patterns: 自定义脱敏规则，格式为 [(pattern, replacement), ...]
+            custom_patterns: ozelmaskelekural, formaticin [(pattern, replacement), ...]
         """
         self.patterns = custom_patterns if custom_patterns else API_KEY_PATTERNS
 
     def mask(self, text: str) -> str:
-        """脱敏文本中的 API Key"""
+        """maskelemetinicinde API Key"""
         if not text:
             return text
 
@@ -112,11 +112,11 @@ class APIKeyMasker:
 
     def mask_dict(self, data: dict, keys_to_mask: Optional[list] = None) -> dict:
         """
-        脱敏字典中的敏感字段。
+        maskelesozlukicindehassasalan. 
 
         Args:
-            data: 原始字典
-            keys_to_mask: 需要脱敏的键列表，默认 ["api_key", "token", "password"]
+            data: hamsozluk
+            keys_to_mask: gerekistermaskeleanahtarliste, varsayilan ["api_key", "token", "password"]
         """
         if not data:
             return data

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 """
-Quest Mode 数据模型
+Quest Mode sayigoremodel
 
-Quest = 异步自主编程任务
-一个 Quest 包含：描述、生成的 SPEC、执行状态、结果
+Quest = asenkronkendianaduzenlesurecgorev
+bir Quest icerir: aciklama, olustur SPEC, yurutdurum, sonuc
 """
 
 from dataclasses import dataclass, field
@@ -16,21 +16,21 @@ from pydantic import BaseModel, Field
 
 
 class QuestStatus(str, Enum):
-    """任务状态"""
+    """gorevdurum"""
 
-    PENDING = "pending"  # 等待生成 SPEC
-    SPEC_GENERATING = "spec_generating"  # 正在生成 SPEC
-    SPEC_READY = "spec_ready"  # SPEC 已就绪，等待用户确认
-    EXECUTING = "executing"  # 后台执行中
-    PENDING_REVIEW = "pending_review"  # 步骤执行完，等待用户验收
-    COMPLETED = "completed"  # 完成
-    FAILED = "failed"  # 失败
-    CANCELLED = "cancelled"  # 取消
-    PAUSED = "paused"  # 暂停（等待用户输入）
+    PENDING = "pending"  # vb.bekleolustur SPEC
+    SPEC_GENERATING = "spec_generating"  # olustur SPEC
+    SPEC_READY = "spec_ready"  # SPEC iseipucu, vb.beklekullanicionayla
+    EXECUTING = "executing"  # sonraplatformyuruticinde
+    PENDING_REVIEW = "pending_review"  # adimyuruttamam, vb.beklekullanicidogrulaal
+    COMPLETED = "completed"  # tamamla
+    FAILED = "failed"  # basarisiz
+    CANCELLED = "cancelled"  # iptal
+    PAUSED = "paused"  # duraklat (vb.beklekullanicigirdi) 
 
 
 class QuestPriority(str, Enum):
-    """优先级"""
+    """oncelikseviye"""
 
     LOW = "low"
     MEDIUM = "medium"
@@ -39,62 +39,62 @@ class QuestPriority(str, Enum):
 
 
 # ============================================================
-# Pydantic 模型（用于 CLI 展示和 API）
+# Pydantic model (kullande CLI gosterve API) 
 # ============================================================
 
 
 class SpecSection(BaseModel):
-    """SPEC 文档章节"""
+    """SPEC dokumantasyonbolum"""
 
-    title: str = Field(..., description="章节标题")
-    content: str = Field(..., description="章节内容")
-    order: int = Field(default=0, description="顺序")
+    title: str = Field(..., description="bolumbaslik")
+    content: str = Field(..., description="bolumicerik")
+    order: int = Field(default=0, description="sira")
 
 
 class AcceptanceCriteria(BaseModel):
-    """验收标准"""
+    """kabul kriterleri"""
 
-    id: str = Field(..., description="标准 ID，格式 AC1, AC2...")
-    description: str = Field(..., description="验收标准描述")
-    testable: bool = Field(default=True, description="是否可自动测试")
+    id: str = Field(..., description="standart ID, format AC1, AC2...")
+    description: str = Field(..., description="kabul kriterleriaciklama")
+    testable: bool = Field(default=True, description="olup olmadigiolabilirotomatiktest")
 
 
 class QuestSpec(BaseModel):
-    """任务规格文档"""
+    """gorevkuraldokumantasyon"""
 
-    title: str = Field(..., description="任务标题")
-    overview: str = Field(..., description="任务概述")
-    motivation: str = Field(..., description="为什么要做这个任务")
-    scope: list[str] = Field(default_factory=list, description="包含范围")
-    out_of_scope: list[str] = Field(default_factory=list, description="不包含范围")
+    title: str = Field(..., description="gorev basligi")
+    overview: str = Field(..., description="gorevgenel bakis")
+    motivation: str = Field(..., description="icinneisteryapbugorev")
+    scope: list[str] = Field(default_factory=list, description="kapsam ici")
+    out_of_scope: list[str] = Field(default_factory=list, description="kapsam disi")
     acceptance_criteria: list[AcceptanceCriteria] = Field(
-        default_factory=list, description="验收标准"
+        default_factory=list, description="kabul kriterleri"
     )
-    risks: list[str] = Field(default_factory=list, description="风险提示")
-    estimated_time: str = Field(default="1h", description="预估耗时")
-    sections: list[SpecSection] = Field(default_factory=list, description="额外章节")
+    risks: list[str] = Field(default_factory=list, description="riskipucu")
+    estimated_time: str = Field(default="1h", description="ontahmintuketzaman")
+    sections: list[SpecSection] = Field(default_factory=list, description="kotadisindabolum")
 
     def to_markdown(self) -> str:
-        """转换为 Markdown 格式"""
+        """donusturicin Markdown format"""
         lines = [
             f"# {self.title}",
             "",
-            "## 概述",
+            "## genel bakis",
             self.overview,
             "",
-            "## 动机",
+            "## motivasyon",
             self.motivation,
             "",
         ]
 
         if self.scope:
-            lines.extend(["## 包含范围", *[f"- {s}" for s in self.scope], ""])
+            lines.extend(["## kapsam ici", *[f"- {s}" for s in self.scope], ""])
 
         if self.out_of_scope:
-            lines.extend(["## 不包含范围", *[f"- {s}" for s in self.out_of_scope], ""])
+            lines.extend(["## kapsam disi", *[f"- {s}" for s in self.out_of_scope], ""])
 
         if self.acceptance_criteria:
-            lines.append("## 验收标准")
+            lines.append("## kabul kriterleri")
             lines.extend(
                 [
                     f"- [ ] **[{ac.id}]** {ac.description}"
@@ -104,7 +104,7 @@ class QuestSpec(BaseModel):
             lines.append("")
 
         if self.risks:
-            lines.extend(["## 风险提示", *[f"- ⚠️ {r}" for r in self.risks], ""])
+            lines.extend(["## riskipucu", *[f"- ⚠️ {r}" for r in self.risks], ""])
 
         for section in sorted(self.sections, key=lambda s: s.order):
             lines.extend([f"## {section.title}", section.content, ""])
@@ -112,7 +112,7 @@ class QuestSpec(BaseModel):
         lines.extend(
             [
                 "---",
-                f"*生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*",
+                f"*olusturzamanarasinda: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*",
             ]
         )
 
@@ -120,41 +120,41 @@ class QuestSpec(BaseModel):
 
 
 class QuestStep(BaseModel):
-    """Quest 执行步骤"""
+    """Quest yurutadim"""
 
-    step_id: str = Field(..., description="步骤 ID")
-    title: str = Field(..., description="步骤标题")
-    description: str = Field(..., description="步骤描述")
-    agent: str = Field(..., description="执行的 Agent")
+    step_id: str = Field(..., description="adim ID")
+    title: str = Field(..., description="adimbaslik")
+    description: str = Field(..., description="adimaciklama")
+    agent: str = Field(..., description="yurut Agent")
     status: QuestStatus = Field(default=QuestStatus.PENDING)
-    result: Optional[str] = Field(None, description="步骤结果")
-    error: Optional[str] = Field(None, description="错误信息")
+    result: Optional[str] = Field(None, description="adimsonuc")
+    error: Optional[str] = Field(None, description="hata mesaji")
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
 
 
 class Quest(BaseModel):
-    """Quest 任务"""
+    """Quest gorev"""
 
-    id: str = Field(..., description="Quest ID（UUID）")
-    title: str = Field(..., description="任务标题")
-    description: str = Field(..., description="用户原始需求描述")
-    project_path: str = Field(..., description="项目路径")
+    id: str = Field(..., description="Quest ID (UUID) ")
+    title: str = Field(..., description="gorev basligi")
+    description: str = Field(..., description="kullanicihamgerekisteaciklama")
+    project_path: str = Field(..., description="proje yolu")
     status: QuestStatus = Field(default=QuestStatus.PENDING)
     priority: QuestPriority = Field(default=QuestPriority.MEDIUM)
-    spec: Optional[QuestSpec] = Field(None, description="生成的 SPEC")
-    spec_path: Optional[str] = Field(None, description="SPEC 文件路径")
-    steps: list[QuestStep] = Field(default_factory=list, description="执行步骤")
+    spec: Optional[QuestSpec] = Field(None, description="olustur SPEC")
+    spec_path: Optional[str] = Field(None, description="SPEC dosyayol")
+    steps: list[QuestStep] = Field(default_factory=list, description="yurutadim")
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     error_message: Optional[str] = None
     result_summary: Optional[str] = None
-    output_dir: str = Field(default=".omc/quests", description="输出目录")
+    output_dir: str = Field(default=".omc/quests", description="ciktidizin")
 
     def duration(self) -> Optional[float]:
-        """返回执行时长（秒）"""
+        """donusyurutzamanuzunluk (saniye) """
         if self.started_at and self.completed_at:
             return (self.completed_at - self.started_at).total_seconds()
         if self.started_at:
@@ -162,7 +162,7 @@ class Quest(BaseModel):
         return None
 
     def progress(self) -> float:
-        """返回完成进度 0.0 - 1.0"""
+        """donustamamlailerlederece 0.0 - 1.0"""
         if not self.steps:
             if self.status == QuestStatus.SPEC_READY:
                 return 0.0
@@ -177,9 +177,9 @@ class Quest(BaseModel):
         return completed / len(self.steps)
 
     def to_summary(self) -> str:
-        """转换为摘要字符串"""
+        """donusturicinalintiisterkarakter dizisi"""
         duration = self.duration()
-        duration_str = f"{duration:.0f}s" if duration else "进行中"
+        duration_str = f"{duration:.0f}s" if duration else "ilerlesatiricinde"
         progress = int(self.progress() * 100)
         return (
             f"[{self.status.value:16}] [{self.priority.value:8}] "
@@ -188,13 +188,13 @@ class Quest(BaseModel):
 
 
 # ============================================================
-# CLI 输出格式
+# CLI cikti formati
 # ============================================================
 
 
 @dataclass
 class QuestDisplay:
-    """Quest CLI 展示格式"""
+    """Quest CLI gosterformat"""
 
     id: str
     title: str
@@ -209,7 +209,7 @@ class QuestDisplay:
         progress = int(quest.progress() * 10)
         bar = "█" * progress + "░" * (10 - progress)
         duration = quest.duration()
-        duration_str = f"{duration:.0f}s" if duration else "进行中"
+        duration_str = f"{duration:.0f}s" if duration else "ilerlesatiricinde"
         return cls(
             id=quest.id[:8],
             title=quest.title[:45],
@@ -222,13 +222,13 @@ class QuestDisplay:
 
 
 # ============================================================
-# 通知模型
+# bildirimmodel
 # ============================================================
 
 
 @dataclass
 class QuestNotification:
-    """Quest 通知"""
+    """Quest bildirim"""
 
     quest_id: str
     title: str

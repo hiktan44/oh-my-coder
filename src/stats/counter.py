@@ -1,9 +1,9 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-项目文件统计核心模块。
+projedosyaistatistikcekirdekmodul. 
 
-提供文件遍历、分类统计、排除规则等功能。
+saglardosyadolas, puansinifistatistik, harir tutkuralvb.islev. 
 """
 
 import os
@@ -19,28 +19,28 @@ def _is_excluded(
     exclude_files: set[str],
     exclude_extensions: set[str],
 ) -> bool:
-    """检查路径是否应被排除。
+    """kontrolyololup olmadigiolmaliharir tut. 
 
     Args:
-        path: 要检查的路径
-        exclude_dirs: 要排除的目录名集合（不区分大小写）
-        exclude_files: 要排除的文件名集合（不区分大小写）
-        exclude_extensions: 要排除的文件扩展名集合（不区分大小写）
+        path: isterkontrolyol
+        exclude_dirs: isterharir tutdizinisimsetbirlestir (hayirbolgepuanbuyukkucukyaz) 
+        exclude_files: isterharir tutdosyaisimsetbirlestir (hayirbolgepuanbuyukkucukyaz) 
+        exclude_extensions: isterharir tutdosyagenisletisimsetbirlestir (hayirbolgepuanbuyukkucukyaz) 
 
     Returns:
-        如果路径应被排除则返回 True
+        egeryololmaliharir tutkuraldonus True
     """
     name_lower = path.name.lower()
 
-    # 检查是否在排除的文件名列表中
+    # kontrololup olmadigiicindeharir tutdosyaisimlisteicinde
     if path.is_file() and name_lower in exclude_files:
         return True
 
-    # 检查是否在排除的目录名列表中
+    # kontrololup olmadigiicindeharir tutdizinisimlisteicinde
     if path.is_dir() and name_lower in exclude_dirs:
         return True
 
-    # 检查文件扩展名
+    # kontroldosyagenisletisim
     if path.is_file():
         ext = path.suffix.lower()
         if ext in exclude_extensions:
@@ -50,13 +50,13 @@ def _is_excluded(
 
 
 def _get_file_type(path: Path) -> str:
-    """根据文件扩展名获取文件类型分类。
+    """goredosyagenisletisimaldosyatippuansinif. 
 
     Args:
-        path: 文件路径
+        path: dosyayol
 
     Returns:
-        文件类型描述字符串
+        dosyatipaciklamakarakter dizisi
     """
     ext = path.suffix.lower()
     type_map = {
@@ -106,7 +106,7 @@ def _get_file_type(path: Path) -> str:
         ".babelrc": "Babel Config",
     }
 
-    # 特殊处理无扩展名的文件（如 Dockerfile, Makefile）
+    # ozelisleyokgenisletisimdosya (ornegin Dockerfile, Makefile) 
     if not ext:
         name_lower = path.name.lower()
         special_files = {
@@ -129,33 +129,33 @@ def count_files(
     follow_symlinks: bool = False,
     max_depth: Optional[int] = None,
 ) -> StatsResult:
-    """递归统计项目文件数量。
+    """rekursifistatistikprojedosya sayisimiktar. 
 
     Args:
-        root_path: 项目根目录路径
-        exclude_dirs: 要排除的目录名集合（不区分大小写），默认排除常见构建产物
-        exclude_files: 要排除的文件名集合（不区分大小写）
-        exclude_extensions: 要排除的文件扩展名集合（不区分大小写）
-        follow_symlinks: 是否跟随符号链接
-        max_depth: 最大递归深度，None 表示不限制
+        root_path: projekokdizin yolu
+        exclude_dirs: isterharir tutdizinisimsetbirlestir (hayirbolgepuanbuyukkucukyaz) , varsayilanharir tutsikgorolustururetobje
+        exclude_files: isterharir tutdosyaisimsetbirlestir (hayirbolgepuanbuyukkucukyaz) 
+        exclude_extensions: isterharir tutdosyagenisletisimsetbirlestir (hayirbolgepuanbuyukkucukyaz) 
+        follow_symlinks: olup olmadigiizlerastgelesembolnobaglanti
+        max_depth: enbuyukrekursifderinlik, None tablogosterhayirsinir
 
     Returns:
-        StatsResult 对象，包含统计结果
+        StatsResult icinnesne, iceriristatistiksonuc
 
     Raises:
-        FileNotFoundError: 如果根目录不存在
-        PermissionError: 如果没有权限访问根目录
+        FileNotFoundError: egerkokdizinmevcut degil
+        PermissionError: egeryokvarizinerisimkokdizin
     """
     root = Path(root_path).resolve()
 
     if not root.exists():
-        raise FileNotFoundError(f"目录不存在: {root}")
+        raise FileNotFoundError(f"dizinmevcut degil: {root}")
     if not root.is_dir():
-        raise NotADirectoryError(f"路径不是目录: {root}")
+        raise NotADirectoryError(f"yolhayirdirdizin: {root}")
     if not os.access(root, os.R_OK):
-        raise PermissionError(f"没有权限访问目录: {root}")
+        raise PermissionError(f"yokvarizinerisimdizin: {root}")
 
-    # 默认排除目录
+    # varsayilanharir tutdizin
     default_exclude_dirs = {
         "node_modules",
         "__pycache__",
@@ -198,7 +198,7 @@ def count_files(
         "cdk.out",
     }
 
-    # 默认排除的文件
+    # varsayilanharir tutdosya
     default_exclude_files = {
         ".ds_store",
         "thumbs.db",
@@ -206,7 +206,7 @@ def count_files(
         ".gitkeep",
     }
 
-    # 默认排除的扩展名
+    # varsayilanharir tutgenisletisim
     default_exclude_extensions = {
         ".pyc",
         ".pyo",
@@ -241,14 +241,14 @@ def count_files(
         ".orig",
     }
 
-    # 合并排除列表（默认 + 自定义）
+    # birlestirveharir tutliste (varsayilan + ozel) 
     final_exclude_dirs = default_exclude_dirs | (exclude_dirs or set())
     final_exclude_files = default_exclude_files | (exclude_files or set())
     final_exclude_extensions = default_exclude_extensions | (
         exclude_extensions or set()
     )
 
-    # 统计结果
+    # istatistiksonuc
     total_files = 0
     total_dirs = 0
     total_size = 0
@@ -256,14 +256,14 @@ def count_files(
     by_directory: dict[str, int] = {}
     errors: list[str] = []
 
-    # 使用栈进行深度优先遍历（避免递归深度限制）
-    # 栈元素: (路径, 当前深度)
+    # kullanyiginilerlesatirderinlikoncelikdolas (kacinrekursifderinliksinir) 
+    # yiginogreogre: (yol, mevcutderinlik)
     stack: list[tuple[Path, int]] = [(root, 0)]
 
     while stack:
         current_path, current_depth = stack.pop()
 
-        # 检查最大深度
+        # kontrolenbuyukderinlik
         if max_depth is not None and current_depth >= max_depth:
             continue
 
@@ -272,7 +272,7 @@ def count_files(
                 for entry in entries:
                     entry_path = Path(entry.path)
 
-                    # 检查是否应排除
+                    # kontrololup olmadigiolmaliharir tut
                     if _is_excluded(
                         entry_path,
                         final_exclude_dirs,
@@ -289,7 +289,7 @@ def count_files(
                         file_size = entry.stat(follow_symlinks=follow_symlinks).st_size
                         total_size += file_size
 
-                        # 按文件类型统计
+                        # goredosyatipistatistik
                         file_type = _get_file_type(entry_path)
                         if file_type not in by_type:
                             by_type[file_type] = FileStats(count=0, size=0, files=[])
@@ -299,7 +299,7 @@ def count_files(
                             str(entry_path.relative_to(root))
                         )
 
-                        # 按目录统计
+                        # goredizinistatistik
                         parent_dir = str(entry_path.parent.relative_to(root))
                         if parent_dir == ".":
                             parent_dir = "/"
@@ -308,9 +308,9 @@ def count_files(
                         by_directory[parent_dir] += 1
 
         except PermissionError:
-            errors.append(f"权限不足，跳过目录: {current_path}")
+            errors.append(f"izinhayiryeterli, atladizin: {current_path}")
         except OSError as e:
-            errors.append(f"访问错误，跳过目录: {current_path} - {e}")
+            errors.append(f"erisimhata, atladizin: {current_path} - {e}")
 
     return StatsResult(
         total_files=total_files,

@@ -4,19 +4,19 @@ from __future__ import annotations
 
 
 """
-Agent 自进化模块 - Evolution System
+Agent kendini geliştiren modül - Evolution System
 
-让 Agent 像生物基因一样遗传、变异、进化。
-存储进化历史、成功模式库、优化的 system prompt、版本迭代决策。
+izin vermek Agent Biyolojik genler gibi miras alın, mutasyona uğrayın ve evrimleşin.
+Evrimsel geçmişi saklayın, başarılı desen kütüphanesi, optimize edilmiş system prompt, sürüm yineleme karar verme.
 
-目录结构：
+Dizin yapısı:
 .omc/state/agents/{agent_name}/
-├── evolution_history.json  # 进化记录
-├── success_patterns.json   # 成功模式库
-└── optimized_prompt.md     # 优化后的 prompt
+├── evolution_history.json  # evrimsel kayıt
+├── success_patterns.json   # Başarı Modeli Kitaplığı
+└── optimized_prompt.md     # Optimize edilmiş prompt
 
 .omc/state/decisions/
-└── {yyyy-MM-dd}-{slug}.md  # 每次重要决策记录
+└── {yyyy-MM-dd}-{slug}.md  # Her önemli kararın kaydı
 """
 
 
@@ -31,70 +31,70 @@ from typing import Any, Optional
 
 @dataclass
 class EvolutionRecord:
-    """进化记录"""
+    """evrimsel kayıt"""
 
-    id: str = ""  # 时间戳-based ID
+    id: str = ""  # Zaman damgası-based ID
     timestamp: str = ""
     agent_type: str = ""
-    generation: int = 1  # 进化代数
-    trigger: str = ""  # 触发原因：success_rate_low, user_correction, error_pattern
-    before_state: dict[str, Any] = field(default_factory=dict)  # 进化前状态
-    after_state: dict[str, Any] = field(default_factory=dict)  # 进化后状态
-    changes: list[str] = field(default_factory=list)  # 变更列表
-    effectiveness: Optional[float] = None  # 效果评分（后续验证）
+    generation: int = 1  # Evrimsel cebir
+    trigger: str = ""  # Tetikleyici sebep:success_rate_low, user_correction, error_pattern
+    before_state: dict[str, Any] = field(default_factory=dict)  # evrim öncesi durum
+    after_state: dict[str, Any] = field(default_factory=dict)  # gelişmiş durum
+    changes: list[str] = field(default_factory=list)  # listeyi değiştir
+    effectiveness: Optional[float] = None  # Performans puanı (sonraki doğrulama)
 
 
 @dataclass
 class SuccessPattern:
-    """成功模式"""
+    """başarı modeli"""
 
     id: str = ""
     pattern_type: str = ""  # strategy, workflow, prompt_technique
     description: str = ""
-    context: str = ""  # 适用上下文
+    context: str = ""  # uygulanabilir bağlam
     effectiveness_score: float = 0.0
-    occurrences: int = 0  # 出现次数
+    occurrences: int = 0  # Oluşum sayısı
     last_seen: str = ""
-    examples: list[str] = field(default_factory=list)  # 成功案例
+    examples: list[str] = field(default_factory=list)  # Başarı Hikayeleri
 
 
 @dataclass
 class EvolutionConfig:
-    """自进化配置"""
+    """kendi kendine gelişen konfigürasyon"""
 
-    enabled: bool = True  # 是否开启自进化
-    improvement_threshold: float = 0.8  # 成功率阈值，低于此触发优化
-    min_samples: int = 5  # 最小样本数，少于此不触发进化分析
-    max_evolution_history: int = 100  # 最大进化历史记录数
-    pattern_confidence_threshold: float = 0.7  # 模式置信度阈值
-    evolution_cooldown_hours: int = 24  # 进化冷却时间（小时）
+    enabled: bool = True  # Kişisel gelişimin etkinleştirilip etkinleştirilmeyeceği
+    improvement_threshold: float = 0.8  # Optimizasyonun tetiklendiği başarı oranı eşiği
+    min_samples: int = 5  # Minimum örnek sayısı, bundan daha azı evrimsel analizi tetiklemez
+    max_evolution_history: int = 100  # Maksimum evrimsel tarih kaydı sayısı
+    pattern_confidence_threshold: float = 0.7  # Desen güven eşiği
+    evolution_cooldown_hours: int = 24  # Evolution soğuma süresi (saat)
 
 
 class EvolutionStore:
-    """进化状态存储"""
+    """Evrim durumu depolaması"""
 
     def __init__(self, state_dir: Path):
         """
         Args:
-            state_dir: .omc/state 目录
+            state_dir: .omc/state İçindekiler
         """
         self.state_dir = Path(state_dir)
         self.agents_dir = self.state_dir / "agents"
 
     def _agent_dir(self, agent_name: str) -> Path:
-        """获取 Agent 进化目录"""
+        """Elde etmek Agent Evrim Kataloğu"""
         agent_dir = self.agents_dir / agent_name
         agent_dir.mkdir(parents=True, exist_ok=True)
         return agent_dir
 
     # ------------------------------------------------------------------
-    # 进化历史
+    # evrim tarihi
     # ------------------------------------------------------------------
 
     def load_evolution_history(
         self, agent_name: str, limit: int = 50
     ) -> list[EvolutionRecord]:
-        """加载进化历史"""
+        """Evrimsel geçmişi yükle"""
         history_file = self._agent_dir(agent_name) / "evolution_history.json"
         if not history_file.exists():
             return []
@@ -107,11 +107,11 @@ class EvolutionStore:
             return []
 
     def save_evolution_record(self, record: EvolutionRecord) -> str:
-        """保存进化记录"""
+        """Evrim kaydını kaydet"""
         agent_name = record.agent_type
         history_file = self._agent_dir(agent_name) / "evolution_history.json"
 
-        # 读取现有历史
+        # Mevcut geçmişi oku
         existing = []
         if history_file.exists():
             try:
@@ -120,7 +120,7 @@ class EvolutionStore:
             except (json.JSONDecodeError, KeyError):
                 existing = []
 
-        # 添加新记录
+        # Yeni kayıt ekle
         record_dict = {
             "id": record.id or f"evo-{int(time.time())}",
             "timestamp": record.timestamp or time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -134,12 +134,12 @@ class EvolutionStore:
         }
         existing.append(record_dict)
 
-        # 限制历史长度
+        # Geçmiş uzunluğunu sınırla
         max_records = 100
         if len(existing) > max_records:
             existing = existing[-max_records:]
 
-        # 保存
+        # kaydetmek
         history_file.write_text(
             json.dumps({"records": existing}, ensure_ascii=False, indent=2),
             encoding="utf-8",
@@ -147,18 +147,18 @@ class EvolutionStore:
         return record_dict["id"]
 
     def get_current_generation(self, agent_name: str) -> int:
-        """获取当前进化代数"""
+        """Mevcut evrimsel nesli edinin"""
         history = self.load_evolution_history(agent_name, limit=1)
         if not history:
             return 1
         return max(1, history[0].generation + 1)
 
     # ------------------------------------------------------------------
-    # 成功模式库
+    # Başarı Modeli Kitaplığı
     # ------------------------------------------------------------------
 
     def load_success_patterns(self, agent_name: str) -> list[SuccessPattern]:
-        """加载成功模式库"""
+        """Başarılı desen kitaplığı yükleniyor"""
         patterns_file = self._agent_dir(agent_name) / "success_patterns.json"
         if not patterns_file.exists():
             return []
@@ -170,13 +170,13 @@ class EvolutionStore:
             return []
 
     def save_success_pattern(self, pattern: SuccessPattern) -> str:
-        """保存成功模式"""
-        # 直接调用内部方法保存
+        """Başarılı modu kaydet"""
+        # Kaydetmek için doğrudan dahili yöntemi çağırın
         return self._save_pattern_internal(pattern)
 
     def _save_pattern_internal(self, pattern: SuccessPattern) -> str:
-        """内部方法：保存成功模式"""
-        # 从 pattern.id 提取 agent_name（假设格式：agentname-patternid）
+        """Dahili yöntem: başarılı deseni kaydedin"""
+        # itibaren pattern.id çıkarmak agent_name(Biçimi varsayarsak:agentname-patternid)
         agent_name = pattern.id.split("-")[0] if "-" in pattern.id else "default"
         patterns_file = self._agent_dir(agent_name) / "success_patterns.json"
 
@@ -199,7 +199,7 @@ class EvolutionStore:
             "examples": pattern.examples,
         }
 
-        # 查找是否已存在，存在则更新
+        # Zaten mevcut olup olmadığını bulun, varsa güncelleyin
         found = False
         for i, p in enumerate(existing):
             if p.get("id") == pattern_dict["id"]:
@@ -224,7 +224,7 @@ class EvolutionStore:
         context: str = "",
         example: str = "",
     ) -> str:
-        """添加成功模式"""
+        """Başarı modeli ekle"""
         patterns_file = self._agent_dir(agent_name) / "success_patterns.json"
 
         existing = []
@@ -235,7 +235,7 @@ class EvolutionStore:
             except (json.JSONDecodeError, KeyError):
                 existing = []
 
-        # 检查是否已有类似模式
+        # Benzer bir modelin zaten mevcut olup olmadığını kontrol edin
         pattern_id = f"{agent_name}-{pattern_type}-{int(time.time())}"
 
         pattern_dict = {
@@ -243,7 +243,7 @@ class EvolutionStore:
             "pattern_type": pattern_type,
             "description": description,
             "context": context,
-            "effectiveness_score": 0.7,  # 初始置信度
+            "effectiveness_score": 0.7,  # İlk güven
             "occurrences": 1,
             "last_seen": time.strftime("%Y-%m-%d %H:%M:%S"),
             "examples": [example] if example else [],
@@ -258,28 +258,28 @@ class EvolutionStore:
         return pattern_id
 
     # ------------------------------------------------------------------
-    # 优化 Prompt
+    # optimizasyon Prompt
     # ------------------------------------------------------------------
 
     def load_optimized_prompt(self, agent_name: str) -> Optional[str]:
-        """加载优化后的 system prompt"""
+        """Optimize edilmiş yük system prompt"""
         prompt_file = self._agent_dir(agent_name) / "optimized_prompt.md"
         if not prompt_file.exists():
             return None
         return prompt_file.read_text(encoding="utf-8")
 
     def save_optimized_prompt(self, agent_name: str, prompt: str) -> None:
-        """保存优化后的 system prompt"""
+        """Optimize edilmiş olanı kaydet system prompt"""
         prompt_file = self._agent_dir(agent_name) / "optimized_prompt.md"
         prompt_file.write_text(prompt, encoding="utf-8")
 
     def get_prompt_version(self, agent_name: str) -> int:
-        """获取 prompt 版本号"""
+        """Elde etmek prompt sürüm numarası"""
         prompt_file = self._agent_dir(agent_name) / "optimized_prompt.md"
         if not prompt_file.exists():
             return 0
         content = prompt_file.read_text(encoding="utf-8")
-        # 从文件中提取版本号
+        # Sürüm numarasını dosyadan çıkarın
         for line in content.split("\n")[:5]:
             if "version:" in line.lower():
                 try:
@@ -289,11 +289,11 @@ class EvolutionStore:
         return 1
 
     # ------------------------------------------------------------------
-    # 统计信息
+    # İstatistikler
     # ------------------------------------------------------------------
 
     def get_evolution_stats(self, agent_name: str) -> dict[str, Any]:
-        """获取进化统计信息"""
+        """Evrim istatistiklerini alın"""
         history = self.load_evolution_history(agent_name)
         patterns = self.load_success_patterns(agent_name)
         prompt_version = self.get_prompt_version(agent_name)
@@ -309,84 +309,84 @@ class EvolutionStore:
 
 
 # ------------------------------------------------------------------
-# 版本迭代记忆 - DecisionMemory（解决鬼打墙问题）
+# Sürüm yineleme belleği - DecisionMemory(Hayaletlerin duvara çarpması probleminin çözümü)
 # ------------------------------------------------------------------
 
 
 @dataclass
 class DecisionRecord:
-    """重要决策记录 - 解决鬼打墙问题
+    """Önemli karar kayıtları - Hayaletlerin duvara çarpması problemini çözme
 
-    记录每次重要决策，让 Agent 记住：
-    - 这个问题上次是什么？怎么修的？
-    - 类似的坑以后怎么处理？
-    - 版本之间的关键决策是什么？
+    Her önemli kararı kaydedin, böylece Agent Unutma:
+    - Geçen sefer bu sorun neydi? Nasıl düzeltilir?
+    - Gelecekte benzer tuzaklarla nasıl başa çıkılır?
+    - Sürümler arasındaki önemli kararlar nelerdir?
     """
 
     id: str = ""  # {yyyy-MM-dd}-{slug}
-    title: str = ""  # 决策标题
-    timestamp: str = ""  # 决策时间
-    agent_type: str = ""  # 做出决策的 Agent 类型
-    category: str = ""  # 决策类别: bug_fix, solution_choice, rejection, architecture
+    title: str = ""  # Karar başlığı
+    timestamp: str = ""  # karar zamanı
+    agent_type: str = ""  # kararlar vermek Agent tip
+    category: str = ""  # Karar Kategorisi: bug_fix, solution_choice, rejection, architecture
 
-    # 问题背景
-    problem: str = ""  # 遇到的问题描述
-    context: str = ""  # 上下文（文件、函数、错误信息等）
+    # Sorun geçmişi
+    problem: str = ""  # Karşılaşılan sorunların açıklaması
+    context: str = ""  # Bağlam (dosya, işlev, hata mesajı vb.)
 
-    # 决策内容
-    chosen_solution: str = ""  # 选择的方案
-    rejected_alternatives: list[str] = field(default_factory=list)  # 放弃的方案及原因
+    # Karar içeriği
+    chosen_solution: str = ""  # Seçilen plan
+    rejected_alternatives: list[str] = field(default_factory=list)  # Terk edilen planlar ve nedenleri
 
-    # 结果
-    result: str = ""  # 成功/失败
-    outcome: str = ""  # 效果描述
+    # sonuç
+    result: str = ""  # başarı/hata
+    outcome: str = ""  # Efekt açıklaması
 
-    # 可复用性
-    reusable_for: str = ""  # 类似场景描述
-    keywords: list[str] = field(default_factory=list)  # 检索关键词
+    # Yeniden kullanılabilirlik
+    reusable_for: str = ""  # Benzer sahne açıklaması
+    keywords: list[str] = field(default_factory=list)  # Anahtar kelimeleri arayın
 
-    # 元数据
-    related_files: list[str] = field(default_factory=list)  # 相关文件
-    version_tag: str = ""  # 版本标签（如 v1.2.3）
+    # meta veri
+    related_files: list[str] = field(default_factory=list)  # İlgili belgeler
+    version_tag: str = ""  # sürüm etiketi (ör. v1.2.3)
 
 
 class DecisionMemory:
-    """版本迭代记忆 - 解决 Agent 鬼打墙问题
+    """Sürüm yineleme belleği - çözmek Agent Hayalet duvar sorunu
 
-    核心功能：
-    1. 记录重要决策（解决方案选择、bug修复、拒绝的建议）
-    2. 检索历史决策，避免重复踩坑
-    3. 自动提取关键词便于检索
+    Temel işlevler:
+    1. Önemli kararları belgeleyin (çözüm seçimi,bugOnarım önerileri, ret)
+    2. Tekrarlanan hatalardan kaçınmak için geçmiş kararları alın
+    3. Kolay erişim için anahtar kelimeleri otomatik olarak çıkarın
 
-    目录结构：
+    Dizin yapısı:
     .omc/state/decisions/
-    └── {yyyy-MM-dd}-{slug}.md  # 每次决策一条 Markdown 记录
+    └── {yyyy-MM-dd}-{slug}.md  # Tek seferde tek karar Markdown Kayıt
     """
 
     def __init__(self, state_dir: Path):
         """
         Args:
-            state_dir: .omc/state 目录
+            state_dir: .omc/state İçindekiler
         """
         self.state_dir = Path(state_dir)
         self.decisions_dir = self.state_dir / "decisions"
         self.decisions_dir.mkdir(parents=True, exist_ok=True)
 
     def _slugify(self, text: str) -> str:
-        """将文本转为 URL-friendly slug"""
-        # 简单实现：只保留字母数字和短横线
+        """Metni şuna dönüştür: URL-friendly slug"""
+        # Basit uygulama: yalnızca harfleri, sayıları ve çizgileri saklayın
         s = text.lower()
         s = re.sub(r"[^\w\s-]", "", s)
         s = re.sub(r"[\s_]+", "-", s)
         s = re.sub(r"-+", "-", s)
         s = s.strip("-")
-        # 限制长度
+        # Sınır uzunluğu
         if len(s) > 40:
             s = s[:40].rstrip("-")
         return s
 
     def _decision_file(self, decision_id: str) -> Path:
-        """获取决策文件路径"""
+        """Karar dosyası yolunu alın"""
         return self.decisions_dir / f"{decision_id}.md"
 
     def record_decision(
@@ -405,35 +405,35 @@ class DecisionMemory:
         version_tag: str = "",
     ) -> str:
         """
-        记录一次重要决策
+        Önemli bir kararı kaydedin
 
         Args:
-            title: 决策标题
-            problem: 遇到的问题
-            chosen_solution: 选择的方案
-            agent_type: Agent 类型
-            category: 决策类别 (bug_fix/solution_choice/rejection/architecture)
-            rejected_alternatives: 放弃的方案列表
-            result: 结果 (success/failure)
-            outcome: 效果描述
-            reusable_for: 适用场景
-            keywords: 检索关键词
-            related_files: 相关文件
-            version_tag: 版本标签
+            title: Karar başlığı
+            problem: Karşılaşılan sorunlar
+            chosen_solution: Seçilen plan
+            agent_type: Agent tip
+            category: Karar Kategorisi (bug_fix/solution_choice/rejection/architecture)
+            rejected_alternatives: Terk edilmiş planların listesi
+            result: sonuç (success/failure)
+            outcome: Efekt açıklaması
+            reusable_for: Uygulanabilir senaryolar
+            keywords: Anahtar kelimeleri arayın
+            related_files: İlgili belgeler
+            version_tag: sürüm etiketi
 
         Returns:
-            decision_id: 决策记录 ID
+            decision_id: Karar kaydı ID
         """
-        # 生成决策 ID
+        # kararlar üretmek ID
         date_str = datetime.now().strftime("%Y-%m-%d")
         slug = self._slugify(title)
         decision_id = f"{date_str}-{slug}"
 
-        # 自动提取关键词
+        # Anahtar kelimeleri otomatik olarak çıkar
         if keywords is None:
             keywords = self._extract_keywords(problem, chosen_solution)
 
-        # 构建 Markdown 内容
+        # inşa etmek Markdown içerik
         content = self._build_decision_markdown(
             title=title,
             problem=problem,
@@ -449,18 +449,18 @@ class DecisionMemory:
             version_tag=version_tag,
         )
 
-        # 保存文件
+        # dosyayı kaydet
         decision_file = self._decision_file(decision_id)
         decision_file.write_text(content, encoding="utf-8")
 
         return decision_id
 
     def _extract_keywords(self, problem: str, solution: str) -> list[str]:
-        """从问题和方案中自动提取关键词"""
+        """Sorunlardan ve çözümlerden anahtar kelimeleri otomatik olarak çıkarın"""
         text = f"{problem} {solution}".lower()
-        # 提取技术术语（简化版）
+        # Teknik terimleri çıkartın (basitleştirilmiş versiyon)
         words = re.findall(r"\b[a-z_]+\b", text)
-        # 过滤常见词
+        # Yaygın kelimeleri filtrele
         stopwords = {
             "the",
             "a",
@@ -549,7 +549,7 @@ class DecisionMemory:
             "there",
         }
         keywords = [w for w in words if len(w) >= 3 and w not in stopwords]
-        # 去重并返回前10个
+        # Kopyaları kaldırın ve öncesine dönün10bireysel
         return list(dict.fromkeys(keywords))[:10]
 
     def _build_decision_markdown(
@@ -567,7 +567,7 @@ class DecisionMemory:
         related_files: list[str],
         version_tag: str,
     ) -> str:
-        """构建决策记录的 Markdown 内容"""
+        """Kararların kaydını oluşturmak Markdown içerik"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         lines = [
@@ -575,15 +575,15 @@ class DecisionMemory:
             "",
             "---",
             f"**Agent**: {agent_type or 'unknown'}",
-            f"**类别**: {category}",
-            f"**结果**: {result or 'pending'}",
-            f"**版本**: {version_tag or 'N/A'}",
+            f"**kategori**: {category}",
+            f"**sonuç**: {result or 'pending'}",
+            f"**Sürüm**: {version_tag or 'N/A'}",
             "---",
             "",
-            "## 问题背景",
+            "## Sorun geçmişi",
             problem,
             "",
-            "## 选择的方案",
+            "## Seçilen plan",
             chosen_solution,
         ]
 
@@ -591,7 +591,7 @@ class DecisionMemory:
             lines.extend(
                 [
                     "",
-                    "## 放弃的方案",
+                    "## Terk edilmiş plan",
                 ]
             )
             lines.extend([f"- {alt}" for alt in rejected_alternatives])
@@ -600,7 +600,7 @@ class DecisionMemory:
             lines.extend(
                 [
                     "",
-                    "## 效果",
+                    "## Etki",
                     outcome,
                 ]
             )
@@ -609,10 +609,10 @@ class DecisionMemory:
             lines.extend(
                 [
                     "",
-                    "## 可复用性",
-                    "以后遇到类似场景 → 用此方案",
+                    "## Yeniden kullanılabilirlik",
+                    "Gelecekte benzer senaryolarla karşılaşın → Bu çözümü kullanın",
                     "",
-                    f"**适用场景**: {reusable_for}",
+                    f"**Uygulanabilir senaryolar**: {reusable_for}",
                 ]
             )
 
@@ -620,7 +620,7 @@ class DecisionMemory:
             lines.extend(
                 [
                     "",
-                    "## 关键词",
+                    "## anahtar kelimeler",
                     ", ".join(f"`{k}`" for k in keywords),
                 ]
             )
@@ -629,7 +629,7 @@ class DecisionMemory:
             lines.extend(
                 [
                     "",
-                    "## 相关文件",
+                    "## İlgili belgeler",
                     *[f"- {f}" for f in related_files],
                 ]
             )
@@ -642,21 +642,21 @@ class DecisionMemory:
         limit: int = 5,
     ) -> list[DecisionRecord]:
         """
-        检索历史决策
+        Geçmiş kararları alın
 
-        根据关键词检索相关决策，帮助 Agent 避免重复踩坑。
+        Yardımcı olacak anahtar kelimelere dayalı olarak ilgili kararları arayın Agent Tekrarlanan tuzaklardan kaçının.
 
         Args:
-            query: 搜索关键词
-            limit: 返回数量上限
+            query: Anahtar kelimeleri arayın
+            limit: Maksimum miktarı iade edin
 
         Returns:
-            匹配的决策记录列表
+            Eşleşen karar kayıtlarının listesi
         """
         query_terms = set(query.lower().split())
         results: list[tuple[int, DecisionRecord]] = []
 
-        # 遍历所有决策文件
+        # Tüm karar dosyalarını yineleyin
         for decision_file in self.decisions_dir.glob("*.md"):
             try:
                 content = decision_file.read_text(encoding="utf-8")
@@ -664,33 +664,33 @@ class DecisionMemory:
                 if not record:
                     continue
 
-                # 计算相关度分数
+                # Alaka puanını hesaplayın
                 score = self._calculate_relevance(query_terms, record)
                 if score > 0:
                     results.append((score, record))
             except Exception:
                 continue
 
-        # 按相关度排序
+        # Alaka düzeyine göre sırala
         results.sort(key=lambda x: x[0], reverse=True)
         return [r[1] for r in results[:limit]]
 
     def _parse_decision_file(
         self, file_path: Path, content: str
     ) -> Optional[DecisionRecord]:
-        """解析决策文件为 DecisionRecord"""
-        # 从文件名提取 ID
+        """Karar dosyasını şu şekilde ayrıştırın: DecisionRecord"""
+        # Dosya adından çıkar ID
         decision_id = file_path.stem
 
-        # 解析标题（第一行）
+        # Ayrıştırma başlığı (ilk satır)
         lines = content.split("\n")
         title = ""
         if lines and lines[0].startswith("# "):
             title = lines[0][2:].strip()
-            # 去掉时间戳前缀
+            # Zaman damgası önekini kaldır
             title = re.sub(r"^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+", "", title)
 
-        # 解析元数据
+        # Meta verileri ayrıştır
         agent_type = ""
         category = "solution_choice"
         result = ""
@@ -702,27 +702,27 @@ class DecisionMemory:
                 parts = line.split(":", 1)
                 if len(parts) > 1:
                     agent_type = parts[1].strip()
-            elif line.startswith("**类别**:"):
+            elif line.startswith("**kategori**:"):
                 parts = line.split(":", 1)
                 if len(parts) > 1:
                     category = parts[1].strip()
-            elif line.startswith("**结果**:"):
+            elif line.startswith("**sonuç**:"):
                 parts = line.split(":", 1)
                 if len(parts) > 1:
                     result = parts[1].strip()
-            elif line.startswith("**版本**:"):
+            elif line.startswith("**Sürüm**:"):
                 parts = line.split(":", 1)
                 if len(parts) > 1:
                     version_tag = parts[1].strip()
 
-        # 解析章节内容
-        problem = self._extract_section(content, "问题背景")
-        chosen_solution = self._extract_section(content, "选择的方案")
-        outcome = self._extract_section(content, "效果")
-        reusable_for = self._extract_section(content, "可复用性")
+        # Bölüm içeriğini analiz edin
+        problem = self._extract_section(content, "Sorun geçmişi")
+        chosen_solution = self._extract_section(content, "Seçilen plan")
+        outcome = self._extract_section(content, "Etki")
+        reusable_for = self._extract_section(content, "Yeniden kullanılabilirlik")
 
-        # 解析放弃的方案（Markdown 无序列表）
-        rejected_raw = self._extract_section(content, "放弃的方案")
+        # Terk edilmiş planı ayrıştırın (Markdown sırasız liste)
+        rejected_raw = self._extract_section(content, "Terk edilmiş plan")
         rejected_alternatives = []
         if rejected_raw:
             rejected_alternatives = [
@@ -731,8 +731,8 @@ class DecisionMemory:
                 if line.strip().startswith("- ")
             ]
 
-        # 解析相关文件（Markdown 无序列表）
-        related_raw = self._extract_section(content, "相关文件")
+        # İlgili dosyaları ayrıştır (Markdown sırasız liste)
+        related_raw = self._extract_section(content, "İlgili belgeler")
         related_files = []
         if related_raw:
             related_files = [
@@ -741,8 +741,8 @@ class DecisionMemory:
                 if line.strip().startswith("- ")
             ]
 
-        # 解析关键词
-        keywords_str = self._extract_section(content, "关键词")
+        # Anahtar kelimeleri ayrıştır
+        keywords_str = self._extract_section(content, "anahtar kelimeler")
         keywords = (
             [k.strip("`,") for k in keywords_str.split(",")] if keywords_str else []
         )
@@ -750,7 +750,7 @@ class DecisionMemory:
         return DecisionRecord(
             id=decision_id,
             title=title,
-            timestamp=file_path.stem[:10],  # 日期部分
+            timestamp=file_path.stem[:10],  # tarih kısmı
             agent_type=agent_type,
             category=category,
             problem=problem,
@@ -765,7 +765,7 @@ class DecisionMemory:
         )
 
     def _extract_section(self, content: str, section_name: str) -> str:
-        """提取 Markdown 文档中的指定章节内容"""
+        """çıkarmak Markdown Belgede belirtilen bölüm içeriği"""
         pattern = f"## {section_name}\\n(.*?)(?=\\n## |\\Z)"
         match = re.search(pattern, content, re.DOTALL)
         if match:
@@ -773,30 +773,30 @@ class DecisionMemory:
         return ""
 
     def _calculate_relevance(self, query_terms: set, record: DecisionRecord) -> int:
-        """计算查询与决策记录的相关度分数"""
+        """Sorgunun karar kaydıyla uygunluk puanını hesaplayın"""
         score = 0
 
-        # 标题匹配
+        # başlık maçı
         if record.title:
             title_lower = record.title.lower()
             for term in query_terms:
                 if term in title_lower:
                     score += 5
 
-        # 问题匹配
+        # soru eşleştirme
         if record.problem:
             problem_lower = record.problem.lower()
             for term in query_terms:
                 if term in problem_lower:
                     score += 3
 
-        # 关键词匹配
+        # anahtar kelime eşleme
         if record.keywords:
             for term in query_terms:
                 if term in record.keywords:
                     score += 2
 
-        # 可复用场景匹配
+        # Yeniden kullanılabilir sahne eşleştirme
         if record.reusable_for:
             reusable_lower = record.reusable_for.lower()
             for term in query_terms:
@@ -811,18 +811,18 @@ class DecisionMemory:
         limit: int = 20,
     ) -> list[DecisionRecord]:
         """
-        列出决策记录
+        Karar kayıtlarını listeleyin
 
         Args:
-            category: 按类别过滤
-            limit: 返回数量上限
+            category: Kategoriye göre filtrele
+            limit: Maksimum miktarı iade edin
 
         Returns:
-            决策记录列表（按时间倒序）
+            Karar kayıtlarının listesi (ters kronolojik sırayla)
         """
         results = []
 
-        # 按修改时间倒序遍历
+        # Değişiklik zamanına göre ters sırada geçiş yapın
         files = sorted(
             self.decisions_dir.glob("*.md"),
             key=lambda f: f.stat().st_mtime,
@@ -844,10 +844,10 @@ class DecisionMemory:
         return results
 
     def get_stats(self) -> dict[str, Any]:
-        """获取决策记忆统计"""
+        """Karar hafızası istatistiklerini alın"""
         decisions = self.list_decisions(limit=1000)
 
-        # 按类别统计
+        # Kategoriye göre istatistikler
         category_counts: dict[str, int] = {}
         for d in decisions:
             category_counts[d.category] = category_counts.get(d.category, 0) + 1

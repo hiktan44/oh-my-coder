@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Optional
 
 """
-SPEC 生成器
+SPEC olustur
 
-根据用户需求描述，使用 AI 模型生成详细的 SPEC.md 规格文档。
+gorekullanicigerekisteaciklama, kullan AI modelolusturdetayli SPEC.md kuraldokumantasyon. 
 """
 
 import re
@@ -15,57 +15,57 @@ from ..core.router import TaskType
 from ..models.base import Message
 from .models import AcceptanceCriteria, Quest, QuestSpec, SpecSection
 
-SYSTEM_PROMPT = """你是一个资深的技术架构师，擅长将需求转化为详细的规格文档。
+SYSTEM_PROMPT = """sendirbirdeneyimliteknikteknikmimariuzman, uzmanuzunlukgerekistedonusturicindetaylikuraldokumantasyon. 
 
-## 你的任务
-根据用户的需求描述，生成一份完整、清晰、可执行的 SPEC.md 规格文档。
+## sengorev
+gorekullanicigerekisteaciklama, olusturbirparcatam, temizlenet, olabiliryurut SPEC.md kuraldokumantasyon. 
 
-## 输出要求
+## ciktiisteriste
 
-### 必须包含的章节
-1. **概述** - 一句话描述这个任务是什么
-2. **动机** - 为什么要做这个？解决了什么问题？
-3. **包含范围** - 具体要实现哪些功能（用列表）
-4. **不包含范围** - 明确排除哪些（用列表）
-5. **验收标准** - 至少 5 条可测试的验收标准（每条格式: [ ] **[AC1]** 具体描述）
-6. **风险提示** - 可能遇到的问题和解决方案
-7. **技术方案** - 简要的技术实现思路
-8. **文件规划** - 需要新建或修改的文件列表
+### zorunluicerirbolum
+1. **genel bakis** - bircumlekonusmaaciklamabugorevdirne
+2. **motivasyon** - icinneisteryapbu? coznesorun? 
+3. **kapsam ici** - araçisteruygulahangileriislev (kullanliste) 
+4. **kapsam disi** - netharir tuthangileri (kullanliste) 
+5. **kabul kriterleri** - kadaraz 5 ogreolabilirtestkabul kriterleri (herogreformat: [ ] **[AC1]** araçaciklama) 
+6. **riskipucu** - olabiliredebilirkarsilaskadarsorunvecozplan
+7. **teknikteknikplan** - basitisterteknikteknikuyguladusunceyol
+8. **dosyaplanla** - gerekisteryeniolusturveyadegistirdosyaliste
 
-### 风格要求
-- 简洁、明确、可执行
-- 验收标准必须可测试（能写测试用例来验证）
-- 不要过度设计，保持 MVP 原则
-- 用中文输出
+### ruzgaristeriste
+- basittemiz, net, olabiliryurut
+- kabul kriterlerizorunluolabilirtest (edebiliryaztest durumugeldogrulama) 
+- hayiristerderecetasarim, koru MVP asilkural
+- kullanicindemetincikti
 
-### 验收标准格式
+### kabul kriterleriformat
 ```
-- [ ] **[AC1]** 标准描述（可测试的）
-- [ ] **[AC2]** 标准描述
-```
-
-### 示例
-```
-## 包含范围
-- 用户注册和登录
-- JWT 认证
-- 密码重置
-
-## 验收标准
-- [ ] **[AC1]** 用户可以使用邮箱注册新账号
-- [ ] **[AC2]** 用户可以使用密码登录系统
-- [ ] **[AC3]** 登录后获得有效期为 7 天的 JWT token
+- [ ] **[AC1]** standartaciklama (olabilirtest) 
+- [ ] **[AC2]** standartaciklama
 ```
 
-## 重要原则
-1. 验收标准 = 测试用例描述（能直接转化为测试代码）
-2. 范围明确 = 减少后期扯皮
-3. MVP = 先做核心功能，不做锦上添花
+### ornek
+```
+## kapsam ici
+- kullanicikayitvegiris
+- JWT kimlik dogrulama
+- gizlikodtekrarayar
+
+## kabul kriterleri
+- [ ] **[AC1]** kullaniciolabilirilekullanepostakayityenihesapno
+- [ ] **[AC2]** kullaniciolabilirilekullangizlikodgirissistem
+- [ ] **[AC3]** girissonraalvaretkidonemicin 7 gun JWT token
+```
+
+## tekraristerasilkural
+1. kabul kriterleri = test durumuaciklama (edebilirdogrubaglandonusturicintestkod) 
+2. araliknet = azaltazsonradonemcekderi
+3. MVP = onceyapcekirdekislev, hayiryapipekusteklecicek
 """
 
 
 class SpecGenerator:
-    """SPEC 文档生成器"""
+    """SPEC dokumantasyonolustur"""
 
     def __init__(
         self,
@@ -77,23 +77,23 @@ class SpecGenerator:
 
     async def generate(self, quest: Quest) -> QuestSpec:
         """
-        生成 SPEC 文档
+        olustur SPEC dokumantasyon
 
         Args:
-            quest: Quest 任务对象
+            quest: Quest gorevicinnesne
 
         Returns:
-            QuestSpec 规格文档对象
+            QuestSpec kuraldokumantasyonicinnesne
         """
-        # 构建 prompt
+        # olustur prompt
         context_info = await self._gather_context(quest)
 
-        prompt = f"""## 用户需求
+        prompt = f"""## kullanicigerekiste
 {quest.description}
 
 {context_info}
 
-请根据以上需求，生成完整的 SPEC.md 规格文档。
+lutfengoreileustgerekiste, olusturtam SPEC.md kuraldokumantasyon. 
 """
 
         messages = [
@@ -110,12 +110,12 @@ class SpecGenerator:
         return self._parse_spec(response.content, quest.title)
 
     async def _gather_context(self, quest: Quest) -> str:
-        """收集项目上下文信息"""
+        """alsetprojebaglambilgi"""
         parts = []
 
-        # 项目信息
+        # projebilgi
         project_path = Path(quest.project_path)
-        parts.append(f"### 项目路径\n{project_path}")
+        parts.append(f"### proje yolu\n{project_path}")
 
         # pyproject.toml
         pyproject = project_path / "pyproject.toml"
@@ -126,7 +126,7 @@ class SpecGenerator:
             except Exception:
                 pass
 
-        # 目录结构（最多 3 层）
+        # dizinyapi (en fazla 3 katman) 
         try:
             tree_lines = []
             for p in sorted(project_path.iterdir())[:15]:
@@ -138,7 +138,7 @@ class SpecGenerator:
                 elif p.is_file() and not p.name.startswith("."):
                     tree_lines.append(f"  📄 {p.name}")
             if tree_lines:
-                parts.append("### 项目结构\n```\n" + "\n".join(tree_lines) + "\n```")
+                parts.append("### proje yapisi\n```\n" + "\n".join(tree_lines) + "\n```")
         except Exception:
             pass
 
@@ -154,17 +154,17 @@ class SpecGenerator:
         return "\n\n".join(parts) if parts else ""
 
     def _parse_spec(self, content: str, fallback_title: str) -> QuestSpec:
-        """解析模型输出，构建 QuestSpec 对象"""
+        """ayristirmodelcikti, olustur QuestSpec icinnesne"""
         lines = content.split("\n")
 
-        # 提取标题
+        # cikarbaslik
         title = fallback_title
         for line in lines:
             if line.startswith("# "):
                 title = line[2:].strip()
                 break
 
-        # 提取章节
+        # cikarbolum
         sections: list[SpecSection] = []
         current_title = ""
         seen_first_heading = False
@@ -181,9 +181,9 @@ class SpecGenerator:
         for line in lines:
             stripped = line.strip()
 
-            # 检测章节标题
+            # algilamabolumbaslik
             if stripped.startswith("##"):
-                # 保存上一个章节
+                # kaydetustbirbolum
                 if current_content:
                     content_text = "\n".join(current_content).strip()
                     if content_text:
@@ -200,20 +200,20 @@ class SpecGenerator:
                 current_title = section_title
                 seen_first_heading = True
 
-                if "概述" in section_title:
+                if "genel bakis" in section_title:
                     in_acceptance = False
-                elif "验收标准" in section_title:
+                elif "kabul kriterleri" in section_title:
                     in_acceptance = True
-                elif "动机" in section_title or "包含范围" in section_title or "风险" in section_title:
+                elif "motivasyon" in section_title or "kapsam ici" in section_title or "risk" in section_title:
                     in_acceptance = False
                 continue
 
-            # 收集内容
+            # alseticerik
             if in_acceptance:
-                # 解析验收标准
+                # ayristirkabul kriterleri
                 match = re.search(r"\[AC?\d+\]", stripped, re.IGNORECASE)
                 if match or stripped.startswith(("- [ ]", "-[**")):
-                    # 提取标准描述
+                    # cikarstandartaciklama
                     desc = re.sub(r"^-\s*\[[\sx]\]\s*", "", stripped).strip()
                     desc = re.sub(r"\*\*\[AC\d+\]\*\*\s*", "", desc).strip()
                     if desc:
@@ -223,19 +223,19 @@ class SpecGenerator:
                         )
             else:
                 if not seen_first_heading:
-                    # 跳过第一个 ## 之前的内容（如 # 标题 行）
+                    # atlaincibir ## onceicerik (ornegin # baslik satir) 
                     continue
-                if current_title == "概述" and overview == "":
+                if current_title == "genel bakis" and overview == "":
                     overview = stripped
-                elif current_title == "动机" and motivation == "":
+                elif current_title == "motivasyon" and motivation == "":
                     motivation = stripped
-                elif current_title == "包含范围" and stripped.startswith("-"):
+                elif current_title == "kapsam ici" and stripped.startswith("-"):
                     scope.append(stripped.lstrip("- ").lstrip("• "))
-                elif current_title == "不包含范围" and stripped.startswith("-"):
+                elif current_title == "kapsam disi" and stripped.startswith("-"):
                     out_of_scope.append(stripped.lstrip("- ").lstrip("• "))
-                elif current_title == "风险提示" and stripped.startswith("-"):
+                elif current_title == "riskipucu" and stripped.startswith("-"):
                     risks.append(stripped.lstrip("- ⚠️").lstrip("- ").lstrip("• "))
-                elif current_title == "预估耗时" or "耗时" in current_title:
+                elif current_title == "ontahmintuketzaman" or "tuketzaman" in current_title:
                     if stripped and not stripped.startswith("#"):
                         estimated_time = (
                             stripped.split()[0] if stripped.split() else "1h"
@@ -244,7 +244,7 @@ class SpecGenerator:
                     if stripped:
                         current_content.append(stripped)
 
-        # 保存最后一个章节
+        # kaydetensonrabirbolum
         if current_content:
             content_text = "\n".join(current_content).strip()
             if content_text:
@@ -256,34 +256,34 @@ class SpecGenerator:
                     )
                 )
 
-        # 清理 sections，去除已解析的章节
+        # temizle sections, githaricayristirbolum
         excluded_titles = {
-            "概述",
-            "动机",
-            "包含范围",
-            "不包含范围",
-            "验收标准",
-            "风险提示",
+            "genel bakis",
+            "motivasyon",
+            "kapsam ici",
+            "kapsam disi",
+            "kabul kriterleri",
+            "riskipucu",
         }
         sections = [s for s in sections if s.title not in excluded_titles]
 
-        # 如果没有 acceptance_criteria，生成默认值
+        # egeryokvar acceptance_criteria, olusturvarsayilandeger
         if not acceptance_criteria:
             acceptance_criteria = [
                 AcceptanceCriteria(
                     id="AC1",
-                    description=f"完成 {title} 功能的实现",
+                    description=f"tamamla {title} islevuygula",
                 ),
                 AcceptanceCriteria(
                     id="AC2",
-                    description="所有新增代码通过代码审查",
+                    description="varyeniartkodaraciligiylakodinceleme",
                 ),
             ]
 
         return QuestSpec(
             title=title or fallback_title,
             overview=overview or title or fallback_title,
-            motivation=motivation or "提升项目质量和开发效率",
+            motivation=motivation or "yukseltyukseltprojekalitemiktarveacgonderetkioran",
             scope=scope,
             out_of_scope=out_of_scope,
             acceptance_criteria=acceptance_criteria,

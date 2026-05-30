@@ -1,26 +1,26 @@
 name: test
-description: 测试生成流程：探索 → 设计测试 → 实现测试 → 运行测试
+description: testolusturakis: kesfet → tasarimtest → uygulatest → satirtest
 steps:
   - id: explore
     agent: explore
-    description: 探索代码库结构
+    description: kod tabani yapisini kesfet
     timeout: 300
     retry: 0
   - id: test-engineer
     agent: test-engineer
-    description: 设计测试用例
+    description: tasarimtest durumu
     dependencies: [explore]
     timeout: 300
     retry: 0
   - id: executor
     agent: executor
-    description: 实现测试代码
+    description: uygulatestkod
     dependencies: [test-engineer]
     timeout: 600
     retry: 1
   - id: verifier
     agent: verifier
-    description: 运行测试验证
+    description: test dogrulama calistir
     dependencies: [executor]
     timeout: 300
     retry: 0

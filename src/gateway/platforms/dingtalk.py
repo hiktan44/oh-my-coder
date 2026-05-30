@@ -4,12 +4,12 @@ from __future__ import annotations
 
 
 """
-钉钉（DingTalk）平台处理器
+DingTalk (DingTalk) platform isleyicisi
 
-支持钉钉企业内部应用（接收消息 + 发送消息）。
-支持：文本、Markdown、@ 消息、卡片。
+destekDingTalkkurumsalicindekisimuygulama (baglanalmesaj + mesaj gonder) . 
+destek: metin, Markdown, @ mesaj, kart. 
 
-文档：https://open.dingtalk.com/document/orgapp/asynchronous-sending-of-enterprise-text-messages
+Dokumantasyon:https://open.dingtalk.com/document/orgapp/asynchronous-sending-of-enterprise-text-messages
 """
 
 
@@ -32,22 +32,22 @@ try:
     _HAS_HTTPX = True
 except ImportError:
     _HAS_HTTPX = False
-    logger.warning("httpx not installed. 钉钉支持需要: pip install httpx")
+    logger.warning("httpx not installed. DingTalkdestekgerekister: pip install httpx")
 
 
 class DingTalkHandler(PlatformHandler):
     """
-    钉钉企业内部应用处理器
+    DingTalkkurumsalicindekisimuygulamaisleyici
 
-    通过 AES 解密接收消息（钉钉回调模式）。
-    发送消息通过钉钉企业消息 API。
+    araciligiyla AES cozgizlibaglanalmesaj (DingTalkgeri aramamod) . 
+    mesaj gonderaraciligiylaDingTalkkurumsalmesaj API. 
 
-    环境变量：
-        DINGTALK_APP_KEY       - 应用的 AppKey
-        DINGTALK_APP_SECRET    - 应用的 AppSecret
-        DINGTALK_TOKEN         - 回调 Token（自己生成）
-        DINGTALK_AES_KEY       - 回调 EncodingAESKey（43字符）
-        DINGTALK_WEBHOOK_PORT  - 本地回调监听端口（默认 8080）
+    Ortam degiskenleri:
+        DINGTALK_APP_KEY       - uygulama AppKey
+        DINGTALK_APP_SECRET    - uygulama AppSecret
+        DINGTALK_TOKEN         - geri arama Token(kendi olusturulan)
+        DINGTALK_AES_KEY       - geri arama EncodingAESKey (43karakter) 
+        DINGTALK_WEBHOOK_PORT  - yerelgeri aramadinleme uc noktaagiz (varsayilan 8080) 
     """
 
     name = Platform.DINGTALK
@@ -63,11 +63,11 @@ class DingTalkHandler(PlatformHandler):
     ):
         """
         Args:
-            app_key: 钉钉应用的 AppKey（client_id）
-            app_secret: 钉钉应用的 AppSecret（client_secret）
-            token: 回调 Token
-            aes_key: 回调 AES Key（43字符）
-            webhook_port: 本地回调监听端口
+            app_key: DingTalkuygulama AppKey (client_id) 
+            app_secret: DingTalkuygulama AppSecret (client_secret) 
+            token: geri arama Token
+            aes_key: geri arama AES Key (43karakter) 
+            webhook_port: yerelgeri aramadinleme uc noktaagiz
         """
         super().__init__(**kwargs)
         self.app_key = app_key
@@ -80,11 +80,11 @@ class DingTalkHandler(PlatformHandler):
         self._stop_event = asyncio.Event()
         self._server_task: Optional[asyncio.Task[None]] = None
 
-    # ---- PlatformHandler 实现 ----
+    # ---- PlatformHandler uygula ----
 
     async def start(self) -> None:
         if not _HAS_HTTPX:
-            raise RuntimeError("httpx 未安装。运行: pip install httpx")
+            raise RuntimeError("httpx kurulu degil. Calistirin: pip install httpx")
 
         await self._refresh_token()
 
@@ -116,7 +116,7 @@ class DingTalkHandler(PlatformHandler):
         url = "https://oapi.dingtalk.com/topapi/message/corpconversation/asyncsend_v2"
         params = {"access_token": token}
         payload = {
-            "agent_id": self.app_key,  # agent_id 同 app_key
+            "agent_id": self.app_key,  # agent_id ayni app_key
             "userid_list": message.chat_id,
             "msg": {
                 "msgtype": "text",
@@ -138,7 +138,7 @@ class DingTalkHandler(PlatformHandler):
             self.on_error(e)
             return False
 
-    # ---- 内部实现 ----
+    # ---- icindekisimuygula ----
 
     async def _refresh_token(self) -> None:
         url = "https://api.dingtalk.com/v1.0/oauth2/accessToken"
@@ -160,7 +160,7 @@ class DingTalkHandler(PlatformHandler):
         return self._access_token
 
     async def _run_webhook_server(self) -> None:
-        """运行 HTTP 服务器接收钉钉回调"""
+        """satir HTTP servisbaglanalDingTalkgeri arama"""
         try:
             import uvicorn
             from starlette.applications import Starlette
@@ -171,7 +171,7 @@ class DingTalkHandler(PlatformHandler):
             return
 
         async def verifyGET(request: Request) -> PlainTextResponse:
-            """钉钉回调 URL 验证"""
+            """DingTalkgeri arama URL dogrulama"""
             try:
                 import base64
 
@@ -198,7 +198,7 @@ class DingTalkHandler(PlatformHandler):
                 )
                 unpadder = PKCS7(128).unpadder()
                 decrypted = unpadder.update(decrypted_padded) + unpadder.finalize()
-                # 去掉 16 字节随机串 + 4 字节长度
+                # kaldir 16 byterastgelemakinedizi + 4 byteuzunlukderece
                 content = decrypted[20:]
                 return PlainTextResponse(content.decode())
             except Exception as e:
@@ -206,7 +206,7 @@ class DingTalkHandler(PlatformHandler):
                 return PlainTextResponse("error", status_code=400)
 
         async def messagePOST(request: Request) -> PlainTextResponse:
-            """接收消息回调"""
+            """baglanalmesajgeri arama"""
             body = await request.text()
             await self._handle_callback(body)
             return PlainTextResponse("success")
@@ -225,7 +225,7 @@ class DingTalkHandler(PlatformHandler):
         await server.serve()
 
     async def _handle_callback(self, body: str) -> None:
-        """处理回调消息"""
+        """islegeri aramamesaj"""
         import json
 
         try:
@@ -251,7 +251,7 @@ class DingTalkHandler(PlatformHandler):
             logger.exception(f"[dingtalk] Callback parse error: {e}")
 
     def _decrypt_msg(self, encrypted: str) -> Optional[str]:
-        """AES 解密消息"""
+        """AES cozgizlimesaj"""
         import base64
 
         try:
@@ -266,7 +266,7 @@ class DingTalkHandler(PlatformHandler):
             )
             unpadder = PKCS7(128).unpadder()
             decrypted = unpadder.update(decrypted_padded) + unpadder.finalize()
-            # 去掉 16 随机字节 + 4 字节 msg_len
+            # kaldir 16 rastgelemakinebyte + 4 byte msg_len
             msg_len = int.from_bytes(decrypted[16:20], "big")
             return decrypted[20 + msg_len :].decode()
         except Exception as e:
@@ -276,6 +276,6 @@ class DingTalkHandler(PlatformHandler):
 
 def check_dingtalk_dependencies() -> bool:
     if not _HAS_HTTPX:
-        logger.error("httpx 未安装: pip install httpx")
+        logger.error("httpx kurulu degil: pip install httpx")
         return False
     return True

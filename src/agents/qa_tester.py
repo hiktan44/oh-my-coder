@@ -1,15 +1,15 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-QA Tester Agent - QA 测试智能体
+QA Tester Agent - QA test acentesi
 
-职责：
-1. 交互式 CLI 测试
-2. 服务运行时验证
-3. 端到端测试
-4. 回归测试
+Sorumluluklar:
+1. etkileşimli CLI test
+2. Hizmet çalışma zamanı doğrulaması
+3. Uçtan uca test
+4. Regresyon testi
 
-模型层级：MEDIUM（平衡，对应 sonnet）
+Modeli seviyesi:MEDIUM(denge, yazışma sonnet)
 """
 
 from ..core.router import TaskType
@@ -25,10 +25,10 @@ from .base import (
 
 @register_agent
 class QATesterAgent(BaseAgent):
-    """QA 测试 Agent - 交互式测试和端到端验证"""
+    """QA test Agent - Etkileşimli test ve uçtan uca doğrulama"""
 
     name = "qa-tester"
-    description = "QA 测试智能体 - 交互式测试和端到端验证"
+    description = "QA test acentesi - Etkileşimli test ve uçtan uca doğrulama"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "🛠️"
@@ -36,94 +36,94 @@ class QATesterAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个 QA 测试专家，擅长端到端测试和交互式验证。
+        return """sen bir QA Uçtan uca test etme ve etkileşimli doğrulama konusunda uzmanlaşmış test uzmanı.
 
-## 角色
-你的职责是通过实际运行程序，验证功能是否符合预期。
+## Rol
+Sizin sorumluluğunuz, programı gerçekten çalıştırarak işlevselliğin beklendiği gibi olduğunu doğrulamaktır.
 
-## 能力
-1. CLI 测试 - 实际运行命令行工具
-2. API 测试 - 测试 HTTP 接口
-3. 集成测试 - 测试组件间协作
-4. 回归测试 - 确保修改没有破坏现有功能
+## yetenek
+1. CLI test - Aslında komut satırı aracını çalıştırma
+2. API test - test HTTP arayüz
+3. Entegrasyon testi - Bileşenler arasındaki işbirliğini test etme
+4. Regresyon testi - Değişikliklerin mevcut işlevselliği bozmadığından emin olun
 
-## 测试原则
-1. **实际运行** - 不只看代码，要实际执行
-2. **边界测试** - 测试正常和异常情况
-3. **端到端** - 测试完整流程
-4. **可重复** - 测试结果可重复
+## Test ilkeleri
+1. **Gerçek operasyon** - Sadece koda bakmayın, onu gerçekten çalıştırın
+2. **sınır testi** - Normal ve anormal koşulları test edin
+3. **uçtan uca** - Tüm süreci test edin
+4. **Tekrarlanabilir** - Test sonuçları tekrarlanabilir
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 测试环境
+### 1. test ortamı
 - Python: 3.x
-- 系统: macOS/Linux
-- 测试命令: ...
+- sistem: macOS/Linux
+- test komutu: ...
 
-### 2. 测试用例
+### 2. test senaryosu
 
-#### TC-01: 基本功能
+#### TC-01: Temel işlevler
 ```
-输入: command --arg value
-期望: 成功执行，输出...
-实际: [PASS/FAIL]
-```
-
-#### TC-02: 边界情况
-```
-输入: command --edge-case
-期望: 优雅处理
-实际: [PASS/FAIL]
+girmek: command --arg value
+beklemek: Başarılı yürütme, çıktı...
+gerçek: [PASS/FAIL]
 ```
 
-### 3. 测试结果
-| 用例 | 状态 | 说明 |
+#### TC-02: sınır durumu
+```
+girmek: command --edge-case
+beklemek: İncelikle kullanın
+gerçek: [PASS/FAIL]
+```
+
+### 3. Test sonuçları
+| kullanım durumu | durum | göstermek |
 |------|------|------|
 | TC-01 | ✅ PASS | ... |
 | TC-02 | ❌ FAIL | ... |
 
-### 4. 发现的问题
-- 问题1: ...
-- 问题2: ...
+### 4. Bulunan sorunlar
+- soru1: ...
+- soru2: ...
 
-### 5. 回归风险
-- ⚠️ 高风险: ...
-- 🟡 中风险: ...
-- 🟢 低风险: ...
+### 5. dönüş riski
+- ⚠️ yüksek risk: ...
+- 🟡 orta risk: ...
+- 🟢 düşük risk: ...
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行 QA 测试"""
-        # 获取项目信息
+        """uygulamak QA test"""
+        # Proje bilgilerini alın
         project_path = context.project_path
 
-        # 检查可执行文件
+        # Yürütülebilir dosyayı kontrol edin
         executables = []
         for pattern in ["*.sh", "start*.sh", "run*.py"]:
             executables.extend(project_path.glob(pattern))
 
-        # 检查入口文件
+        # Giriş dosyasını kontrol edin
         main_files = []
         for name in ["main.py", "app.py", "cli.py", "__main__.py"]:
             main_files.extend(project_path.glob(f"**/{name}"))
 
-        test_info = f"""## 测试环境
+        test_info = f"""## test ortamı
 
-项目路径: {project_path}
-可执行脚本: {[e.name for e in executables]}
-入口文件: {[m.name for m in main_files]}
+Proje yolu: {project_path}
+yürütülebilir komut dosyası: {[e.name for e in executables]}
+Giriş dosyası: {[m.name for m in main_files]}
 
-请设计端到端测试用例，实际运行程序验证功能：
-1. 基本功能是否正常？
-2. 参数解析是否正确？
-3. 错误处理是否优雅？
-4. 输出格式是否符合预期？
+Lütfen uçtan uca test senaryoları tasarlayın ve işlevi doğrulamak için programı gerçekten çalıştırın:
+1. Temel işlevler normal şekilde çalışıyor mu?
+2. Parametreler doğru şekilde ayrıştırıldı mı?
+3. Hata işleme zarif mi?
+4. Çıktı formatı beklendiği gibi mi?
 """
         prompt.append({"role": "user", "content": test_info})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -136,12 +136,12 @@ class QATesterAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "修复发现的问题",
-                "添加自动化测试",
+                "Bulunan sorunları düzeltin",
+                "Otomatik testler ekleyin",
             ],
         )

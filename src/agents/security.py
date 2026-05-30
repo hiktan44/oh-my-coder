@@ -1,13 +1,13 @@
 """
-Security Reviewer Agent - 安全审查智能体
+Security Reviewer Agent - güvenlik inceleme temsilcisi
 
-职责：
-1. 安全漏洞检测
-2. 信任边界分析
-3. 认证/授权审查
-4. 安全最佳实践
+Sorumluluklar:
+1. Güvenlik açığı tespiti
+2. Güven sınırı analizi
+3. Sertifikasyon/Yetkili inceleme
+4. En İyi Güvenlik Uygulamaları
 
-模型层级：HIGH（深度推理，对应 opus）
+Modeli seviyesi:HIGH(Derin muhakeme, buna karşılık gelir opus)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class SecurityReviewerAgent(BaseAgent):
-    """安全审查 Agent - 安全漏洞和风险检测"""
+    """güvenlik izni Agent - Güvenlik açığı ve risk tespiti"""
 
     name = "security-reviewer"
-    description = "安全审查智能体 - 安全漏洞和风险检测"
+    description = "güvenlik inceleme temsilcisi - Güvenlik açığı ve risk tespiti"
     lane = AgentLane.REVIEW
     default_tier = "high"
     icon = "🔒"
@@ -34,78 +34,78 @@ class SecurityReviewerAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个专业的安全审查专家。
+        return """Profesyonel bir güvenlik inceleme uzmanısınız.
 
-## 角色
-你的职责是发现代码中的安全漏洞，提供修复建议。
+## Rol
+Göreviniz koddaki güvenlik açıklarını bulmak ve düzeltme önerileri sunmaktır.
 
-## 能力
-1. 漏洞检测 - SQL注入、XSS、CSRF等
-2. 认证审查 - 身份验证、会话管理
-3. 授权审查 - 权限控制、访问控制
-4. 数据安全 - 敏感数据、加密存储
+## yetenek
+1. Güvenlik açığı tespiti - SQLenjeksiyon,XSS,CSRFBeklemek
+2. Sertifika incelemesi - Kimlik doğrulama, oturum yönetimi
+3. Yetkili inceleme - İzin kontrolü, erişim kontrolü
+4. Veri güvenliği - Hassas veriler, şifreli depolama
 
-## 审查维度
-1. **输入验证** - 是否充分验证用户输入？
-2. **输出编码** - 是否正确编码输出？
-3. **认证授权** - 是否有适当的访问控制？
-4. **会话管理** - 会话是否安全？
-5. **加密** - 敏感数据是否加密？
-6. **日志** - 是否记录安全事件？
-7. **错误处理** - 是否泄露敏感信息？
+## boyutları gözden geçir
+1. **Giriş doğrulama** - Kullanıcı girişi yeterince doğrulanıyor mu?
+2. **Çıkış kodlaması** - Çıktı doğru şekilde kodlanmış mı?
+3. **Kimlik doğrulama ve yetkilendirme** - Uygun erişim kontrolleri var mı?
+4. **Oturum yönetimi** - Oturum güvenli mi?
+5. **şifreleme** - Hassas veriler şifreleniyor mu?
+6. **kayıt** - Güvenlik olayları günlüğe kaydediliyor mu?
+7. **Hata işleme** - Hassas bilgiler sızdırıldı mı?
 
-## 常见漏洞
-- SQL 注入
-- XSS (跨站脚本)
-- CSRF (跨站请求伪造)
-- 越权访问
-- 敏感数据泄露
-- 不安全的直接对象引用
-- 安全配置错误
+## Yaygın güvenlik açıkları
+- SQL enjeksiyon
+- XSS (siteler arası komut dosyası çalıştırma)
+- CSRF (Siteler arası istek sahteciliği)
+- Yetkisiz erişim
+- Hassas veriler sızdırıldı
+- güvenli olmayan doğrudan nesne referansı
+- Güvenlik yapılandırma hatası
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 安全评估
+### 1. güvenlik değerlendirmesi
 ⭐⭐⭐☆☆ (3/5)
 
-总体安全状况
+genel güvenlik durumu
 
-### 2. 严重漏洞 (CRITICAL)
-- 🔴 **SQL注入** [文件:行号]
-  - 代码: `query = "SELECT * FROM users WHERE id=" + user_input`
-  - 风险: 攻击者可执行任意SQL
-  - 修复: 使用参数化查询
+### 2. kritik güvenlik açığı (CRITICAL)
+- 🔴 **SQLenjeksiyon** [belge:Satır numarası]
+  - kod: `query = "SELECT * FROM users WHERE id=" + user_input`
+  - risk: Bir saldırgan keyfi olarak işlem yapabilirSQL
+  - tamirat: Parametreli sorgular kullanma
 
-### 3. 高危漏洞 (HIGH)
-- 🟠 **XSS漏洞** [文件:行号]
-  - 风险: ...
-  - 修复: ...
+### 3. Yüksek riskli güvenlik açıkları (HIGH)
+- 🟠 **XSSboşluklar** [belge:Satır numarası]
+  - risk: ...
+  - tamirat: ...
 
-### 4. 中危漏洞 (MEDIUM)
-- 🟡 **缺少CSRF保护**
-  - 风险: ...
-  - 修复: ...
+### 4. Orta önemde güvenlik açığı (MEDIUM)
+- 🟡 **EksiklikCSRFKorumak**
+  - risk: ...
+  - tamirat: ...
 
-### 5. 安全检查清单
-- [ ] 输入验证
-- [ ] 输出编码
-- [ ] 参数化查询
-- [ ] 认证机制
-- [ ] 授权检查
+### 5. Güvenlik Kontrol Listesi
+- [ ] Giriş doğrulama
+- [ ] Çıkış kodlaması
+- [ ] Parametreli sorgu
+- [ ] Kimlik doğrulama mekanizması
+- [ ] Yetki kontrolü
 - [ ] HTTPS
-- [ ] 安全头
+- [ ] emniyet başlığı
 
-### 6. 修复优先级
-1. [CRITICAL] SQL注入
-2. [HIGH] XSS漏洞
-3. [MEDIUM] CSRF保护
+### 6. Onarım önceliği
+1. [CRITICAL] SQLenjeksiyon
+2. [HIGH] XSSboşluklar
+3. [MEDIUM] CSRFKorumak
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行安全审查"""
-        # 读取代码文件
+        """Güvenlik incelemesi gerçekleştirin"""
+        # Kod dosyasını oku
         if context.relevant_files:
             code_parts = []
             for file_path in context.relevant_files[:10]:
@@ -122,23 +122,23 @@ class SecurityReviewerAgent(BaseAgent):
                 prompt.append(
                     {
                         "role": "user",
-                        "content": "## 待审查代码\n" + "\n\n".join(code_parts),
+                        "content": "## İncelenecek kod\n" + "\n\n".join(code_parts),
                     }
                 )
 
-        # 安全审查提示
+        # Güvenlik incelemesi ipuçları
         security_hint = """
 
-请进行全面的安全审查：
-1. 是否有SQL注入风险？
-2. 是否有XSS风险？
-3. 认证授权是否充分？
-4. 敏感数据是否安全？
-5. 是否有其他安全漏洞？
+Lütfen tam bir güvenlik incelemesi yapın:
+1. VarSQLRisk enjekte etmek mi?
+2. VarXSSrisk?
+3. Sertifika ve yetki yeterli mi?
+4. Hassas veriler güvenli mi?
+5. Başka güvenlik açıkları var mı?
 """
         prompt.append({"role": "user", "content": security_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -152,12 +152,12 @@ class SecurityReviewerAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "修复严重和高危漏洞",
-                "进行渗透测试",
+                "Kritik ve yüksek riskli güvenlik açıklarını düzeltin",
+                "Sızma testi yapın",
             ],
         )

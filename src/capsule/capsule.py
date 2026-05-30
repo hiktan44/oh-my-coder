@@ -1,7 +1,7 @@
 """
-Capsule - 完整能力包结构
+Capsule - tamyetenekpaketyapi
 
-由 Gene（元数据）+ manifest（配置）+ dependencies + checksum 组成。
+tarafindan Gene (ogresayigore) + manifest (yapilandirma) + dependencies + checksum grupol. 
 """
 
 import hashlib
@@ -20,24 +20,24 @@ def _sha256_hex(data: bytes) -> str:
 @dataclass
 class Capsule:
     """
-    GEP Capsule — 完整能力包
+    GEP Capsule - tamyetenekpaket
 
-    Gene + manifest + dependencies + checksum。
+    Gene + manifest + dependencies + checksum. 
     """
 
-    gene: Gene  # 元数据
-    manifest: dict[str, Any] = field(default_factory=dict)  # tools/agents/prompts 配置
-    dependencies: list[str] = field(default_factory=list)  # 依赖的其他 Capsule ID
-    checksum: str = ""  # SHA256 校验
+    gene: Gene  # ogresayigore
+    manifest: dict[str, Any] = field(default_factory=dict)  # tools/agents/prompts yapilandirma
+    dependencies: list[str] = field(default_factory=list)  # bagimlilikonuno Capsule ID
+    checksum: str = ""  # SHA256 kontroldogrula
 
     def __post_init__(self) -> None:
         if not self.checksum:
             self.checksum = self.compute_checksum()
 
-    # --- 校验和 ---
+    # --- kontroldogrulave ---
 
     def compute_checksum(self) -> str:
-        """基于 gene + manifest + dependencies 计算 SHA256"""
+        """temelde gene + manifest + dependencies hesapla SHA256"""
         payload = json.dumps(
             {
                 "gene": self.gene.to_dict(),
@@ -52,7 +52,7 @@ class Capsule:
     def verify_checksum(self) -> bool:
         return self.checksum == self.compute_checksum()
 
-    # --- 序列化 ---
+    # --- sira ---
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -79,20 +79,20 @@ class Capsule:
     def from_json(cls, text: str) -> "Capsule":
         return cls.from_dict(json.loads(text))
 
-    # --- 向后兼容 .omcp ---
+    # --- yonsonrauyumlu .omcp ---
 
     @classmethod
     def from_omcp(cls, data: dict[str, Any], file_name: str = "") -> "Capsule":
         """
-        从旧 .omcp 格式升级为 Capsule。
+        eski .omcp formatyukseltseviyeicin Capsule. 
 
-        旧格式顶部可能没有 gene 字段，自动生成虚拟 Gene（基于文件名推断）。
+        eskiformatustkisimolabiliredebiliryokvar gene alan, otomatikolustursanal Gene (temeldedosyaisimcikarim) . 
         """
         gene_data = data.get("gene")
         if gene_data:
             gene = Gene.from_dict(gene_data)
         else:
-            # 从文件名推断虚拟 Gene
+            # dosyaisimcikarimsanal Gene
             name = data.get("name", file_name.replace(".omcp", ""))
             category = _infer_category(data)
             tags = data.get("tags", [])
@@ -105,12 +105,12 @@ class Capsule:
                 author=data.get("author", "anonymous"),
             )
 
-        # manifest 保留原始非 gene 字段
+        # manifest koruhamolmayan gene alan
         manifest = {k: v for k, v in data.items() if k != "gene"}
 
         return cls(gene=gene, manifest=manifest)
 
-    # --- 持久化 ---
+    # --- kalici ---
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -122,7 +122,7 @@ class Capsule:
 
 
 def _infer_category(data: dict[str, Any]) -> str:
-    """从 .omcp 内容推断能力分类"""
+    """ .omcp icerikcikarimyetenekpuansinif"""
     name = data.get("name", "").lower()
     desc = data.get("description", "").lower()
     tools = str(data.get("tools", [])).lower()

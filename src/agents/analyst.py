@@ -1,20 +1,20 @@
 """
-Analyst Agent - 需求分析智能体
+Analyst Agent - Gereksinim Analizi Aracısı
 
-职责：
-1. 深度理解用户需求
-2. 发现隐藏约束和边界情况
-3. 澄清模糊需求
-4. 生成结构化需求文档
+Sorumluluklar:
+1. Kullanıcı ihtiyaçlarının derinlemesine anlaşılması
+2. Gizli kısıtlamaları ve uç durumları keşfedin
+3. Belirsiz gereksinimleri netleştirin
+4. Yapılandırılmış gereksinim belgeleri oluşturun
 
-模型层级：HIGH（深度推理，对应 opus）
+Modeli seviyesi:HIGH(Derin muhakeme, buna karşılık gelir opus)
 
-工作流程：
-1. 分析用户输入
-2. 识别关键需求点
-3. 发现潜在问题
-4. 提出澄清问题
-5. 生成需求文档
+İş akışı:
+1. Kullanıcı girişini analiz edin
+2. Temel ihtiyaç noktalarını belirleyin
+3. Potansiyel sorunları keşfedin
+4. Açıklayıcı sorular sorun
+5. Gereksinimler belgesini oluştur
 """
 
 from dataclasses import dataclass
@@ -34,7 +34,7 @@ from .base import (
 
 @dataclass
 class Requirement:
-    """需求项"""
+    """Gereksinimler"""
 
     id: str
     description: str
@@ -46,35 +46,35 @@ class Requirement:
 
 @dataclass
 class AnalysisResult:
-    """分析结果"""
+    """Sonuçları analiz edin"""
 
     summary: str
     requirements: list[Requirement]
-    questions: list[str]  # 需要澄清的问题
-    constraints: list[str]  # 发现的约束
-    risks: list[str]  # 潜在风险
+    questions: list[str]  # Açıklığa kavuşturulması gereken sorular
+    constraints: list[str]  # keşfedilen kısıtlamalar
+    risks: list[str]  # Potansiyel riskler
 
 
 @register_agent
 class AnalystAgent(BaseAgent):
     """
-    需求分析 Agent
+    ihtiyaç analizi Agent
 
-    特点：
-    - 使用 HIGH tier 模型（深度推理）
-    - 苏格拉底式提问，澄清需求
-    - 输出结构化需求文档
-    - 可选 Sourcegraph 代码搜索增强
+    Özellikler:
+    - kullanmak HIGH tier Model (derin çıkarım)
+    - İhtiyaçları açıklığa kavuşturmak için Sokratik sorular
+    - Çıktı yapılandırılmış gereksinimler belgesi
+    - İsteğe bağlı Sourcegraph Kod arama geliştirmeleri
     """
 
     name = "analyst"
-    description = "需求分析智能体 - 深度理解需求并发现隐藏约束"
+    description = "Gereksinim Analizi Aracısı - Gereksinimleri derinlemesine anlayın ve gizli kısıtlamaları keşfedin"
     lane = AgentLane.BUILD_ANALYSIS
     default_tier = "high"
     icon = "📊"
     tools = ["file_read", "search", "sourcegraph", "web_fetch"]
 
-    # Sourcegraph 配置
+    # Sourcegraph Yapılandırma
     use_sourcegraph: bool = False
     sourcegraph_limit: int = 10
 
@@ -85,15 +85,15 @@ class AnalystAgent(BaseAgent):
         repo: Optional[str] = None,  # noqa: UP045
     ) -> SearchResult:
         """
-        搜索公开代码库（通过 Sourcegraph）
+        Genel kod depolarında arama yapın (üzerinden Sourcegraph)
 
         Args:
-            query: 搜索关键词或 Sourcegraph 查询语法
-            language: 语言过滤（如 rust/python/go）
-            repo: 仓库过滤（支持 glob 模式）
+            query: Anahtar kelimeleri arayın veya Sourcegraph Sorgu sözdizimi
+            language: Dil filtreleme (ör. rust/python/go)
+            repo: Depo filtreleme (destekler) glob modeli)
 
         Returns:
-            SearchResult: 搜索结果
+            SearchResult: Arama sonuçları
         """
         return search(
             query=query,
@@ -104,54 +104,54 @@ class AnalystAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个资深的需求分析师。
+        return """Kıdemli bir gereksinim analistisiniz.
 
-## 角色
-你的职责是深入理解用户需求，发现隐藏的约束和边界情况，确保开发团队有清晰的方向。
+## Rol
+İşiniz kullanıcı ihtiyaçlarını derinlemesine anlamak, gizli kısıtlamaları ve uç durumları ortaya çıkarmak ve geliştirme ekibinin net bir yöne sahip olmasını sağlamaktır.
 
-## 能力
-1. 需求提取 - 从模糊描述中提取具体需求
-2. 约束发现 - 识别技术、时间、资源约束
-3. 风险识别 - 发现潜在的坑和风险点
-4. 苏格拉底式提问 - 通过提问澄清需求
-5. 代码搜索 - 通过 Sourcegraph 搜索公开代码库，参考已有实现
+## yetenek
+1. Gereksinim çıkarma - Belirsiz açıklamalardan özel gereksinimleri çıkarın
+2. kısıtlama keşfi - Teknik, zaman ve kaynak kısıtlamalarını belirleyin
+3. Risk tanımlama - Potansiyel tuzakları ve risk noktalarını keşfedin
+4. sokratik soru - Gereksinimleri netleştirmek için sorular sorun
+5. kod arama - geçmek Sourcegraph Genel kod tabanında arama yapın ve mevcut uygulamalara bakın
 
-## 工作原则
-1. **不要猜测** - 有疑问就提问，不要假设
-2. **结构化输出** - 使用 Markdown 和表格组织信息
-3. **优先级明确** - 区分必须、应该、可以
-4. **可验证性** - 每个需求都有验收标准
-5. **参考实现** - 搜索公开代码库，了解业界最佳实践
+## Çalışma prensipleri
+1. **Tahmin etme** - Şüpheye düştüğünüzde sorun, varsaymayın
+2. **Yapılandırılmış çıktı** - kullanmak Markdown ve bilgileri tablolar halinde organize edin
+3. **Öncelikleri netleştirin** - Zorunlu, gerekir ve yapılabilir arasındaki farkı ayırt edin
+4. **Doğrulanabilirlik** - Her gereksinimin kabul kriterleri vardır
+5. **Referans uygulaması** - Sektördeki en iyi uygulamalar hakkında bilgi edinmek için genel kod havuzlarını arayın
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 需求摘要
-用 2-3 句话概括核心需求
+### 1. Gereksinimlerin özeti
+kullanmak 2-3 Temel ihtiyaçları tek cümleyle özetleyin
 
-### 2. 功能需求
-| ID | 描述 | 优先级 | 验收标准 |
+### 2. İşlevsel gereksinimler
+| ID | betimlemek | öncelik | Kabul kriterleri |
 |----|------|--------|----------|
 | F1 | ... | high | ... |
 
-### 3. 非功能需求
-| ID | 描述 | 类型 | 约束 |
+### 3. işlevsel olmayan gereksinimler
+| ID | betimlemek | tip | kısıtlama |
 |----|------|------|------|
-| NF1 | ... | 性能 | ... |
+| NF1 | ... | performans | ... |
 
-### 4. 约束条件
-- 技术约束：...
-- 时间约束：...
-- 资源约束：...
+### 4. Kısıtlamalar
+- Teknik kısıtlamalar:...
+- Zaman kısıtlamaları:...
+- Kaynak kısıtlamaları:...
 
-### 5. 需要澄清的问题
+### 5. Açıklığa kavuşturulması gereken sorular
 1. ...
 2. ...
 
-### 6. 风险提示
+### 6. Risk uyarısı
 - ⚠️ ...
 - ⚠️ ...
 
-### 7. 下一步建议
+### 7. Sonraki adımlar için öneriler
 - ...
 """
 
@@ -159,22 +159,22 @@ class AnalystAgent(BaseAgent):
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
         """
-        执行需求分析
+        İhtiyaç analizi yapın
 
-        步骤：
-        1. 分析用户输入
-        2. 结合项目上下文
-        3. 可选：搜索相关代码（Sourcegraph）
-        4. 调用模型深度分析
+        adım:
+        1. Kullanıcı girişini analiz edin
+        2. Proje bağlamı ile birleştirilmiş
+        3. İsteğe bağlı: İlgili kodu arayın (Sourcegraph)
+        4. Çağrı modelinin derinlemesine analizi
         """
-        # 添加项目上下文
+        # Proje bağlamı ekle
         if context.previous_outputs.get("explore"):
             explore_result = context.previous_outputs["explore"].result
             prompt.append(
-                {"role": "user", "content": f"## 项目探索结果\n\n{explore_result}"}
+                {"role": "user", "content": f"## Proje keşif sonuçları\n\n{explore_result}"}
             )
 
-        # Sourcegraph 代码搜索增强（可选）
+        # Sourcegraph Kod arama geliştirmeleri (isteğe bağlı)
         if self.use_sourcegraph and kwargs.get("search_query"):
             search_query = kwargs["search_query"]
             search_lang = kwargs.get("search_language")
@@ -189,31 +189,31 @@ class AnalystAgent(BaseAgent):
                 prompt.append(
                     {
                         "role": "user",
-                        "content": f"## 相关代码参考（Sourcegraph 搜索）\n\n{code_context}",
+                        "content": f"## İlgili kod referansı (Sourcegraph aramak)\n\n{code_context}",
                     }
                 )
             elif result.warnings:
-                # 记录警告但不中断
+                # Uyarıları günlüğe kaydedin ancak sözünü kesmeyin
                 context.metadata["sourcegraph_warnings"] = result.warnings
 
-        # 添加分析提示
+        # Analiz ipuçları ekleyin
         analysis_hint = """
 
-请基于以上信息，进行需求分析。特别注意：
-1. 是否有模糊或矛盾的需求？
-2. 是否有隐藏的技术约束？
-3. 是否有潜在的性能、安全问题？
-4. 需要哪些额外的信息？
+Lütfen yukarıdaki bilgilere dayanarak bir ihtiyaç analizi yapın. Özel dikkat:
+1. Belirsiz veya çelişkili gereksinimler var mı?
+2. Herhangi bir gizli teknik kısıtlama var mı?
+3. Herhangi bir potansiyel performans veya güvenlik sorunu var mı?
+4. Hangi ek bilgilere ihtiyaç var?
 """
         prompt.append({"role": "user", "content": analysis_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
 
         response = await self.call_model(
-            task_type=TaskType.ARCHITECTURE,  # 使用 HIGH tier
+            task_type=TaskType.ARCHITECTURE,  # kullanmak HIGH tier
             messages=messages,
             complexity="high",
         )
@@ -225,14 +225,14 @@ class AnalystAgent(BaseAgent):
         result: str,
         context: AgentContext,
     ) -> AgentOutput:
-        """后处理 - 提取关键信息"""
-        # 后处理 - 提取关键信息（当前使用规则匹配，暂未接入 LLM）
+        """İşlem sonrası - Önemli bilgileri çıkarın"""
+        # İşlem sonrası - Anahtar bilgileri çıkarın (şu anda kural eşleştirme kullanılıyor, henüz bağlanmadı LLM)
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "使用 planner Agent 制定执行计划",
-                "使用 architect Agent 设计系统架构",
+                "kullanmak planner Agent Bir yürütme planı geliştirin",
+                "kullanmak architect Agent Tasarım sistemi mimarisi",
             ],
             next_agent="planner",
         )

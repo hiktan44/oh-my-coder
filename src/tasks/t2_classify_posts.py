@@ -1,14 +1,14 @@
 """
-T2: 对 Hacker News 帖子进行主题分类和热点识别
+T2: icin Hacker News gonderialtilerlesatiranakonupuansinifvesicaknoktatani
 
-根据标题和来源，判断每篇帖子的核心领域，并标记热门帖子。
+gorebaslikvekaynak, karar verheryazigonderialtcekirdekalan, veisaretsicakkapigonderialt. 
 """
 
 from dataclasses import dataclass
 
 from .t1_extract_posts import Post
 
-# 定义分类类别
+# tanimpuansinifsinifayri
 CATEGORIES = {
     "hardware": ["steam controller", "hardware", "chip", "gpu", "cpu", "console"],
     "ai_ml": [
@@ -60,13 +60,13 @@ CATEGORIES = {
 
 def classify_post(post: Post) -> list[str]:
     """
-    对单条帖子进行分类。
+    icintekilogregonderialtilerlesatirpuansinif. 
 
     Args:
-        post: 要分类的帖子。
+        post: isterpuansinifgonderialt. 
 
     Returns:
-        该帖子所属的类别列表（一个帖子可能属于多个类别）。
+        bugonderialtozelliksinifayriliste (birgonderialtolabiliredebilirozellikdecoksinifayri) . 
     """
     title_lower = post.title.lower()
     source_lower = post.source.lower()
@@ -87,35 +87,35 @@ def classify_post(post: Post) -> list[str]:
 
 @dataclass
 class ClassificationResult:
-    """分类结果"""
+    """puansinifsonuc"""
 
     posts: list[Post]
     categories: dict[str, list[Post]]
-    hot_posts: list[Post]  # 点赞数 > 500 或评论数 > 200
+    hot_posts: list[Post]  # noktabegenisayi > 500 veyayorumsayi > 200
 
 
 def classify_all_posts(posts: list[Post]) -> ClassificationResult:
     """
-    对所有帖子进行分类并识别热门话题。
+    icinvargonderialtilerlesatirpuansinifvetanisicakkapikonusmakonu. 
 
     Args:
-        posts: 所有帖子的列表。
+        posts: vargonderialtliste. 
 
     Returns:
-        包含分类结果和热门帖子的对象。
+        icerirpuansinifsonucvesicakkapigonderialticinnesne. 
     """
     categories: dict[str, list[Post]] = {}
     hot_posts: list[Post] = []
 
     for post in posts:
-        # 分类
+        # puansinif
         matched = classify_post(post)
         for cat in matched:
             if cat not in categories:
                 categories[cat] = []
             categories[cat].append(post)
 
-        # 热门识别
+        # sicakkapitani
         if post.points > 500 or post.comments > 200:
             hot_posts.append(post)
 
@@ -123,23 +123,23 @@ def classify_all_posts(posts: list[Post]) -> ClassificationResult:
 
 
 def print_classification(result: ClassificationResult) -> None:
-    """打印分类结果"""
-    print("=== 分类结果 ===\n")
+    """yazdirpuansinifsonuc"""
+    print("=== puansinifsonuc ===\n")
 
     for category, posts in sorted(result.categories.items()):
-        print(f"\n--- {category} ({len(posts)} 条) ---")
+        print(f"\n--- {category} ({len(posts)} ogre) ---")
         for post in posts:
             print(f"  {post.rank}. {post.title}")
 
-    print("\n\n=== 热门话题 (点赞 > 500 或评论 > 200) ===\n")
+    print("\n\n=== sicakkapikonusmakonu (noktabegeni > 500 veyayorum > 200) ===\n")
     for post in result.hot_posts:
         print(
-            f"  {post.rank}. {post.title} (点赞: {post.points}, 评论: {post.comments})"
+            f"  {post.rank}. {post.title} (noktabegeni: {post.points}, yorum: {post.comments})"
         )
 
 
 if __name__ == "__main__":
-    # 测试分类
+    # testpuansinif
     from .t1_extract_posts import extract_posts
 
     test_content = """

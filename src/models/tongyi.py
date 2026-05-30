@@ -4,19 +4,19 @@ from __future__ import annotations
 from typing import Optional
 
 """
-通义千问 (Tongyi) 模型适配器
+Tongyi (Tongyi) modeladaptor
 
-阿里云通义千问 API 文档：https://help.aliyun.com/zh/dashscope/
+AlibulutTongyi API Dokumantasyon:https://help.aliyun.com/zh/dashscope/
 
-特点：
-1. 阿里云出品，中文能力强
-2. 支持多轮对话
-3. 多种模型可选（qwen-max, qwen-plus, qwen-turbo）
+Ozellikler:
+1. Alibuluturun, icindemetinyetenekguclu
+2. destekcokturicinkonusma
+3. cokturmodelolabilirsec (qwen-max, qwen-plus, qwen-turbo) 
 
-模型：
-- qwen-max：最强模型（对应 HIGH tier）
-- qwen-plus：通用模型（对应 MEDIUM tier）
-- qwen-turbo：快速模型（对应 LOW tier）
+model: 
+- qwen-max: enguclumodel (karsilik gelen HIGH tier) 
+- qwen-plus: kullanmodel (karsilik gelen MEDIUM tier) 
+- qwen-turbo: hizlihizmodel (karsilik gelen LOW tier) 
 """
 
 import json
@@ -37,7 +37,7 @@ from .base import (
     Usage,
 )
 
-# 通义千问模型配置
+# Tongyimodelyapilandirma
 TONGYI_MODELS = {
     ModelTier.LOW: {
         "name": "qwen-turbo",
@@ -56,7 +56,7 @@ TONGYI_MODELS = {
     },
 }
 
-# 通义千问 API 端点
+# Tongyi API uc nokta
 TONGYI_API_URL = (
     "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
 )
@@ -64,9 +64,9 @@ TONGYI_API_URL = (
 
 class TongyiModel(BaseModel):
     """
-    通义千问模型适配器
+    Tongyimodeladaptor
 
-    API 兼容 OpenAI 格式，使用 DashScope API
+    API uyumlu OpenAI format, kullan DashScope API
     """
 
     def __init__(
@@ -76,10 +76,10 @@ class TongyiModel(BaseModel):
     ):
         """
         Args:
-            config: 模型配置（api_key 为 DashScope API Key）
-            tier: 性能层级
+            config: modelyapilandirma (api_key icin DashScope API Key) 
+            tier: performanskatmanseviye
         """
-        # 设置通义千问特定配置
+        # ayarlaayarTongyiozelyapilandirma
         model_info = TONGYI_MODELS[tier]
         config.cost_per_1k_prompt = model_info["cost_per_1k_prompt"]
         config.cost_per_1k_completion = model_info["cost_per_1k_completion"]
@@ -97,7 +97,7 @@ class TongyiModel(BaseModel):
         return TONGYI_MODELS[self.tier]["name"]
 
     async def _get_client(self) -> httpx.AsyncClient:
-        """获取或创建 HTTP 客户端"""
+        """alveyaolustur HTTP istemci"""
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 headers={
@@ -109,13 +109,13 @@ class TongyiModel(BaseModel):
         return self._client
 
     async def close(self):
-        """关闭 HTTP 客户端"""
+        """kapat HTTP istemci"""
         if self._client and not self._client.is_closed:
             await self._client.aclose()
             self._client = None
 
     def _format_messages(self, messages: list[Message]) -> list[dict[str, str]]:
-        """将统一消息格式转换为通义千问 API 格式"""
+        """birmesajformatdonusturicinTongyi API format"""
         formatted = []
         for msg in messages:
             item = {"role": msg.role, "content": msg.content}
@@ -128,10 +128,10 @@ class TongyiModel(BaseModel):
 
     @safe_execute(max_attempts=3, timeout=30.0)
     async def generate(self, messages: list[Message], **kwargs) -> ModelResponse:
-        """非流式生成"""
+        """olmayanakisolustur"""
         client = await self._get_client()
 
-        # 构建请求体
+        # olusturistek
         request_body = {
             "model": self.model_name,
             "input": {
@@ -142,7 +142,7 @@ class TongyiModel(BaseModel):
                 "max_tokens": kwargs.get("max_tokens", self.config.max_tokens),
             },
         }
-        # 注入工具定义（function calling）
+        # enjektearactanim (function calling) 
         if "tools" in kwargs and kwargs["tools"]:
             request_body["tools"] = kwargs["tools"]
             request_body["tool_choice"] = kwargs.get("tool_choice", "auto")
@@ -159,13 +159,13 @@ class TongyiModel(BaseModel):
             data = response.json()
             latency_ms = (time.time() - start_time) * 1000
 
-            # 解析响应
+            # ayristiryanit
             output = data.get("output", {})
             content = output.get("text", "")
             finish_reason = output.get("finish_reason", "stop")
             tool_calls = []
 
-            # 使用统计
+            # kullanistatistik
             usage_data = data.get("usage", {})
             usage = Usage(
                 prompt_tokens=usage_data.get("input_tokens", 0),
@@ -197,13 +197,13 @@ class TongyiModel(BaseModel):
             except Exception:
                 error_detail = f"HTTP {e.response.status_code}"
 
-            raise TongyiAPIError(f"通义千问 API 错误: {error_detail}")
+            raise TongyiAPIError(f"Tongyi API hata: {error_detail}")
         except httpx.RequestError as e:
-            raise TongyiAPIError(f"网络请求失败: {type(e).__name__}")
+            raise TongyiAPIError(f"ag istegibasarisiz: {type(e).__name__}")
 
     @safe_execute(max_attempts=3, timeout=30.0)
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
-        """流式生成"""
+        """akisolustur"""
         client = await self._get_client()
 
         request_body = {
@@ -213,7 +213,7 @@ class TongyiModel(BaseModel):
             },
             "parameters": {
                 "temperature": kwargs.get("temperature", self.config.temperature),
-                "incremental_output": True,  # 增量输出
+                "incremental_output": True,  # artmiktarcikti
             },
         }
 
@@ -247,12 +247,12 @@ class TongyiModel(BaseModel):
             except Exception:
                 error_detail = f"HTTP {e.response.status_code}"
 
-            raise TongyiAPIError(f"通义千问 API 错误: {error_detail}")
+            raise TongyiAPIError(f"Tongyi API hata: {error_detail}")
         except httpx.RequestError as e:
-            raise TongyiAPIError(f"网络请求失败: {type(e).__name__}")
+            raise TongyiAPIError(f"ag istegibasarisiz: {type(e).__name__}")
 
 
 class TongyiAPIError(Exception):
-    """通义千问 API 错误"""
+    """Tongyi API hata"""
 
     pass

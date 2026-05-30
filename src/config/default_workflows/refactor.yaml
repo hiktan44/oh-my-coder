@@ -1,32 +1,32 @@
 name: refactor
-description: 重构流程：分析热点 → 制定计划 → 执行重构 → 验证 → 测试
+description: yeniden duzenlemeakis: analizsicaknokta → olusturplan → yurutyeniden duzenleme → dogrulama → test
 steps:
   - id: analyst
     agent: analyst
-    description: 分析代码热点和坏味道
+    description: analizkodsicaknoktavekotutat
     timeout: 300
     retry: 0
   - id: planner
     agent: planner
-    description: 制定重构计划
+    description: olusturyeniden duzenlemeplan
     dependencies: [analyst]
     timeout: 300
     retry: 0
   - id: code-simplifier
     agent: code-simplifier
-    description: 执行重构
+    description: yurutyeniden duzenleme
     dependencies: [planner]
     timeout: 600
     retry: 1
   - id: verifier
     agent: verifier
-    description: 验证重构正确性
+    description: dogrulamayeniden duzenlemedogru
     dependencies: [code-simplifier]
     timeout: 300
     retry: 0
   - id: test-engineer
     agent: test-engineer
-    description: 运行测试确保无回归
+    description: satirtestsaglaryokgerigeri
     dependencies: [verifier]
     timeout: 300
     retry: 0

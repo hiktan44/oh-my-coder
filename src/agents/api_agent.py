@@ -1,13 +1,13 @@
 """
-API Agent - REST API 设计与实现智能体
+API Agent - REST API Aracıları tasarlayın ve uygulayın
 
-职责：
-1. RESTful API 设计与规范编写
-2. API 端点实现（FastAPI/Flask）
-3. API 文档生成（OpenAPI/Swagger）
-4. API 认证与权限设计
+Sorumluluklar:
+1. RESTful API Tasarım ve spesifikasyon yazımı
+2. API uç nokta uygulaması (FastAPI/Flask)
+3. API Belge oluşturma (OpenAPI/Swagger)
+4. API Kimlik doğrulama ve izin tasarımı
 
-模型层级：MEDIUM（平衡）
+Modeli seviyesi:MEDIUM(denge)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class APIAgent(BaseAgent):
-    """REST API 设计与实现智能体"""
+    """REST API Aracıları tasarlayın ve uygulayın"""
 
     name = "api"
-    description = "REST API 设计与实现智能体 - 端点、认证、文档"
+    description = "REST API Aracıları tasarlayın ve uygulayın - Uç Noktalar, Kimlik Doğrulama, Dokümantasyon"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "🔌"
@@ -34,45 +34,45 @@ class APIAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个专业的 API 架构师。
+        return """sen bir profesyonelsin API Mimar.
 
-## 角色
-你擅长 RESTful API 设计与实现，关注规范性、可扩展性和开发者体验。
+## Rol
+sen iyisin RESTful API Standardizasyon, ölçeklenebilirlik ve geliştirici deneyimine odaklanan tasarım ve uygulama.
 
-## RESTful 设计原则
-1. **资源导向** - 用名词不用动词：/users, /orders
-2. **HTTP 方法** - GET(查询), POST(创建), PUT(全量更新), PATCH(部分更新), DELETE(删除)
-3. **状态码** - 200/201/204/400/401/403/404/500
-4. **版本管理** - /v1/users, /v2/users
+## RESTful tasarım ilkeleri
+1. **kaynak odaklı** - Fiiller yerine isimler kullanın:/users, /orders
+2. **HTTP yöntem** - GET(Sorgu), POST(yaratmak), PUT(Tam güncelleme), PATCH(Kısmi güncelleme), DELETE(silmek)
+3. **durum kodu** - 200/201/204/400/401/403/404/500
+4. **Sürüm yönetimi** - /v1/users, /v2/users
 
-## API 认证方案
+## API Sertifika şeması
 - JWT Bearer Token
 - API Key
 - OAuth 2.0
 
-## 输出格式
+## Çıkış formatı
 
-### 1. API 端点设计
+### 1. API uç nokta tasarımı
 ```
-端点                        方法    描述
+Uç Nokta Yöntemi Açıklaması
 ────────────────────────────────────────────────────────
-/api/v1/users              GET     获取用户列表
-/api/v1/users/{id}         GET     获取单个用户
-/api/v1/users              POST    创建用户
-/api/v1/users/{id}         PUT     更新用户
-/api/v1/users/{id}         DELETE  删除用户
+/api/v1/users              GET     Kullanıcı listesini al
+/api/v1/users/{id}         GET     Tek bir kullanıcı edinin
+/api/v1/users              POST    Kullanıcı oluştur
+/api/v1/users/{id}         PUT     Kullanıcıyı güncelle
+/api/v1/users/{id}         DELETE  Kullanıcıyı sil
 ```
 
-### 2. 端点详细定义
+### 2. Uç nokta ayrıntılı tanımı
 ```
 GET /api/v1/users
 
-请求参数:
-  - page: int (query)     页码，默认1
-  - page_size: int (query) 每页数量，默认20，最大100
-  - keyword: str (query)  搜索关键词
+Parametreleri talep et:
+  - page: int (query)     Sayfa numarası, varsayılan1
+  - page_size: int (query) Sayfa başına sayı, varsayılan20,maksimum100
+  - keyword: str (query)  Anahtar kelimeleri arayın
 
-响应:
+cevap:
   200 OK
   {
     "data": [...],
@@ -82,12 +82,12 @@ GET /api/v1/users
   }
 ```
 
-### 3. FastAPI 实现示例
+### 3. FastAPI Uygulama örneği
 ```python
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/v1/users", tags=["用户"])
+router = APIRouter(prefix="/api/v1/users", tags=["kullanıcı"])
 
 class UserCreate(BaseModel):
     username: str
@@ -106,25 +106,25 @@ async def create_user(user: UserCreate):
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行 API 设计"""
+        """uygulamak API tasarım"""
         if context.previous_outputs.get("architect"):
             prompt.append(
                 {
                     "role": "user",
-                    "content": f"## 架构设计\n{context.previous_outputs['architect'].result}",
+                    "content": f"## Mimari tasarım\n{context.previous_outputs['architect'].result}",
                 }
             )
 
         api_hint = """
 
-请设计 RESTful API：
-1. 分析业务需求，确定资源与端点
-2. 定义 HTTP 方法和状态码
-3. 设计请求/响应格式
-4. 实现 FastAPI 代码
-5. 生成 OpenAPI 文档
+Lütfen tasarlayın RESTful API:
+1. İş ihtiyaçlarını analiz edin ve kaynakları ve uç noktaları belirleyin
+2. tanım HTTP Yöntemler ve durum kodları
+3. tasarım talebi/yanıt formatı
+4. sonuçlandırmak FastAPI kod
+5. oluşturmak OpenAPI belge
 
-请优先使用 FastAPI 框架。
+Lütfen öncelik verin FastAPI çerçeve.
 """
         prompt.append({"role": "user", "content": api_hint})
 
@@ -140,14 +140,14 @@ async def create_user(user: UserCreate):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "在 app.py 中注册路由",
-                "为端点添加单元测试",
-                "生成交互式 API 文档",
+                "var olmak app.py Rotaları kaydedin",
+                "Uç noktalar için birim testleri ekleme",
+                "Etkileşimli oluştur API belge",
             ],
             next_agent="executor",
         )

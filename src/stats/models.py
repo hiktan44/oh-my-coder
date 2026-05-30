@@ -1,7 +1,7 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-文件统计结果的数据模型定义。
+dosyaistatistiksonucsayigoremodeltanim. 
 """
 
 from dataclasses import dataclass, field
@@ -9,48 +9,48 @@ from dataclasses import dataclass, field
 
 @dataclass
 class FileStats:
-    """按类型统计的文件信息。"""
+    """goretipistatistikdosyabilgi. """
 
     count: int = 0
-    """文件数量"""
+    """dosya sayisimiktar"""
 
     size: int = 0
-    """文件总大小（字节）"""
+    """dosyatoplambuyukkucuk (byte) """
 
     files: list[str] = field(default_factory=list)
-    """文件路径列表（相对于项目根目录）"""
+    """dosyayolliste (icindeprojekokdizin) """
 
 
 @dataclass
 class StatsResult:
-    """文件统计结果。"""
+    """dosyaistatistiksonuc. """
 
     total_files: int = 0
-    """总文件数"""
+    """toplamdosya sayisi"""
 
     total_dirs: int = 0
-    """总目录数"""
+    """toplamdizinsayi"""
 
     total_size: int = 0
-    """总大小（字节）"""
+    """toplambuyukkucuk (byte) """
 
     by_type: dict[str, FileStats] = field(default_factory=dict)
-    """按文件类型分类的统计结果"""
+    """goredosyatippuansinifistatistiksonuc"""
 
     by_directory: dict[str, int] = field(default_factory=dict)
-    """按目录分类的文件数量"""
+    """goredizinpuansinifdosya sayisimiktar"""
 
     errors: list[str] = field(default_factory=list)
-    """统计过程中遇到的错误列表"""
+    """istatistiksurecicindekarsilaskadarhataliste"""
 
     root_path: str = ""
-    """统计的根目录路径"""
+    """istatistikkokdizin yolu"""
 
     def to_dict(self) -> dict:
-        """将统计结果转换为字典。
+        """istatistiksonucdonusturicinsozluk. 
 
         Returns:
-            可序列化的字典
+            olabilirsirasozluk
         """
         return {
             "total_files": self.total_files,
@@ -73,13 +73,13 @@ class StatsResult:
 
     @staticmethod
     def _format_size(size_bytes: int) -> str:
-        """将字节大小格式化为人类可读的字符串。
+        """bytebuyukkucukformaticinkisisinifolabilirokukarakter dizisi. 
 
         Args:
-            size_bytes: 字节大小
+            size_bytes: bytebuyukkucuk
 
         Returns:
-            格式化后的大小字符串，如 "1.23 MB"
+            formatsonrabuyukkucukkarakter dizisi, ornegin "1.23 MB"
         """
         for unit in ["B", "KB", "MB", "GB", "TB"]:
             if size_bytes < 1024:
@@ -88,21 +88,21 @@ class StatsResult:
         return f"{size_bytes:.2f} PB"
 
     def __str__(self) -> str:
-        """生成人类可读的统计报告。"""
+        """olusturkisisinifolabilirokuistatistikrapor. """
         lines = []
         lines.append("=" * 50)
-        lines.append("📊 项目文件统计报告")
+        lines.append("📊 projedosyaistatistikrapor")
         lines.append("=" * 50)
-        lines.append(f"根目录: {self.root_path}")
+        lines.append(f"kokdizin: {self.root_path}")
         lines.append("")
-        lines.append(f"📁 总目录数: {self.total_dirs}")
-        lines.append(f"📄 总文件数: {self.total_files}")
-        lines.append(f"💾 总大小:   {self._format_size(self.total_size)}")
+        lines.append(f"📁 toplamdizinsayi: {self.total_dirs}")
+        lines.append(f"📄 toplamdosya sayisi: {self.total_files}")
+        lines.append(f"💾 toplambuyukkucuk:   {self._format_size(self.total_size)}")
         lines.append("")
 
         if self.by_type:
-            lines.append("📂 按文件类型统计:")
-            lines.append(f"{'类型':<25} {'数量':>8} {'大小':>12}")
+            lines.append("📂 goredosyatipistatistik:")
+            lines.append(f"{'tip':<25} {'sayimiktar':>8} {'buyukkucuk':>12}")
             lines.append("-" * 47)
             for file_type, stats in self.by_type.items():
                 lines.append(
@@ -111,22 +111,22 @@ class StatsResult:
             lines.append("")
 
         if self.by_directory:
-            lines.append("📁 按目录统计 (Top 20):")
-            lines.append(f"{'目录':<40} {'数量':>8}")
+            lines.append("📁 goredizinistatistik (Top 20):")
+            lines.append(f"{'dizin':<40} {'sayimiktar':>8}")
             lines.append("-" * 48)
             for i, (directory, count) in enumerate(self.by_directory.items()):
                 if i >= 20:
-                    lines.append(f"{'... (更多)':<40}")
+                    lines.append(f"{'... (dahacok)':<40}")
                     break
                 lines.append(f"{directory:<40} {count:>8}")
             lines.append("")
 
         if self.errors:
-            lines.append(f"⚠️ 统计过程中的错误 ({len(self.errors)}):")
+            lines.append(f"⚠️ istatistiksurecicindehata ({len(self.errors)}):")
             for err in self.errors[:5]:
                 lines.append(f"  - {err}")
             if len(self.errors) > 5:
-                lines.append(f"  ... 还有 {len(self.errors) - 5} 个错误")
+                lines.append(f"  ... halavar {len(self.errors) - 5} hata")
             lines.append("")
 
         lines.append("=" * 50)

@@ -1,25 +1,25 @@
 from __future__ import annotations
 
 """
-交叉验证层 - Agent 交叉验证机制
+çapraz doğrulama katmanı - Agent Çapraz doğrulama mekanizması
 
-背景：
-CLI run --cross-validate 时，工作流结束后自动执行交叉验证。
+arka plan:
+CLI run --cross-validate , iş akışı sona erdikten sonra çapraz doğrulama otomatik olarak gerçekleştirilir.
 
-工作原理：
-1. 工作流主 Agent 执行完毕 → 产出 result + artifacts
-2. 从 result.outputs 中提取各 Agent 的输出
-3. 用独立验证视角重新审视：
-   - 原 Agent 做了啥？
-   - 有没有逻辑漏洞/安全问题/遗漏？
-   - 结果可信吗？
-4. 输出结构化报告：PASS / FAIL / NEED_FIX + 具体问题列表
+Nasıl çalışır:
+1. iş akışı yöneticisi Agent Yürütme tamamlandı → çıktı result + artifacts
+2. itibaren result.outputs Her birini çıkarın Agent Çıktısı
+3. Bağımsız bir doğrulama perspektifiyle yeniden inceleyin:
+   - Orijinal Agent Ne yaptın?
+   - Mantıksal boşluklar var mı?/Güvenlik Sorusu/Eksik?
+   - Sonuçlar güvenilir mi?
+4. Çıktı yapılandırılmış raporu:PASS / FAIL / NEED_FIX + Belirli soruların listesi
 
-支持两种验证模式：
-- VERIFY_ONLY（默认）：只报告问题，不修改代码
-- AUTO_FIX：发现问题后自动调用 executor 修复（高风险）
+İki doğrulama modu desteklenir:
+- VERIFY_ONLY(Varsayılan): Yalnızca kodu değiştirmeden sorunları bildirin
+- AUTO_FIX: Bir sorun tespit edildiğinde otomatik olarak çağrılır executor Onarım (yüksek risk)
 
-每个交叉验证结果写入 .omc/state/cross_validation/<validation_id>.json
+Her çapraz doğrulama sonucu şu adrese yazılır: .omc/state/cross_validation/<validation_id>.json
 """
 
 
@@ -38,56 +38,56 @@ if TYPE_CHECKING:
 from ..core.router import TaskType
 
 # ------------------------------------------------------------------
-# 验证结果模型
+# Ortaya çıkan modeli doğrulama
 # ------------------------------------------------------------------
 
 
 class ValidationStatus(Enum):
-    PASS = "pass"  # 验证通过
-    FAIL = "fail"  # 验证失败（有明显问题）
-    NEED_FIX = "need_fix"  # 需要修复
-    SKIPPED = "skipped"  # 跳过（无输出可验证）
+    PASS = "pass"  # Doğrulama başarılı oldu
+    FAIL = "fail"  # Doğrulama başarısız oldu (bariz sorun)
+    NEED_FIX = "need_fix"  # Tamir edilmesi gerekiyor
+    SKIPPED = "skipped"  # Atla (doğrulanacak çıktı yok)
 
 
 class ValidationSeverity(Enum):
-    CRITICAL = "critical"  # 必须修复
-    HIGH = "high"  # 强烈建议修复
-    MEDIUM = "medium"  # 建议关注
-    LOW = "low"  # 可忽略
+    CRITICAL = "critical"  # tamir edilmeli
+    HIGH = "high"  # Düzeltilmesi şiddetle tavsiye edilir
+    MEDIUM = "medium"  # Dikkat edilmesi tavsiye edilir
+    LOW = "low"  # Göz ardı edilebilir
 
 
 @dataclass
 class ValidationIssue:
-    """发现的问题"""
+    """Bulunan sorunlar"""
 
     severity: ValidationSeverity
     category: str  # logic / security / completeness / style / performance
     description: str
-    location: str = ""  # 文件:行号 或 "general"
+    location: str = ""  # belge:satır numarası veya "general"
     suggestion: str = ""
-    original_agent: str = ""  # 原 Agent 名称
-    evidence: str = ""  # 证据片段
+    original_agent: str = ""  # Orijinal Agent isim
+    evidence: str = ""  # delil parçaları
 
 
 @dataclass
 class CrossValidationResult:
-    """交叉验证报告"""
+    """çapraz doğrulama raporu"""
 
     validation_id: str
     workflow_id: str
     workflow_name: str
     status: ValidationStatus
-    agent_outputs: dict[str, str]  # agent_name → 输出的纯文本摘要
+    agent_outputs: dict[str, str]  # agent_name → Çıktının düz metin özeti
     issues: list[ValidationIssue] = field(default_factory=list)
-    raw_validation_text: str = ""  # 模型原始输出
+    raw_validation_text: str = ""  # Ham çıktı modeli
     execution_time: float = 0.0
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     mode: str = "verify_only"  # verify_only | auto_fix
-    fix_applied: bool = False  # 是否已自动修复
+    fix_applied: bool = False  # Otomatik olarak onarıldı mı?
 
     @property
     def pass_rate(self) -> str:
-        """验证通过率"""
+        """Doğrulama geçiş oranı"""
         total = len(self.issues)
         if total == 0:
             return "100%"
@@ -102,24 +102,24 @@ class CrossValidationResult:
         return "80%"
 
     def to_summary(self) -> str:
-        """生成人类可读摘要"""
+        """İnsanların okuyabileceği özetler oluşturun"""
         lines = [
-            "## 🔍 交叉验证报告",
+            "## 🔍 çapraz doğrulama raporu",
             "",
-            "| 项目 | 值 |",
+            "| proje | değer |",
             "|------|-----|",
-            f"| 验证 ID | `{self.validation_id}` |",
-            f"| 工作流 | `{self.workflow_name}` (`{self.workflow_id}`) |",
-            f"| 验证状态 | **{self.status.value.upper()}** |",
-            f"| 发现问题 | {len(self.issues)} 个 |",
-            f"| 验证用时 | {self.execution_time:.1f}s |",
-            f"| 验证模式 | `{self.mode}` |",
+            f"| doğrulamak ID | `{self.validation_id}` |",
+            f"| İş akışı | `{self.workflow_name}` (`{self.workflow_id}`) |",
+            f"| Doğrulama durumu | **{self.status.value.upper()}** |",
+            f"| Sorun bulundu | {len(self.issues)} bireysel |",
+            f"| Doğrulama zamanı | {self.execution_time:.1f}s |",
+            f"| Kimlik doğrulama modu | `{self.mode}` |",
             "",
         ]
         if self.issues:
-            lines.append("### 发现的问题")
+            lines.append("### Bulunan sorunlar")
             lines.append("")
-            lines.append("| 严重性 | 分类 | 描述 | 位置 |")
+            lines.append("| ciddiyet | sınıflandırma | betimlemek | Konum |")
             lines.append("|--------|------|------|------|")
             for issue in self.issues:
                 lines.append(
@@ -128,7 +128,7 @@ class CrossValidationResult:
                 )
             lines.append("")
             if self.issues[0].suggestion:
-                lines.append("### 修复建议")
+                lines.append("### Onarım önerileri")
                 for i, issue in enumerate(self.issues, 1):
                     if issue.suggestion:
                         lines.append(
@@ -136,20 +136,20 @@ class CrossValidationResult:
                         )
                 lines.append("")
         else:
-            lines.append("✅ 未发现明显问题\n")
+            lines.append("✅ Belirgin bir sorun bulunamadı\n")
         return "\n".join(lines)
 
 
 # ------------------------------------------------------------------
-# 交叉验证层（由 CLI 调用）
+# çapraz doğrulama katmanı (şunlardan oluşur: CLI Arama)
 # ------------------------------------------------------------------
 
 
 class CrossValidationLayer:
     """
-    交叉验证层
+    çapraz doğrulama katmanı
 
-    用法：
+    kullanım:
     ```python
     layer = CrossValidationLayer(
         model_router=router,
@@ -159,45 +159,45 @@ class CrossValidationLayer:
     ```
     """
 
-    # 交叉验证专用的系统提示词
-    VALIDATION_SYSTEM_PROMPT = """你是一个严谨的代码审查专家，擅长批判性思维。
+    # Çapraz doğrulamaya ayrılmış sistem istem sözcükleri
+    VALIDATION_SYSTEM_PROMPT = """Sıkı bir kod inceleme uzmanısınız ve eleştirel düşünme konusunda iyisiniz.
 
-## 角色
-你是一个独立的「第二双眼睛」，专门审视其他 AI Agent 的产出。
-你不会复刻前序 Agent 的结论，而是**质疑、验证、补充**。
+## Rol
+Başkalarına bakma konusunda uzmanlaşmış bağımsız bir "ikinci çift göz"sünüz AI Agent çıktı.
+Giriş kısmını tekrarlamayacaksınız Agent sonuç ama**Soru sor, doğrula, tamamla**.
 
-## 工作方式
-1. 阅读前序 Agent 的完整产出
-2. 从以下维度独立审查：
-   - **逻辑完整性**：功能是否完整实现？边界条件处理了吗？
-   - **安全性**：是否有 SQL 注入、XSS、敏感信息泄露风险？
-   - **代码质量**：命名、可读性、是否有明显的代码坏味道？
-   - **测试覆盖**：是否覆盖了主要场景？边界测试呢？
-   - **潜在 Bug**：逻辑错误、空指针、并发问题？
-   - **遗漏需求**：任务要求中有没有被忽略的点？
-3. 如果发现问题，给出精确的位置和修复建议
+## çalışma yöntemi
+1. Önsözü okuyun Agent Tam çıktısı
+2. Aşağıdaki boyutlardan bağımsız inceleme:
+   - **mantıksal bütünlük**: Fonksiyon tam olarak uygulandı mı? Sınır koşulları ele alındı ​​mı?
+   - **güvenlik**: Var olup olmadığı SQL enjeksiyon,XSS, Hassas bilgilerin sızma riski var mı?
+   - **Kod kalitesi**: Adlandırma, okunabilirlik, belirgin kod kokuları var mı?
+   - **test kapsamı**: Ana sahneler kapsanıyor mu? Peki ya sınır testi?
+   - **potansiyel Bug**: Mantık hataları, boş işaretçiler, eşzamanlılık sorunları?
+   - **Eksik gereksinimler**: Görev gereksinimlerinde gözden kaçan noktalar var mı?
+3. Bir sorun bulunursa kesin konum ve düzeltme önerileri verilir
 
-## 输出格式
+## Çıkış formatı
 
-### 验证结论
+### Sonucu doğrulayın
 PASS / FAIL / NEED_FIX
 
-### 发现的问题（如有）
-对每个问题输出：
+### Bulunan sorunlar (varsa)
+Her soru çıktısı için:
 ```
-### [CRITICAL] logic: 空指针检查缺失
-- 位置: src/main.py:42
-- 证据: if user.profile is None: ...
-- 建议: 添加空值断言或默认行为
+### [CRITICAL] logic: Boş işaretçi denetimi eksik
+- Konum: src/main.py:42
+- kanıt: if user.profile is None: ...
+- telkin: Boş iddia veya varsayılan davranış ekle
 ```
 
-### 置信度
-你对这次验证结果的信心：HIGH / MEDIUM / LOW
+### Kendinden emin
+Bu doğrulamanın sonuçlarına olan güveniniz:HIGH / MEDIUM / LOW
 
-## 重要原则
-- **有证据再说**，不要无端猜测
-- 优先关注 CRITICAL 和 HIGH 问题
-- 如果前序产出已经很完善，明确说明 PASS
+## önemli ilkeler
+- **Kanıt varsa konuşalım**, mantıksız tahminlerde bulunmayın
+- Dikkate öncelik verin CRITICAL Ve HIGH soru
+- Ön sipariş çıktısı zaten tamamlanmışsa açıkça belirtin PASS
 """
 
     def __init__(
@@ -210,7 +210,7 @@ PASS / FAIL / NEED_FIX
         self._cv_dir = self.state_dir / "cross_validation"
 
     def _extract_outputs(self, result) -> dict[str, str]:
-        """从 WorkflowResult 中提取纯文本摘要"""
+        """itibaren WorkflowResult Düz metin özetlerini şuradan çıkarın:"""
         outputs: dict[str, str] = {}
         for agent_name, output in result.outputs.items():
             if hasattr(output, "result") and output.result:
@@ -227,7 +227,7 @@ PASS / FAIL / NEED_FIX
         use_cache: bool = True,
         **kwargs,
     ):
-        """调用模型路由器"""
+        """Model yönlendiriciyi çağırın"""
         return await self.model_router.route_and_call(
             task_type=task_type,
             messages=messages,
@@ -241,7 +241,7 @@ PASS / FAIL / NEED_FIX
         workflow_name: str,
         agent_outputs: dict[str, str],
     ) -> list[dict[str, str]]:
-        """构建发送给模型的 prompt"""
+        """Modele gönderilenleri oluşturun prompt"""
         output_blocks = []
         for agent_name, output_text in agent_outputs.items():
             output_blocks.append(f"### {agent_name}\n\n{output_text}\n")
@@ -251,12 +251,12 @@ PASS / FAIL / NEED_FIX
             {
                 "role": "user",
                 "content": (
-                    f"## 待验证工作流\n**工作流名称**: {workflow_name}\n\n"
-                    f"## 前序 Agent 产出\n\n{combined}\n\n"
-                    f"---\n请执行交叉验证，从逻辑/安全/完整性/代码质量角度审视上述产出。"
-                    f"对每个发现的问题，给出严重性（CRITICAL/HIGH/MEDIUM/LOW）、"
-                    f"分类（logic/security/completeness/style/performance）、"
-                    f"位置和修复建议。如果产出完善，明确说明 PASS。"
+                    f"## Doğrulanacak iş akışı\n**İş akışı adı**: {workflow_name}\n\n"
+                    f"## Önsöz Agent çıktı\n\n{combined}\n\n"
+                    f"---\nLütfen mantıktan çapraz doğrulama gerçekleştirin/Emniyet/bütünlük/Yukarıdaki çıktıya kod kalitesi açısından bakın."
+                    f"Bulunan her sorun için önem derecesini belirtin (CRITICAL/HIGH/MEDIUM/LOW),"
+                    f"Sınıflandırma(logic/security/completeness/style/performance),"
+                    f"Yer ve onarım önerileri. Çıktı mükemmelse bunu açıkça belirtin PASS."
                 ),
             }
         ]
@@ -268,20 +268,20 @@ PASS / FAIL / NEED_FIX
         mode: str = "verify_only",
     ) -> CrossValidationResult:
         """
-        对工作流结果执行交叉验证
+        İş akışı sonuçlarında çapraz doğrulama gerçekleştirin
 
         Args:
-            workflow_result: Orchestrator.execute_workflow 返回的 WorkflowResult
-            workflow_name: 工作流名称
+            workflow_result: Orchestrator.execute_workflow geri döndü WorkflowResult
+            workflow_name: İş akışı adı
             mode: verify_only | auto_fix
 
         Returns:
-            CrossValidationResult: 验证报告
+            CrossValidationResult: Doğrulama raporu
         """
         start_time = time.time()
         validation_id = str(uuid.uuid4())[:8]
 
-        # 1. 提取各 Agent 的输出
+        # 1. Her birini çıkart Agent Çıktısı
         agent_outputs = self._extract_outputs(workflow_result)
 
         if not agent_outputs:
@@ -295,10 +295,10 @@ PASS / FAIL / NEED_FIX
                 mode=mode,
             )
 
-        # 2. 构建验证消息
+        # 2. Doğrulama mesajı oluştur
         messages = self._build_validation_prompt(workflow_name, agent_outputs)
 
-        # 3. 直接调用模型（不依赖 Agent 注册系统）
+        # 3. Modeli doğrudan arayın (güvenmeden Agent Kayıt sistemi)
         try:
             from ..models.base import Message
 
@@ -322,7 +322,7 @@ PASS / FAIL / NEED_FIX
                 mode=mode,
             )
 
-        # 4. 解析结果
+        # 4. Sonuçları ayrıştır
         issues = self._parse_validation_output(raw_text or "")
         status = self._determine_status(issues)
 
@@ -338,7 +338,7 @@ PASS / FAIL / NEED_FIX
             mode=mode,
         )
 
-        # 5. 保存结果
+        # 5. Sonuçları kaydet
         self._save_result(result)
 
         return result
@@ -348,11 +348,11 @@ PASS / FAIL / NEED_FIX
         workflow_name: str,
         agent_outputs: dict[str, str],
     ) -> list[dict[str, str]]:
-        """兼容性别名"""
+        """Uyumlu cinsiyet adları"""
         return self._build_validation_messages(workflow_name, agent_outputs)
 
     def _parse_validation_output(self, text: str) -> list[ValidationIssue]:
-        """从模型输出中解析出结构化问题列表"""
+        """Yapılandırılmış soru listesini model çıktısından ayrıştırma"""
         issues: list[ValidationIssue] = []
 
         if not text:
@@ -363,13 +363,13 @@ PASS / FAIL / NEED_FIX
 
         for line in lines:
             stripped = line.strip()
-            # 问题标题：### [CRITICAL] xxx 或 ### CRITICAL xxx
+            # Soru başlığı:### [CRITICAL] xxx veya ### CRITICAL xxx
             if stripped.startswith("### ["):
-                # 保存前一个问题
+                # Önceki soruyu kaydet
                 if current_issue and current_issue.description:
                     issues.append(current_issue)
 
-                # 解析 ### [CRITICAL] category: description
+                # ayrıştırmak ### [CRITICAL] category: description
                 bracket_end = stripped.find("]")
                 if bracket_end == -1:
                     continue
@@ -377,7 +377,7 @@ PASS / FAIL / NEED_FIX
                 severity_str = stripped[4:bracket_end].lower()
                 rest = stripped[bracket_end + 1 :].strip()
 
-                # 去掉开头的 # 或 .
+                # başlangıcını kaldır # veya .
                 rest = rest.lstrip("#").lstrip(".").strip()
 
                 severity = self._parse_severity(severity_str)
@@ -397,15 +397,15 @@ PASS / FAIL / NEED_FIX
                 )
 
             elif current_issue:
-                # 收集问题的详细信息
+                # Sorunla ilgili ayrıntıları toplayın
                 lower = stripped.lower()
-                if lower.startswith(("- 位置:", "位置:")):
+                if lower.startswith(("- Konum:", "Konum:")):
                     loc = stripped.split(":", 1)[1].strip()
                     current_issue.location = loc
-                elif lower.startswith(("- 证据:", "证据:")):
+                elif lower.startswith(("- kanıt:", "kanıt:")):
                     ev = stripped.split(":", 1)[1].strip()
                     current_issue.evidence = ev
-                elif lower.startswith(("- 建议:", "建议:")):
+                elif lower.startswith(("- telkin:", "telkin:")):
                     sug = stripped.split(":", 1)[1].strip()
                     current_issue.suggestion = sug
 
@@ -415,18 +415,18 @@ PASS / FAIL / NEED_FIX
         return issues
 
     def _parse_severity(self, s: str) -> ValidationSeverity:
-        """解析严重性等级"""
+        """Ayrıştırma önem düzeyleri"""
         s = s.lower()
-        if "critical" in s or "严重" in s:
+        if "critical" in s or "cidden" in s:
             return ValidationSeverity.CRITICAL
-        if "high" in s or "高" in s:
+        if "high" in s or "yüksek" in s:
             return ValidationSeverity.HIGH
-        if "medium" in s or "中" in s:
+        if "medium" in s or "orta" in s:
             return ValidationSeverity.MEDIUM
         return ValidationSeverity.LOW
 
     def _determine_status(self, issues: list[ValidationIssue]) -> ValidationStatus:
-        """根据问题列表确定验证状态"""
+        """Sorun listesine göre doğrulama durumunu belirleyin"""
         if not issues:
             return ValidationStatus.PASS
         critical = any(i.severity == ValidationSeverity.CRITICAL for i in issues)
@@ -438,7 +438,7 @@ PASS / FAIL / NEED_FIX
         return ValidationStatus.PASS
 
     def _save_result(self, result: CrossValidationResult):
-        """保存验证结果到文件"""
+        """Doğrulama sonuçlarını dosyaya kaydet"""
         self._cv_dir.mkdir(parents=True, exist_ok=True)
         result_file = self._cv_dir / f"{result.validation_id}.json"
         with open(result_file, "w", encoding="utf-8") as f:

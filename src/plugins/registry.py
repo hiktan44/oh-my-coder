@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 """
-插件注册表
+eklentikayittablo
 
-提供插件元信息管理、@register 装饰器和全局注册表。
+saglareklentiogrebilgiyonet, @register dekoratifveglobalkayittablo. 
 """
 
 import contextlib
@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 
 class PluginStatus(str, Enum):
-    """插件状态"""
+    """eklentidurum"""
 
     ENABLED = "enabled"
     DISABLED = "disabled"
@@ -26,7 +26,7 @@ class PluginStatus(str, Enum):
 
 
 class PluginMetadata(BaseModel):
-    """插件元数据"""
+    """eklentiogresayigore"""
 
     name: str
     version: str
@@ -34,14 +34,14 @@ class PluginMetadata(BaseModel):
     author: str = ""
     homepage: str = ""
     license: str = "MIT"
-    requires: list[str] = []  # 依赖的其他插件名
+    requires: list[str] = []  # bagimlilikonunoeklentiisim
     entrypoint: str = ""
     tags: list[str] = []
 
 
 @dataclass
 class Plugin:
-    """插件实例"""
+    """eklentiornek"""
 
     metadata: PluginMetadata
     status: PluginStatus = PluginStatus.DISABLED
@@ -53,9 +53,9 @@ class Plugin:
 
 class PluginBase(ABC):
     """
-    插件基类
+    eklentitemel sinif
 
-    所有插件必须继承此类并实现必要方法。
+    vareklentizorunludevamustlenbusinifveuygulagerekliisteryontem. 
 
     Example::
 
@@ -71,40 +71,40 @@ class PluginBase(ABC):
     @property
     @abstractmethod
     def metadata(self) -> PluginMetadata:
-        """返回插件元数据"""
+        """donuseklentiogresayigore"""
 
     @abstractmethod
     def on_load(self) -> None:
-        """插件加载时调用"""
+        """eklentiyuklezamancagri"""
 
     def on_enable(self) -> None:
-        """插件启用时调用"""
+        """eklentibaslatkullanzamancagri"""
 
     def on_disable(self) -> None:
-        """插件禁用时调用"""
+        """eklentiyasakkullanzamancagri"""
 
     def on_unload(self) -> None:
-        """插件卸载时调用"""
+        """eklentikaldiryuklezamancagri"""
 
     def register_agents(self) -> list[type]:
-        """注册 Agent 类"""
+        """kayit Agent sinif"""
         return []
 
     def register_skills(self) -> dict[str, Callable]:
-        """注册技能函数"""
+        """kayitteknikedebilirfonksiyon"""
         return {}
 
     def register_hooks(self) -> dict[str, Callable]:
-        """注册钩子函数"""
+        """kayitkancaaltfonksiyon"""
         return {}
 
 
 class PluginRegistry:
     """
-    插件注册表
+    eklentikayittablo
 
-    管理已注册插件的元信息和实例。
-    支持通过 @register 装饰器或手动注册。
+    yonetkayiteklentiogrebilgiveornek. 
+    destekaraciligiyla @register dekoratifveyamanuelkayit. 
     """
 
     def __init__(self) -> None:
@@ -113,25 +113,25 @@ class PluginRegistry:
         self._skills: dict[str, Callable] = {}
         self._hooks: dict[str, list[Callable]] = {}
 
-    # ---- 注册 ----
+    # ---- kayit ----
 
     def register_plugin(self, plugin_cls: type[PluginBase]) -> Plugin:
         """
-        注册一个插件类（不加载，仅记录元信息）。
+        kayitbireklentisinif (hayiryukle, sadecekayitogrebilgi) . 
 
         Args:
-            plugin_cls: 插件类（必须继承 PluginBase）
+            plugin_cls: eklentisinif (zorunludevamustlen PluginBase) 
 
         Returns:
-            Plugin 实例
+            Plugin ornek
 
         Raises:
-            TypeError: 如果 plugin_cls 不是 PluginBase 子类
+            TypeError: eger plugin_cls hayirdir PluginBase altsinif
         """
         if not (isinstance(plugin_cls, type) and issubclass(plugin_cls, PluginBase)):
-            raise TypeError(f"{plugin_cls} 不是 PluginBase 的子类")
+            raise TypeError(f"{plugin_cls} hayirdir PluginBase altsinif")
 
-        # 临时实例化获取元信息
+        # geçicizamanornekalogrebilgi
         temp = plugin_cls()
         meta = temp.metadata
 
@@ -141,50 +141,50 @@ class PluginRegistry:
 
     def unregister(self, name: str) -> bool:
         """
-        注销插件。
+        yorumiptaleklenti. 
 
         Args:
-            name: 插件名称
+            name: eklentiad
 
         Returns:
-            是否成功
+            basarili mi
         """
         if name not in self._plugins:
             return False
         del self._plugins[name]
         return True
 
-    # ---- 查询 ----
+    # ---- sorgu ----
 
     def get(self, name: str) -> Optional[Plugin]:
-        """获取插件"""
+        """aleklenti"""
         return self._plugins.get(name)
 
     def list_plugins(self) -> list[Plugin]:
-        """列出所有插件"""
+        """tumunu listelevareklenti"""
         return list(self._plugins.values())
 
     def list_by_status(self, status: PluginStatus) -> list[Plugin]:
-        """按状态过滤插件"""
+        """goredurumfiltreleeklenti"""
         return [p for p in self._plugins.values() if p.status == status]
 
     def get_agent(self, name: str) -> Optional[type]:
-        """获取注册的 Agent 类"""
+        """alkayit Agent sinif"""
         return self._agents.get(name)
 
     def get_skill(self, name: str) -> Optional[Callable]:
-        """获取注册的技能"""
+        """alkayitteknikedebilir"""
         return self._skills.get(name)
 
     def execute_hook(self, name: str, *args: Any, **kwargs: Any) -> list[Any]:
         """
-        执行钩子
+        yurutkancaalt
 
         Args:
-            name: 钩子名称
+            name: kancaaltad
 
         Returns:
-            钩子执行结果列表
+            kancaaltyurutme sonuculiste
         """
         hooks = self._hooks.get(name, [])
         results: list[Any] = []
@@ -193,7 +193,7 @@ class PluginRegistry:
                 results.append(hook(*args, **kwargs))
         return results
 
-    # ---- 资源注册（由 loader 调用）----
+    # ---- kaynakkayit (tarafindan loader cagri) ----
 
     def _register_agents(self, agents: list[type]) -> None:
         for agent_cls in agents:
@@ -209,20 +209,20 @@ class PluginRegistry:
             self._hooks[hook_name].append(hook_fn)
 
     def _clear_resources(self, name: str) -> None:
-        """清除指定插件的已注册资源"""
+        """temizleharicbelirteklentikayitkaynak"""
         plugin = self._plugins.get(name)
         if not plugin or not plugin.instance:
             return
 
-        # 清除 agents
+        # temizleharic agents
         for agent_cls in plugin.instance.register_agents():
             self._agents.pop(agent_cls.__name__, None)
 
-        # 清除 skills
+        # temizleharic skills
         for skill_name in plugin.instance.register_skills():
             self._skills.pop(skill_name, None)
 
-        # 清除 hooks
+        # temizleharic hooks
         for hook_name in plugin.instance.register_hooks():
             hook_list = self._hooks.get(hook_name, [])
             self._hooks[hook_name] = [
@@ -232,25 +232,25 @@ class PluginRegistry:
             ]
 
 
-# ---- 全局注册表 ----
+# ---- globalkayittablo ----
 
 _registry: Optional[PluginRegistry] = None
 
 
 def get_registry() -> PluginRegistry:
-    """获取全局插件注册表"""
+    """alglobaleklentikayittablo"""
     global _registry
     if _registry is None:
         _registry = PluginRegistry()
     return _registry
 
 
-# ---- @register 装饰器 ----
+# ---- @register dekoratif ----
 
 
 def register(cls: type[PluginBase]) -> type[PluginBase]:
     """
-    类装饰器，将插件类注册到全局注册表。
+    sinifdekoratif, eklentisinifkayitkadarglobalkayittablo. 
 
     Example::
 
@@ -264,10 +264,10 @@ def register(cls: type[PluginBase]) -> type[PluginBase]:
                 pass
 
     Args:
-        cls: 插件类
+        cls: eklentisinif
 
     Returns:
-        原始类（无修改）
+        hamsinif (yokdegistir) 
     """
     get_registry().register_plugin(cls)
     return cls

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 """
-模板市场
+sablonpazar
 
-预定义工作流模板的存储和管理。
+ontanimis akisisablondepolamaveyonet. 
 """
 
 import json
@@ -19,7 +19,7 @@ from pydantic import BaseModel
 
 
 class TemplateCategory(str, Enum):
-    """模板分类"""
+    """sablonpuansinif"""
 
     BUILD = "build"
     REVIEW = "review"
@@ -33,7 +33,7 @@ class TemplateCategory(str, Enum):
 
 @dataclass
 class WorkflowStep:
-    """工作流步骤"""
+    """is akisiadim"""
 
     agent_name: str
     description: str = ""
@@ -45,7 +45,7 @@ class WorkflowStep:
 
 
 class TemplateMetadata(BaseModel):
-    """模板元数据"""
+    """sablonogresayigore"""
 
     name: str
     display_name: str
@@ -61,7 +61,7 @@ class TemplateMetadata(BaseModel):
 
 @dataclass
 class WorkflowTemplate:
-    """工作流模板"""
+    """is akisisablon"""
 
     metadata: TemplateMetadata
     steps: list[WorkflowStep]
@@ -69,7 +69,7 @@ class WorkflowTemplate:
     hooks: dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        """转换为字典"""
+        """donusturicinsozluk"""
         return {
             "metadata": self.metadata.model_dump(),
             "steps": [
@@ -90,7 +90,7 @@ class WorkflowTemplate:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> WorkflowTemplate:
-        """从字典创建"""
+        """sozlukolustur"""
         metadata = TemplateMetadata(**data["metadata"])
         steps = [
             WorkflowStep(
@@ -112,35 +112,35 @@ class WorkflowTemplate:
         )
 
 
-# 内置模板
+# icindeayarsablon
 BUILTIN_TEMPLATES: list[WorkflowTemplate] = [
-    # 构建模板
+    # olustursablon
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="build",
-            display_name="完整构建流程",
-            description="从规划到验证的完整开发流程",
+            display_name="tamolusturakis",
+            description="planlakadardogrulamatamacgonderakis",
             category=TemplateCategory.BUILD,
-            tags=["开发", "构建"],
+            tags=["acgonder", "olustur"],
             icon="🔨",
             difficulty="intermediate",
-            estimated_time="5-15分钟",
+            estimated_time="5-15puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="Planner", description="制定开发计划"),
+            WorkflowStep(agent_name="Planner", description="olusturacgonderplan"),
             WorkflowStep(
                 agent_name="Architect",
-                description="设计系统架构",
+                description="tasarimsistemmimari",
                 dependencies=["Planner"],
             ),
             WorkflowStep(
                 agent_name="Executor",
-                description="生成代码",
+                description="olusturkod",
                 dependencies=["Architect"],
             ),
             WorkflowStep(
                 agent_name="Verifier",
-                description="验证和测试",
+                description="dogrulamavetest",
                 dependencies=["Executor"],
             ),
         ],
@@ -148,204 +148,204 @@ BUILTIN_TEMPLATES: list[WorkflowTemplate] = [
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="quick-fix",
-            display_name="快速修复",
-            description="快速定位并修复问题",
+            display_name="hizlihizduzeltme",
+            description="hizlihizkonumveduzeltmesorun",
             category=TemplateCategory.BUILD,
-            tags=["修复", "快速"],
+            tags=["duzeltme", "hizlihiz"],
             icon="⚡",
             difficulty="beginner",
-            estimated_time="1-5分钟",
+            estimated_time="1-5puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="Executor", description="直接修复"),
-            WorkflowStep(agent_name="Verifier", description="验证修复"),
+            WorkflowStep(agent_name="Executor", description="dogrubaglanduzeltme"),
+            WorkflowStep(agent_name="Verifier", description="dogrulamaduzeltme"),
         ],
     ),
-    # 审查模板
+    # incelemesablon
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="review",
-            display_name="代码审查",
-            description="全面的代码质量审查",
+            display_name="kodinceleme",
+            description="tumyuzkodkalitemiktarinceleme",
             category=TemplateCategory.REVIEW,
-            tags=["审查", "质量"],
+            tags=["inceleme", "kalitemiktar"],
             icon="🔍",
             difficulty="beginner",
-            estimated_time="2-5分钟",
+            estimated_time="2-5puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="CodeReviewer", description="代码质量审查"),
-            WorkflowStep(agent_name="SecurityReviewer", description="安全漏洞扫描"),
+            WorkflowStep(agent_name="CodeReviewer", description="kodkalitemiktarinceleme"),
+            WorkflowStep(agent_name="SecurityReviewer", description="guvenlikguvenlik acigitara"),
         ],
     ),
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="pr-review",
-            display_name="PR 审查",
-            description="Pull Request 完整审查流程",
+            display_name="PR inceleme",
+            description="Pull Request tamincelemeakis",
             category=TemplateCategory.REVIEW,
-            tags=["PR", "审查"],
+            tags=["PR", "inceleme"],
             icon="📋",
             difficulty="intermediate",
-            estimated_time="5-10分钟",
+            estimated_time="5-10puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="CodeReviewer", description="代码质量审查"),
-            WorkflowStep(agent_name="SecurityReviewer", description="安全审查"),
-            WorkflowStep(agent_name="TestEngineer", description="测试覆盖检查"),
+            WorkflowStep(agent_name="CodeReviewer", description="kodkalitemiktarinceleme"),
+            WorkflowStep(agent_name="SecurityReviewer", description="guvenlikinceleme"),
+            WorkflowStep(agent_name="TestEngineer", description="testuzerine yazkontrol"),
             WorkflowStep(
                 agent_name="Writer",
-                description="生成审查报告",
+                description="olusturincelemerapor",
                 dependencies=["CodeReviewer", "SecurityReviewer", "TestEngineer"],
             ),
         ],
     ),
-    # 调试模板
+    # hata ayiklasablon
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="debug",
-            display_name="问题调试",
-            description="系统化的问题定位和修复",
+            display_name="sorunhata ayikla",
+            description="sistemsorunkonumveduzeltme",
             category=TemplateCategory.DEBUG,
-            tags=["调试", "修复"],
+            tags=["hata ayikla", "duzeltme"],
             icon="🐛",
             difficulty="intermediate",
-            estimated_time="5-20分钟",
+            estimated_time="5-20puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="Debugger", description="定位问题"),
+            WorkflowStep(agent_name="Debugger", description="konumsorun"),
             WorkflowStep(
-                agent_name="Tracer", description="追踪根因", dependencies=["Debugger"]
+                agent_name="Tracer", description="izleizlekokneden", dependencies=["Debugger"]
             ),
             WorkflowStep(
-                agent_name="Executor", description="修复问题", dependencies=["Tracer"]
+                agent_name="Executor", description="duzeltmesorun", dependencies=["Tracer"]
             ),
             WorkflowStep(
-                agent_name="Verifier", description="验证修复", dependencies=["Executor"]
+                agent_name="Verifier", description="dogrulamaduzeltme", dependencies=["Executor"]
             ),
         ],
     ),
-    # 测试模板
+    # testsablon
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="test",
-            display_name="生成测试",
-            description="自动生成单元测试",
+            display_name="olusturtest",
+            description="otomatikolusturtekilogretest",
             category=TemplateCategory.TEST,
-            tags=["测试", "单元测试"],
+            tags=["test", "tekilogretest"],
             icon="🧪",
             difficulty="beginner",
-            estimated_time="2-5分钟",
+            estimated_time="2-5puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="TestEngineer", description="生成单元测试"),
+            WorkflowStep(agent_name="TestEngineer", description="olusturtekilogretest"),
         ],
     ),
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="test-full",
-            display_name="完整测试",
-            description="生成单元测试和集成测试",
+            display_name="tamtest",
+            description="olusturtekilogretestvesetoltest",
             category=TemplateCategory.TEST,
-            tags=["测试", "集成测试"],
+            tags=["test", "setoltest"],
             icon="🔬",
             difficulty="intermediate",
-            estimated_time="5-10分钟",
+            estimated_time="5-10puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="TestEngineer", description="生成单元测试"),
+            WorkflowStep(agent_name="TestEngineer", description="olusturtekilogretest"),
             WorkflowStep(
                 agent_name="Executor",
-                description="生成集成测试",
+                description="olustursetoltest",
                 dependencies=["TestEngineer"],
             ),
             WorkflowStep(
-                agent_name="Verifier", description="运行测试", dependencies=["Executor"]
+                agent_name="Verifier", description="satirtest", dependencies=["Executor"]
             ),
         ],
     ),
-    # 重构模板
+    # yeniden duzenlemesablon
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="refactor",
-            display_name="代码重构",
-            description="智能代码重构和优化",
+            display_name="kodyeniden duzenleme",
+            description="akilliedebilirkodyeniden duzenlemeveiyi",
             category=TemplateCategory.REFACTOR,
-            tags=["重构", "优化"],
+            tags=["yeniden duzenleme", "iyi"],
             icon="🔧",
             difficulty="advanced",
-            estimated_time="10-30分钟",
+            estimated_time="10-30puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="CodeReviewer", description="识别重构点"),
+            WorkflowStep(agent_name="CodeReviewer", description="taniyeniden duzenlemenokta"),
             WorkflowStep(
                 agent_name="Architect",
-                description="设计重构方案",
+                description="tasarimyeniden duzenlemeplan",
                 dependencies=["CodeReviewer"],
             ),
             WorkflowStep(
                 agent_name="Executor",
-                description="执行重构",
+                description="yurutyeniden duzenleme",
                 dependencies=["Architect"],
             ),
             WorkflowStep(
-                agent_name="Verifier", description="验证功能", dependencies=["Executor"]
+                agent_name="Verifier", description="dogrulamaislev", dependencies=["Executor"]
             ),
         ],
     ),
-    # 文档模板
+    # dokumantasyonsablon
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="document",
-            display_name="生成文档",
-            description="自动生成项目文档",
+            display_name="olusturdokumantasyon",
+            description="otomatikolusturprojedokumantasyon",
             category=TemplateCategory.DOCUMENT,
-            tags=["文档", "README"],
+            tags=["dokumantasyon", "README"],
             icon="📝",
             difficulty="beginner",
-            estimated_time="2-10分钟",
+            estimated_time="2-10puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="Writer", description="生成文档"),
+            WorkflowStep(agent_name="Writer", description="olusturdokumantasyon"),
         ],
     ),
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="api-doc",
-            display_name="API 文档",
-            description="生成 API 文档",
+            display_name="API dokumantasyon",
+            description="olustur API dokumantasyon",
             category=TemplateCategory.DOCUMENT,
-            tags=["文档", "API"],
+            tags=["dokumantasyon", "API"],
             icon="📚",
             difficulty="beginner",
-            estimated_time="5-15分钟",
+            estimated_time="5-15puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="Explorer", description="分析 API 结构"),
+            WorkflowStep(agent_name="Explorer", description="analiz API yapi"),
             WorkflowStep(
                 agent_name="Writer",
-                description="生成 API 文档",
+                description="olustur API dokumantasyon",
                 dependencies=["Explorer"],
             ),
         ],
     ),
-    # 探索模板
+    # kesfetsablon
     WorkflowTemplate(
         metadata=TemplateMetadata(
             name="explore",
-            display_name="代码探索",
-            description="探索和理解代码库",
+            display_name="kodkesfet",
+            description="kesfetveanlakodkutuphane",
             category=TemplateCategory.CUSTOM,
-            tags=["探索", "分析"],
+            tags=["kesfet", "analiz"],
             icon="📖",
             difficulty="beginner",
-            estimated_time="2-10分钟",
+            estimated_time="2-10puandakika",
         ),
         steps=[
-            WorkflowStep(agent_name="Explorer", description="探索代码库"),
+            WorkflowStep(agent_name="Explorer", description="kesfetkodkutuphane"),
             WorkflowStep(
                 agent_name="Writer",
-                description="生成分析报告",
+                description="olusturanalizrapor",
                 dependencies=["Explorer"],
             ),
         ],
@@ -355,9 +355,9 @@ BUILTIN_TEMPLATES: list[WorkflowTemplate] = [
 
 class TemplateMarket:
     """
-    模板市场
+    sablonpazar
 
-    管理工作流模板的存储、发现和分享。
+    yonetis akisisablondepolama, kesfetvepaylas. 
 
     Example:
         >>> market = TemplateMarket()
@@ -367,10 +367,10 @@ class TemplateMarket:
 
     def __init__(self, template_dir: Optional[Path] = None):
         """
-        初始化模板市场
+        baslatsablonpazar
 
         Args:
-            template_dir: 自定义模板目录
+            template_dir: ozelsablondizin
         """
         self.template_dir = template_dir or Path(".omc/templates")
         self.template_dir.mkdir(parents=True, exist_ok=True)
@@ -379,19 +379,19 @@ class TemplateMarket:
         self._load_builtin()
 
     def _load_builtin(self) -> None:
-        """加载内置模板"""
+        """yukleicindeayarsablon"""
         for template in BUILTIN_TEMPLATES:
             self._templates[template.metadata.name] = template
 
     def get_template(self, name: str) -> Optional[WorkflowTemplate]:
         """
-        获取模板
+        alsablon
 
         Args:
-            name: 模板名称
+            name: sablonad
 
         Returns:
-            模板实例
+            sablonornek
         """
         return self._templates.get(name)
 
@@ -402,15 +402,15 @@ class TemplateMarket:
         difficulty: Optional[str] = None,
     ) -> list[WorkflowTemplate]:
         """
-        列出模板
+        listelesablon
 
         Args:
-            category: 分类过滤
-            tags: 标签过滤
-            difficulty: 难度过滤
+            category: puansiniffiltrele
+            tags: etiketfiltrele
+            difficulty: zorderecefiltrele
 
         Returns:
-            模板列表
+            sablonliste
         """
         templates = list(self._templates.values())
 
@@ -429,22 +429,22 @@ class TemplateMarket:
 
     def register_template(self, template: WorkflowTemplate) -> None:
         """
-        注册模板
+        kayitsablon
 
         Args:
-            template: 模板实例
+            template: sablonornek
         """
         self._templates[template.metadata.name] = template
 
     def save_template(self, template: WorkflowTemplate) -> Path:
         """
-        保存模板到文件
+        kaydetsablonkadardosya
 
         Args:
-            template: 模板实例
+            template: sablonornek
 
         Returns:
-            文件路径
+            dosyayol
         """
         file_path = self.template_dir / f"{template.metadata.name}.json"
 
@@ -455,13 +455,13 @@ class TemplateMarket:
 
     def load_template(self, name: str) -> Optional[WorkflowTemplate]:
         """
-        从文件加载模板
+        dosyayuklesablon
 
         Args:
-            name: 模板名称
+            name: sablonad
 
         Returns:
-            模板实例
+            sablonornek
         """
         file_path = self.template_dir / f"{name}.json"
 
@@ -476,19 +476,19 @@ class TemplateMarket:
         return template
 
     def load_all(self) -> None:
-        """加载所有自定义模板"""
+        """yuklevarozelsablon"""
         for file_path in self.template_dir.glob("*.json"):
             try:
                 self.load_template(file_path.stem)
             except Exception as e:
-                print(f"加载模板失败: {file_path}: {e}")
+                print(f"yuklesablonbasarisiz: {file_path}: {e}")
 
     def get_categories(self) -> list[dict[str, Any]]:
         """
-        获取所有分类
+        tumunu alpuansinif
 
         Returns:
-            分类信息列表
+            puansinifbilgiliste
         """
         categories = {}
         for template in self._templates.values():
@@ -505,13 +505,13 @@ class TemplateMarket:
 
     def search(self, query: str) -> list[WorkflowTemplate]:
         """
-        搜索模板
+        arasablon
 
         Args:
-            query: 搜索关键词
+            query: arama anahtar kelimeleri
 
         Returns:
-            匹配的模板列表
+            eslestirsablonliste
         """
         query = query.lower()
         results = []
@@ -529,12 +529,12 @@ class TemplateMarket:
         return results
 
 
-# 全局实例
+# globalornek
 _template_market: Optional[TemplateMarket] = None
 
 
 def get_template_market() -> TemplateMarket:
-    """获取全局模板市场实例"""
+    """alglobalsablonpazarornek"""
     global _template_market
     if _template_market is None:
         _template_market = TemplateMarket()

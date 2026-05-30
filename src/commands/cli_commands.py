@@ -4,15 +4,15 @@ from __future__ import annotations
 
 
 """
-Markdown 命令系统 - .omc/commands/
+Markdownkomuta sistemi- .omc/commands/
 
-支持在 .omc/commands/ 目录存放命令文件，
-使用 $参数 语法进行参数替换。
+Güvenlik filtrelemesi: Tehlikeli komutları engelleyin.omc/commands/Dizin komut dosyalarını saklar,
+kullanmak$Parametre değişimi için parametre sözdizimi.
 
-文件格式:
+Dosya formatı:
 ---
-name: 命令名称
-description: 命令描述
+name:Komut adı
+description:Komut açıklaması
 usage: omc cmd <arg1> <arg2>
 ---
 #!/omc-command
@@ -32,15 +32,15 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-app = typer.Typer(help="Markdown 命令系统 - 运行自定义命令")
+app = typer.Typer(help="Markdownkomuta sistemi-Özel komutu çalıştır")
 console = Console()
 
-# 命令目录
+#komut dizini
 COMMANDS_DIR = Path.cwd() / ".omc" / "commands"
 
 
 class Command:
-    """命令定义"""
+    """Komut tanımı"""
 
     def __init__(self, name: str, path: Path, content: str):
         self.name = name
@@ -50,10 +50,10 @@ class Command:
         self.script = self._extract_script()
 
     def _parse_frontmatter(self) -> dict[str, str]:
-        """解析 YAML frontmatter"""
+        """ayrıştırmakYAML frontmatter"""
         frontmatter = {}
 
-        # 匹配 ---...--- 块
+        #kibrit---...---parça
         match = re.match(r"^---\n(.*?)\n---", self.content, re.DOTALL)
         if match:
             yaml_content = match.group(1)
@@ -65,13 +65,13 @@ class Command:
         return frontmatter
 
     def _extract_script(self) -> str:
-        """提取命令脚本"""
+        """Komut betiğini çıkar"""
         script = self.content
 
-        # 移除 ---...--- 块
+        #Kaldırmak---...---parça
         script = re.sub(r"^---\n.*?\n---\n", "", script, flags=re.DOTALL)
 
-        # 移除 shebang
+        #Kaldırmakshebang
         script = script.lstrip()
         if script.startswith("#!"):
             lines = script.splitlines()
@@ -86,24 +86,24 @@ class Command:
         return self.frontmatter.get("usage", f"omc cmd {self.name}")
 
     def render_usage(self, args: list[str]) -> str:
-        """渲染命令脚本，支持变量替换
+        """Paket yöneticisini belirtin
 
-        用户提供的 args 必须 shlex.quote() 转义，防止命令注入：
-        - $1/$2/... 替换为转义后的位置参数
-        - $@ 替换为所有参数（空格分隔，转义）
-        - $PROJECT/$CWD/$HOME 等系统变量：直接替换，不转义
+Kullanıcı sağlandıargsmutlakshlex.quote()Komut enjeksiyonunu önlemek için kaçış:
+        - $1/$2/...Düşünce zinciri başladı
+        - $@Tüm bağımsız değişkenlerle değiştirin (boşlukla ayrılmış, çıkışlı)
+        - $PROJECT/$CWD/$HOMESistem değişkenleri örneğin: kaçmadan doğrudan değiştirme
         """
         script = self.script
 
-        # 位置参数：$1, $2, ... 替换为 shlex.quote() 后的值
+        #Uygun$1, $2, ...Yapılandırılmış modelleri listelemeshlex.quote()sonraki değer
         for i, arg in enumerate(args):
             script = script.replace(f"${i + 1}", shlex.quote(arg))
 
-        # 所有参数：$@ 替换为所有参数空格分隔（各自转义）
+        #Tüm parametreler:$@Tüm argümanlar boşlukla ayrılmış olarak değiştirildi (her biri kaçtı)
         quoted_args = " ".join(shlex.quote(a) for a in args)
         script = script.replace("$@", quoted_args)
 
-        # 环境变量（项目可控，非用户输入，直接替换）
+        #Ortam değişkenleri (proje tarafından kontrol edilebilir, kullanıcı dışı girdi, doğrudan değiştirme)
         env_vars = {
             "PROJECT": os.environ.get("PROJECT", Path.cwd().name),
             "CWD": os.getcwd(),
@@ -119,7 +119,7 @@ class Command:
 
 
 def load_commands() -> dict[str, Command]:
-    """加载所有命令"""
+    """tüm komutları yükle"""
     commands = {}
 
     if not COMMANDS_DIR.exists():
@@ -133,71 +133,71 @@ def load_commands() -> dict[str, Command]:
             name = path.stem
             commands[name] = Command(name, path, content)
         except Exception as e:
-            console.print(f"[yellow]警告: 加载命令 {path.name} 失败: {e}[/yellow]")
+            console.print(f"[yellow]uyarmak:yükleme komutu{path.name}hata: {e}[/yellow]")
 
     return commands
 
 
 def _create_example_commands():
-    """创建示例命令"""
+    """Örnek komut oluştur"""
     examples = {
         "hello": """---
 name: hello
-description: 简单的问候命令
-usage: omc cmd hello <名字>
+description:basit selamlama komutu
+usage: omc cmd hello <isim>
 ---
 #!/omc-command
 echo "Hello $1!"
-echo "当前项目: $PROJECT"
-echo "时间: $DATE $TIME"
+echo "İlerleme göstergesini güncelle: $PROJECT"
+echo "zaman: $DATE $TIME"
 """,
         "deploy": """---
 name: deploy
-description: 部署应用到服务器
-usage: omc cmd deploy <环境>
+description:Uygulamayı sunucuya dağıt
+usage: omc cmd deploy <çevre>
 ---
 #!/omc-command
-echo "部署到 $1 环境..."
-echo "项目: $PROJECT"
-echo "目录: $CWD"
+echo "dağıtmak$1 ortam..."
+echo "proje: $PROJECT"
+echo "İçindekiler: $CWD"
 
-# 示例部署脚本
+#Örnek dağıtım betiği
 # git push origin main
 # ./deploy.sh $1
 """,
         "test": """---
 name: test
-description: 运行测试
-usage: omc cmd test [选项]
+description:Testleri çalıştır
+usage: omc cmd test [Modeli seçmek için numarayı girin]
 ---
 #!/omc-command
-echo "运行测试..."
-echo "项目: $PROJECT"
+echo "Testleri çalıştır..."
+echo "proje: $PROJECT"
 
-# 运行 pytest
+#koşmakpytest
 python3 -m pytest tests/ -v
 
-# 或者运行单元测试
+#Veya birim testleri çalıştırın
 # python3 -m unittest discover -s tests
 """,
         "clean": """---
 name: clean
-description: 清理项目
+description:temizleme projesi
 usage: omc cmd clean
 ---
 #!/omc-command
-echo "清理项目..."
-echo "目录: $CWD"
+echo "temizleme projesi..."
+echo "İçindekiler: $CWD"
 
-# 清理 Python 缓存
+#TemizlemekPythonönbellek
 find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null
 find . -type f -name "*.pyc" -delete 2>/dev/null
 find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null
 
-# 清理 node_modules (可选)
+#Temizlemeknode_modules (İsteğe bağlı)
 # find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null
 
-echo "清理完成!"
+echo "Temizleme tamamlandı!"
 """,
     }
 
@@ -206,30 +206,30 @@ echo "清理完成!"
         if not path.exists():
             path.write_text(content)
 
-    console.print(f"[dim]已创建示例命令到 {COMMANDS_DIR}[/dim]")
+    console.print(f"[dim]Örnek komut oluşturuldu{COMMANDS_DIR}[/dim]")
 
 
 @app.command()
 def run(
-    name: str = typer.Argument(..., help="命令名称"),
-    args: Optional[list[str]] = typer.Argument(None, help="命令参数"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="仅显示将要执行的命令"),
+    name: str = typer.Argument(..., help="Komut adı"),
+    args: Optional[list[str]] = typer.Argument(None, help="Komut parametreleri"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Yalnızca yürütülecek komutları göster"),
 ):
     if args is None:
         args = []
     """
-    运行自定义命令
+Özel komutu çalıştır
 
-    示例:
-        omc cmd run hello 世界
+Örnek:
+        omc cmd run hellodünya
         omc cmd run deploy production
         omc cmd run test --dry-run
     """
     commands = load_commands()
 
     if name not in commands:
-        console.print(f"[red]命令未找到: {name}[/red]")
-        console.print("\n可用命令:")
+        console.print(f"[red]komut bulunamadı: {name}[/red]")
+        console.print("\nMevcut komutlar:")
         for cmd_name, cmd in commands.items():
             console.print(f"  • {cmd_name}: {cmd.description()}")
         return
@@ -240,9 +240,9 @@ def run(
     if dry_run:
         console.print(
             Panel.fit(
-                f"[cyan]命令:[/cyan] {name}\n"
-                f"[cyan]参数:[/cyan] {' '.join(args)}\n\n"
-                f"[cyan]将要执行:[/cyan]\n"
+                f"[cyan]Emir:[/cyan] {name}\n"
+                f"[cyan]parametre:[/cyan] {' '.join(args)}\n\n"
+                f"[cyan]idam edilecek:[/cyan]\n"
                 f"[yellow]{rendered}[/yellow]",
                 title="Dry Run",
                 border_style="yellow",
@@ -250,12 +250,12 @@ def run(
         )
         return
 
-    # 执行脚本
-    console.print(f"\n[cyan]执行命令: {name}[/cyan]")
+    #Betiği çalıştır
+    console.print(f"\n[cyan]komutu yürütmek: {name}[/cyan]")
     console.print(f"[dim]{' '.join(args)}[/dim]\n")
 
     try:
-        # nosec: B602,B602  # rendered 已对用户 args 做 shlex.quote() 转义，shell=True 安全
+        # nosec: B602,B602  # renderedKullanıcı:argsYapmakshlex.quote()kaçmak,shell=TrueEmniyet
         result = subprocess.run(
             rendered,
             shell=True,  # nosec B602
@@ -265,82 +265,82 @@ def run(
         )
 
         if result.returncode != 0:
-            console.print(f"\n[red]命令执行失败 (退出码: {result.returncode})[/red]")
+            console.print(f"\n[red]Komut yürütme başarısız oldu(Çıkış kodu: {result.returncode})[/red]")
     except Exception as e:
-        console.print(f"[red]执行错误: {e}[/red]")
+        console.print(f"[red]yürütme hatası: {e}[/red]")
 
 
 @app.command("list")
 def list_commands():
-    """列出所有可用命令"""
+    """Mevcut tüm komutları listele"""
     commands = load_commands()
 
     if not commands:
-        console.print("[yellow]没有找到任何命令[/yellow]")
-        console.print(f"\n创建命令文件到: {COMMANDS_DIR}")
-        console.print("[dim]示例: .omc/commands/hello.md[/dim]")
+        console.print("[yellow]Komut bulunamadı[/yellow]")
+        console.print(f"\nKomut dosyası oluştur: {COMMANDS_DIR}")
+        console.print("[dim]kategoriye göre: .omc/commands/hello.md[/dim]")
         return
 
-    table = Table(title=f"自定义命令 (共 {len(commands)} 个)")
-    table.add_column("名称", style="cyan")
-    table.add_column("描述", style="white")
-    table.add_column("用法", style="dim")
+    table = Table(title=f"Özel komut(yaygın{len(commands)}bireysel)")
+    table.add_column("isim", style="cyan")
+    table.add_column("betimlemek", style="white")
+    table.add_column("kullanım", style="dim")
 
     for name, cmd in commands.items():
         table.add_row(name, cmd.description(), cmd.usage())
 
     console.print(table)
-    console.print(f"\n[dim]命令目录: {COMMANDS_DIR}[/dim]")
+    console.print(f"\n[dim]komut dizini: {COMMANDS_DIR}[/dim]")
 
 
 @app.command("create")
 def create_command(
-    name: str = typer.Argument(..., help="命令名称"),
-    description: str = typer.Option("", "--description", "-d", help="命令描述"),
+    name: str = typer.Argument(..., help="Komut adı"),
+    description: str = typer.Option("", "--description", "-d", help="Komut açıklaması"),
 ):
-    """创建新命令"""
+    """Yeni komut oluştur"""
     COMMANDS_DIR.mkdir(parents=True, exist_ok=True)
 
     path = COMMANDS_DIR / f"{name}.md"
 
     if path.exists():
-        console.print(f"[red]命令已存在: {name}[/red]")
+        console.print(f"[red]komut zaten mevcut: {name}[/red]")
         return
 
     content = f"""---
 name: {name}
-description: {description or "自定义命令"}
-usage: omc cmd run {name} <参数>
+description: {description or "Özel komut"}
+usage: omc cmd run {name} <parametre>
 ---
 #!/omc-command
-echo "执行 {name} 命令"
-echo "参数: $@"
-echo "项目: $PROJECT"
+echo "uygulamak{name}Emir"
+echo "parametre: $@"
+echo "proje: $PROJECT"
 """
 
     path.write_text(content)
-    console.print(f"[green]✅ 已创建命令: {name}[/green]")
-    console.print(f"[dim]文件: {path}[/dim]")
+    console.print(f"[green]✅Komut oluşturuldu: {name}[/green]")
+    console.print(f"[dim]belge: {path}[/dim]")
 
 
 @app.command("edit")
 def edit_command(
-    name: str = typer.Argument(..., help="命令名称"),
+    name: str = typer.Argument(..., help="Komut adı"),
 ):
-    """编辑命令"""
+    """Komutu düzenle"""
     commands = load_commands()
 
     if name not in commands:
-        console.print(f"[red]命令未找到: {name}[/red]")
+        console.print(f"[red]komut bulunamadı: {name}[/red]")
         return
 
     cmd = commands[name]
     path = cmd.path
 
-    console.print(f"[cyan]编辑命令: {name}[/cyan]")
-    console.print(f"[dim]文件: {path}[/dim]")
+    console.print(f"[cyan]Komutu düzenle: {name}[/cyan]")
+    console.print(f"[dim]belge: {path}[/dim]")
 
-    # 打开编辑器
+    #Düzenleyiciyi aç
     editor = os.environ.get("EDITOR", "vim")
     subprocess.run([editor, str(path)])
 

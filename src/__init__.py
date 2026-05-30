@@ -1,3 +1,3 @@
-"""Oh My Coder - 多智能体 AI 编程助手"""
+"""Oh My Coder - çokajan AI programlamaasistan"""
 
 __version__ = "0.1.0"

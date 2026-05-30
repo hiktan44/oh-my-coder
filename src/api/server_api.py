@@ -4,16 +4,16 @@ from __future__ import annotations
 
 
 """
-远程 Server API - REST API 接口定义
+uzaksurec Server API - REST API baglanagiztanim
 
-接口：
-  POST /api/v1/run        - 提交任务，返回 task_id
-  GET  /api/v1/status/{id} - 查询状态
-  GET  /api/v1/result/{id} - 获取结果
-  GET  /api/v1/tasks      - 列出所有任务
-  DELETE /api/v1/tasks/{id} - 删除任务
+baglanagiz: 
+  POST /api/v1/run        - gondergorev, donus task_id
+  GET  /api/v1/status/{id} - sorgudurum
+  GET  /api/v1/result/{id} - alsonuc
+  GET  /api/v1/tasks      - tumunu listelevargorev
+  DELETE /api/v1/tasks/{id} - silgorev
 
-前置：omc server --port 8080
+onceayar: omc server --port 8080
 """
 
 
@@ -31,7 +31,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
 # =============================================================================
-# 数据模型
+# sayigoremodel
 # =============================================================================
 
 
@@ -57,12 +57,12 @@ class TaskRecord:
 
 
 # =============================================================================
-# 任务存储（内存 + 磁盘持久化）
+# gorevdepolama (icindekaydet + diskkalici) 
 # =============================================================================
 
 
 class TaskStore:
-    """内存 + JSON 文件持久化的任务存储"""
+    """icindekaydet + JSON dosyakalicigorevdepolama"""
 
     def __init__(self, storage_dir: Optional[Path] = None) -> None:
         self._store: dict[str, TaskRecord] = {}
@@ -72,7 +72,7 @@ class TaskStore:
         self._load_all()
 
     def _load_all(self) -> None:
-        """启动时从磁盘恢复所有任务（最近 100 个）"""
+        """baslatzamandiskkurtarvargorev (enyakin 100 ) """
         try:
             files = sorted(
                 self._storage_dir.glob("*.json"),
@@ -90,7 +90,7 @@ class TaskStore:
             pass
 
     def _save(self, record: TaskRecord) -> None:
-        """持久化到磁盘"""
+        """kalicikadardisk"""
         try:
             f = self._storage_dir / f"{record.task_id}.json"
             f.write_text(
@@ -103,7 +103,7 @@ class TaskStore:
     async def create(
         self, prompt: str, metadata: Optional[dict[str, Any]] = None
     ) -> TaskRecord:
-        """创建新任务"""
+        """olusturyenigorev"""
         async with self._lock:
             task_id = uuid.uuid4().hex[:12]
             record = TaskRecord(
@@ -163,12 +163,12 @@ class TaskStore:
 
 
 # =============================================================================
-# API 认证
+# API kimlik dogrulama
 # =============================================================================
 
 
 class AuthContext:
-    """认证上下文"""
+    """kimlik dogrulamabaglam"""
 
     def __init__(self, api_key: Optional[str]) -> None:
         self.api_key = api_key or ""
@@ -179,7 +179,7 @@ class AuthContext:
 
     def verify(self, provided_key: Optional[str]) -> bool:
         if not self.api_key:
-            return True  # 未配置则跳过认证
+            return True  # henuzyapilandirmakuralatlakimlik dogrulama
         return provided_key == self.api_key
 
 
@@ -187,7 +187,7 @@ def get_auth(
     x_api_key: Optional[str] = Header(None, alias="X-API-Key"),
     auth_ctx: AuthContext = Depends(lambda: AuthContext(None)),
 ) -> Optional[str]:
-    """FastAPI 依赖：验证 API Key"""
+    """FastAPI bagimlilik: dogrulama API Key"""
     ctx = AuthContext(auth_ctx.api_key)
     if not ctx.verify(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid API Key")
@@ -195,16 +195,16 @@ def get_auth(
 
 
 # =============================================================================
-# 任务执行引擎
+# gorevyurutmotor
 # =============================================================================
 
 
 async def run_agent_task(prompt: str, task_id: str, store: TaskStore) -> None:
-    """在后台执行 agent 任务"""
+    """icindesonraplatformyurut agent gorev"""
     try:
         await store.update(task_id, TaskStatus.RUNNING)
 
-        # 延迟导入，避免循环依赖
+        # gecikmeiceri aktar, kacindongubagimlilik
         import sys
         from pathlib import Path
 
@@ -214,7 +214,7 @@ async def run_agent_task(prompt: str, task_id: str, store: TaskStore) -> None:
 
         result: dict[str, Any] = {}
 
-        # 尝试使用 Orchestrator
+        # denekullan Orchestrator
         try:
             from src.agents.base import AgentContext
             from src.core.orchestrator import Orchestrator
@@ -227,7 +227,7 @@ async def run_agent_task(prompt: str, task_id: str, store: TaskStore) -> None:
                 "status": "ok",
             }
         except Exception as e:
-            # 降级：返回纯文本响应
+            # dusurseviye: donussafmetinyanit
             result = {
                 "output": prompt,  # echo back
                 "status": "degraded",
@@ -246,7 +246,7 @@ async def run_agent_task(prompt: str, task_id: str, store: TaskStore) -> None:
 
 
 # =============================================================================
-# 请求/响应模型（必须在模块顶层定义，避免 Pydantic v2 + Python 3.9 前向引用 bug）
+# istek/yanitmodel (zorunluicindemodulustkatmantanim, kacin Pydantic v2 + Python 3.9 onceyoncekkullan bug) 
 # =============================================================================
 
 
@@ -278,22 +278,22 @@ def create_app(
     api_key: Optional[str] = None,
     store: Optional[TaskStore] = None,
 ) -> tuple[FastAPI, TaskStore]:
-    """创建 FastAPI 应用"""
+    """olustur FastAPI uygulama"""
     from src.api.openapi import custom_openapi
 
     app = FastAPI(
         title="Oh My Coder Server API",
         description=(
-            "远程 AI 编程助手 API。\n\n"
-            "## 认证\n"
-            "未设置 API Key 时无需认证。\n"
-            "设置了 API Key 后，所有请求需在 Header 中添加：\n"
+            "uzaksurec AI duzenlesurecyardimci API. \n\n"
+            "## kimlik dogrulama\n"
+            "henuzayarlaayar API Key zamanyokgerekkimlik dogrulama. \n"
+            "ayarlaayar API Key sonra, varistekgerekicinde Header icindeekle: \n"
             "`X-API-Key: your-api-key`"
         ),
         version="0.2.0",
     )
 
-    # 应用自定义 OpenAPI schema（增强配置：安全定义、服务器、标签等）
+    # uygulamaozel OpenAPI schema (artgucluyapilandirma: guvenliktanim, servis, etiketvb.) 
     app.openapi = custom_openapi(app)  # type: ignore[method-assign]
 
     _store = store or TaskStore()
@@ -301,10 +301,10 @@ def create_app(
     _app_state: dict[str, Any] = {"store": _store, "auth": _auth}
 
     # ---------------------------------------------------------------------------
-    # 路由
+    # yoltarafindan
     # ---------------------------------------------------------------------------
 
-    # 挂载 Web UI（前端页面、静态文件、模板渲染）
+    # asyukle Web UI (onceucsayfayuz, statikdurumdosya, sablonrender) 
     from pathlib import Path
 
     from fastapi.responses import FileResponse
@@ -325,12 +325,12 @@ def create_app(
 
     @app.post("/api/v1/run", response_model=TaskResponse)
     async def run_task(req: RunRequest) -> TaskResponse:
-        """提交新任务，返回 task_id"""
+        """gonderyenigorev, donus task_id"""
         store: TaskStore = _app_state["store"]
         _app_state["auth"]
 
         record = await store.create(req.prompt, req.metadata)
-        # 启动后台执行（不等待）
+        # baslatsonraplatformyurut (hayirvb.bekle) 
         asyncio.create_task(run_agent_task(req.prompt, record.task_id, store))
 
         return TaskResponse(
@@ -345,7 +345,7 @@ def create_app(
     async def get_status(
         task_id: str,
     ) -> dict[str, Any]:
-        """查询任务状态"""
+        """sorgugorevdurum"""
         store: TaskStore = _app_state["store"]
         record = await store.get(task_id)
         if not record:
@@ -361,7 +361,7 @@ def create_app(
 
     @app.get("/api/v1/result/{task_id}")
     async def get_result(task_id: str) -> dict[str, Any]:
-        """获取任务结果"""
+        """algorevsonuc"""
         store: TaskStore = _app_state["store"]
         record = await store.get(task_id)
         if not record:
@@ -381,7 +381,7 @@ def create_app(
 
     @app.get("/api/v1/tasks")
     async def list_tasks(limit: int = 50) -> dict[str, Any]:
-        """列出最近任务"""
+        """listeleenyakingorev"""
         store: TaskStore = _app_state["store"]
         tasks = await store.list_all()
         return {
@@ -400,7 +400,7 @@ def create_app(
 
     @app.delete("/api/v1/tasks/{task_id}")
     async def delete_task(task_id: str) -> dict[str, str]:
-        """删除任务"""
+        """silgorev"""
         store: TaskStore = _app_state["store"]
         ok = await store.delete(task_id)
         if not ok:

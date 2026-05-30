@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 """
-Agent 状态持久化存储
+Agent Durum kalıcı depolaması
 
-功能：
-- save: 保存 Agent 配置、历史、状态到 ~/.oh-my-coder/agents/<name>/
-- restore: 从磁盘恢复 Agent 会话
-- export: 打包 Agent 为 JSON（可分享）
-- import: 从 JSON 导入 Agent 配置
+İşlev:
+- save: kaydetmek Agent Yapılandırma, geçmiş, durum ~/.oh-my-coder/agents/<name>/
+- restore: Diskten geri yükle Agent oturum
+- export: Ambalaj Agent için JSON(paylaşılabilir)
+- import: itibaren JSON içe aktarmak Agent Yapılandırma
 """
 
 
@@ -20,13 +20,13 @@ from typing import TYPE_CHECKING, Any, Optional
 if TYPE_CHECKING:
     import builtins
 
-# 默认存储根目录
+# Varsayılan depolama kök dizini
 DEFAULT_STORE_ROOT = Path.home() / ".oh-my-coder" / "agents"
 
 
 @dataclass
 class AgentConfig:
-    """Agent 配置快照"""
+    """Agent Yapılandırma anlık görüntüsü"""
 
     name: str
     description: str = ""
@@ -42,7 +42,7 @@ class AgentConfig:
 
 @dataclass
 class HistoryEntry:
-    """单条对话历史"""
+    """Tek görüşme geçmişi"""
 
     role: str  # "user" | "assistant" | "system"
     content: str
@@ -69,7 +69,7 @@ class HistoryEntry:
 
 @dataclass
 class AgentState:
-    """Agent 运行时状态"""
+    """Agent çalışma zamanı durumu"""
 
     agent_name: str
     session_id: str = ""
@@ -114,21 +114,21 @@ class AgentState:
 
 class AgentStateStore:
     """
-    Agent 状态持久化管理器
+    Agent Durum süreklilik yöneticisi
 
-    用法:
+    kullanım:
         store = AgentStateStore()
 
-        # 保存 Agent
+        # kaydetmek Agent
         store.save("planner", config, history, state)
 
-        # 恢复 Agent
+        # iyileşmek Agent
         config, history, state = store.restore("planner")
 
-        # 导出为 JSON
+        # Farklı dışa aktar JSON
         store.export("planner", "planner-backup.json")
 
-        # 从 JSON 导入
+        # itibaren JSON içe aktarmak
         store.import_agent("planner-backup.json")
     """
 
@@ -137,7 +137,7 @@ class AgentStateStore:
         self.store_root.mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------
-    # 核心操作
+    # temel operasyonlar
     # ------------------------------------------------------------------
 
     def save(
@@ -149,22 +149,22 @@ class AgentStateStore:
         append_history: bool = True,
     ) -> Path:
         """
-        保存 Agent 状态到磁盘
+        kaydetmek Agent diske durum
 
         Args:
-            agent_name: Agent 名称
-            config: Agent 配置
-            history: 对话历史（可选）
-            state: 运行时状态（可选）
-            append_history: 是否追加历史（True=追加到 jsonl，False=覆盖）
+            agent_name: Agent isim
+            config: Agent Yapılandırma
+            history: Konuşma geçmişi (isteğe bağlı)
+            state: Çalışma zamanı durumu (isteğe bağlı)
+            append_history: Geçmişin eklenip eklenmeyeceği (True=eklemek jsonl,False=kapak)
 
         Returns:
-            Agent 目录路径
+            Agent dizin yolu
         """
         agent_dir = self.store_root / agent_name
         agent_dir.mkdir(parents=True, exist_ok=True)
 
-        # 1. 写 config.json
+        # 1. Yazmak config.json
         config_file = agent_dir / "config.json"
         config_data = {
             "name": config.name,
@@ -183,7 +183,7 @@ class AgentStateStore:
             encoding="utf-8",
         )
 
-        # 2. 写 history.jsonl（追加模式）
+        # 2. Yazmak history.jsonl(ekleme modu)
         if history:
             history_file = agent_dir / "history.jsonl"
             mode = "a" if append_history else "w"
@@ -191,7 +191,7 @@ class AgentStateStore:
                 for entry in history:
                     f.write(json.dumps(entry.to_dict(), ensure_ascii=False) + "\n")
 
-        # 3. 写 state.json
+        # 3. Yazmak state.json
         if state:
             state_file = agent_dir / "state.json"
             state.updated_at = time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -206,20 +206,20 @@ class AgentStateStore:
         self, agent_name: str, include_history: bool = True
     ) -> tuple[Optional[AgentConfig], list[HistoryEntry], Optional[AgentState]]:
         """
-        从磁盘恢复 Agent 状态
+        Diskten geri yükle Agent durum
 
         Args:
-            agent_name: Agent 名称
-            include_history: 是否加载历史（可能很大）
+            agent_name: Agent isim
+            include_history: Geçmişin yüklenip yüklenmeyeceği (büyük olabilir)
 
         Returns:
-            (config, history, state) 元组，不存在时返回 (None, [], None)
+            (config, history, state) Tuple, mevcut değilse döndürülür (None, [], None)
         """
         agent_dir = self.store_root / agent_name
         if not agent_dir.exists():
             return None, [], None
 
-        # 1. 读 config.json
+        # 1. Okumak config.json
         config_file = agent_dir / "config.json"
         config: Optional[AgentConfig] = None
         if config_file.exists():
@@ -237,7 +237,7 @@ class AgentStateStore:
                 system_prompt=data.get("system_prompt", ""),
             )
 
-        # 2. 读 history.jsonl
+        # 2. Okumak history.jsonl
         history: list[HistoryEntry] = []
         if include_history:
             history_file = agent_dir / "history.jsonl"
@@ -251,7 +251,7 @@ class AgentStateStore:
                         except json.JSONDecodeError:
                             continue
 
-        # 3. 读 state.json
+        # 3. Okumak state.json
         state_file = agent_dir / "state.json"
         state: Optional[AgentState] = None
         if state_file.exists():
@@ -261,7 +261,7 @@ class AgentStateStore:
         return config, history, state
 
     def delete(self, agent_name: str) -> bool:
-        """删除 Agent 状态目录"""
+        """silmek Agent durum dizini"""
         import shutil
 
         agent_dir = self.store_root / agent_name
@@ -271,11 +271,11 @@ class AgentStateStore:
         return False
 
     def list_saved(self) -> builtins.list[str]:
-        """列出所有已保存的 Agent"""
+        """Kaydedilenlerin tümünü listele Agent"""
         return [d.name for d in self.store_root.iterdir() if d.is_dir()]
 
     # ------------------------------------------------------------------
-    # 导出 / 导入
+    # İhracat / içe aktarmak
     # ------------------------------------------------------------------
 
     def export_agent(
@@ -286,22 +286,22 @@ class AgentStateStore:
         max_history: int = 100,
     ) -> Path:
         """
-        导出 Agent 为单个 JSON 文件（可分享）
+        İhracat Agent tek kişilik JSON Dosya (paylaşılabilir)
 
         Args:
-            agent_name: Agent 名称
-            output_path: 输出文件路径
-            include_history: 是否包含历史
-            max_history: 最多导出的历史条数
+            agent_name: Agent isim
+            output_path: Çıkış dosyası yolu
+            include_history: Geçmişin dahil edilip edilmeyeceği
+            max_history: Dışa aktarılan maksimum geçmiş öğesi sayısı
 
         Returns:
-            输出文件路径
+            Çıkış dosyası yolu
         """
         config, history, state = self.restore(
             agent_name, include_history=include_history
         )
         if config is None:
-            raise FileNotFoundError(f"Agent '{agent_name}' 不存在")
+            raise FileNotFoundError(f"Agent '{agent_name}' mevcut değil")
 
         export_data: dict[str, Any] = {
             "format_version": "1.0",
@@ -340,19 +340,19 @@ class AgentStateStore:
         merge_history: bool = False,
     ) -> str:
         """
-        从 JSON 文件导入 Agent
+        itibaren JSON Dosya içe aktarma Agent
 
         Args:
-            source_path: 源文件路径
-            new_name: 新名称（可选，默认用文件中的名称）
-            merge_history: 是否合并历史（True=追加，False=覆盖）
+            source_path: Kaynak dosya yolu
+            new_name: Yeni ad (isteğe bağlı, varsayılan olarak dosyadaki addır)
+            merge_history: Geçmişin birleştirilip birleştirilmeyeceği (True=ekle,False=kapak)
 
         Returns:
-            导入后的 Agent 名称
+            İçe aktardıktan sonra Agent isim
         """
         data = json.loads(source_path.read_text(encoding="utf-8"))
 
-        # 解析配置
+        # Ayrıştırma yapılandırması
         config_data = data.get("config", {})
         config = AgentConfig(
             name=new_name or data.get("agent_name", config_data.get("name", "unnamed")),
@@ -367,29 +367,29 @@ class AgentStateStore:
             system_prompt=config_data.get("system_prompt", ""),
         )
 
-        # 解析状态
+        # ayrıştırma durumu
         state: Optional[AgentState] = None
         if "state" in data:
             state = AgentState.from_dict(data["state"])
             state.agent_name = config.name
 
-        # 解析历史
+        # Geçmişi analiz edin
         history: list[HistoryEntry] = []
         if "history" in data:
             for entry_data in data["history"]:
                 history.append(HistoryEntry.from_dict(entry_data))
 
-        # 如果 merge_history，先加载现有历史
+        # eğer merge_history, önce mevcut geçmişi yükleyin
         if merge_history:
             _, existing_history, _ = self.restore(config.name, include_history=True)
             history = existing_history + history
 
-        # 保存
+        # kaydetmek
         self.save(config.name, config, history if history else None, state)
         return config.name
 
     # ------------------------------------------------------------------
-    # 快捷方法
+    # kısayol yöntemi
     # ------------------------------------------------------------------
 
     def save_from_agent_instance(
@@ -399,15 +399,15 @@ class AgentStateStore:
         custom_state: Optional[dict[str, Any]] = None,
     ) -> Path:
         """
-        从 Agent 实例保存状态（便捷方法）
+        itibaren Agent Örnek kaydetme durumu (kolay yöntem)
 
         Args:
-            agent_instance: Agent 实例（需要有 name, description 等属性）
-            history: 对话历史
-            custom_state: 自定义状态数据
+            agent_instance: Agent Örnek (gerektirir) name, description ve diğer özellikler)
+            history: Konuşma geçmişi
+            custom_state: Özel durum verileri
 
         Returns:
-            Agent 目录路径
+            Agent dizin yolu
         """
         config = AgentConfig(
             name=getattr(agent_instance, "name", "unnamed"),
@@ -430,7 +430,7 @@ class AgentStateStore:
         return self.save(config.name, config, history, state)
 
     def get_stats(self) -> dict[str, Any]:
-        """获取存储统计"""
+        """Depolama istatistiklerini alın"""
         agents = self.list_saved()
         total_size = 0
         total_history_entries = 0

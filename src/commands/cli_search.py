@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Search CLI - omc search 命令
+Search CLI - omc searchEmir
 
 omc search <query> [--language LANG] [--repo REPO] [--limit N]
                   [--json|--table|--code] [--status] [--setup]
 
-omc search setup   # 配置 Sourcegraph API Key
-omc search status  # 检查 API/CLI 可用性
+omc search setup   #YapılandırmaSourcegraph API Key
+omc search status  #incelemekAPI/CLIKullanılabilirlik
 """
 
 
@@ -29,35 +29,35 @@ console = Console()
 
 app = typer.Typer(
     name="search",
-    help="代码搜索 - 通过 Sourcegraph 搜索公开代码库",
+    help="kod arama-geçmekSourcegraphGenel kod depolarında arama yapın",
     add_completion=False,
 )
 
 
 @app.command("search")
 def search_cmd(
-    query: str = typer.Argument(..., help="搜索查询，支持 Sourcegraph 搜索语法"),
+    query: str = typer.Argument(..., help="arama sorgusu, destekSourcegraphArama sözdizimi"),
     language: Optional[str] = typer.Option(
-        None, "--language", "-l", help="语言过滤，如 rust/python/go"
+        None, "--language", "-l", help="Dil filtreleme, örneğinrust/python/go"
     ),
     repo: Optional[str] = typer.Option(
-        None, "--repo", "-r", help="仓库过滤，支持 glob 模式"
+        None, "--repo", "-r", help="Depo filtreleme, destekglobmodeli"
     ),
-    limit: int = typer.Option(20, "--limit", "-n", help="返回结果数量（1-100）"),
+    limit: int = typer.Option(20, "--limit", "-n", help="Döndürülen sonuç sayısı (1-100)"),
     output: str = typer.Option(
         "table",
         "--output",
         "-o",
-        help="输出格式: table（表格）/ code（代码片段）/ json",
+        help="Çıkış formatı: table(çarşaf)/ code(kod parçacığı)/ json",
     ),
-    json_output: bool = typer.Option(False, "--json", help="JSON 输出"),
-    code_output: bool = typer.Option(False, "--code", help="AI 友好代码格式输出"),
+    json_output: bool = typer.Option(False, "--json", help="JSONçıktı"),
+    code_output: bool = typer.Option(False, "--code", help="AIKolay kod formatı çıktısı"),
     after: Optional[str] = typer.Option(
-        None, "--after", help="时间过滤，之后（如 2024-01-01）"
+        None, "--after", help="Zaman filtresi, sonrası (ör. 2024)-01-01)"
     ),
-    before: Optional[str] = typer.Option(None, "--before", help="时间过滤，之前"),
+    before: Optional[str] = typer.Option(None, "--before", help="zaman filtresi, önceki"),
 ) -> None:
-    """搜索 GitHub/GitLab 等公开代码库"""
+    """aramakGitHub/GitLabGenel kod tabanını bekleyin"""
     result: SearchResult = search(
         query=query,
         language=language,
@@ -67,7 +67,7 @@ def search_cmd(
         before=before,
     )
 
-    # 输出
+    #çıktı
     if json_output or output == "json":
         console.print(result.format_json())
     elif code_output or output == "code":
@@ -77,10 +77,10 @@ def search_cmd(
         if result.source == "none":
             console.print(
                 Panel.fit(
-                    "[bold red]⚠ Sourcegraph 未配置[/bold red]\n\n"
-                    "配置方式：\n"
-                    "  [cyan]omc search setup[/cyan]  - 配置 API Key\n"
-                    "  [cyan]omc search install[/cyan] - 安装 src CLI",
+                    "[bold red]⚠ SourcegraphYapılandırılmadı[/bold red]\n\n"
+                    "Yapılandırma yöntemi:\n"
+                    "  [cyan]omc search setup[/cyan]  -YapılandırmaAPI Key\n"
+                    "  [cyan]omc search install[/cyan] -Düzenlemeksrc CLI",
                     border_style="red",
                 )
             )
@@ -90,29 +90,29 @@ def search_cmd(
             console.print(result.format_table(limit=limit))
             console.print()
             console.print(
-                f"[dim]后端: {result.source}  "
-                f"查询: {query}  "
-                f"语言: {language or '全部'}  "
-                f"仓库: {repo or '全部'}[/dim]"
+                f"[dim]arka uç: {result.source}  "
+                f"Sorgu: {query}  "
+                f"dil: {language or 'Tümü'}  "
+                f"depo: {repo or 'Tümü'}[/dim]"
             )
 
 
 @app.command("setup")
 def setup_cmd(
     api_key: Optional[str] = typer.Argument(
-        None, help="Sourcegraph API Key（省略则提示输入）"
+        None, help="Sourcegraph API Key(Atlanırsa giriş istenir)"
     ),
-    install_cli: bool = typer.Option(False, "--cli", help="同时安装 src CLI"),
+    install_cli: bool = typer.Option(False, "--cli", help="Aynı anda yüklesrc CLI"),
 ) -> None:
-    """配置 Sourcegraph API Key"""
+    """YapılandırmaSourcegraph API Key"""
     if install_cli:
-        console.print("[dim]正在安装 src CLI...[/dim]")
+        console.print("[dim]Kurulumsrc CLI...[/dim]")
         ok, msg = install_src_cli()
         if ok:
             console.print(f"[green]✓ {msg}[/green]")
         else:
             console.print(f"[red]✗ {msg}[/red]")
-            console.print("[dim]手动安装: https://sourcegraph.com/cli[/dim]")
+            console.print("[dim]Manuel kurulum: https://sourcegraph.com/cli[/dim]")
 
     if not api_key:
         try:
@@ -120,11 +120,11 @@ def setup_cmd(
 
             api_key = getpass.getpass("Sourcegraph API Key: ").strip()
         except Exception:
-            console.print("[red]无法读取密码，请直接传入 API Key[/red]")
+            console.print("[red]Şifre okunamıyor, lütfen doğrudan iletinAPI Key[/red]")
             raise typer.Exit(1)
 
     if not api_key:
-        console.print("[red]API Key 不能为空[/red]")
+        console.print("[red]API Keyboş olamaz[/red]")
         raise typer.Exit(1)
 
     ok, msg = setup_api_key(api_key)
@@ -132,9 +132,9 @@ def setup_cmd(
         console.print(f"[green]✓ {msg}[/green]")
         console.print()
         console.print(
-            "[dim]获取 API Key: https://sourcegraph.com/user/settings/tokens[/dim]"
+            "[dim]Elde etmekAPI Key: https://sourcegraph.com/user/settings/tokens[/dim]"
         )
-        console.print("[dim]免费 tier: 每月 10 万次搜索，足够日常使用[/dim]")
+        console.print("[dim]özgürtier:Ayda 100.000 arama, günlük kullanım için yeterli[/dim]")
     else:
         console.print(f"[red]✗ {msg}[/red]")
         raise typer.Exit(1)
@@ -142,19 +142,19 @@ def setup_cmd(
 
 @app.command("status")
 def status_cmd() -> None:
-    """检查 Sourcegraph 搜索状态"""
+    """incelemekSourcegrapharama durumu"""
     status = check_status()
 
     console.print()
     console.print(
         Panel.fit(
-            "[bold cyan]🔍 Sourcegraph 搜索状态[/bold cyan]",
+            "[bold cyan]🔍 Sourcegrapharama durumu[/bold cyan]",
             border_style="cyan",
         )
     )
     console.print()
 
-    # API 状态
+    # APIdurum
     api = status["api"]
     if api["available"]:
         console.print(
@@ -163,53 +163,53 @@ def status_cmd() -> None:
         console.print(f"      Key: {api['key_prefix']}")
     else:
         console.print(
-            "  [red]✗[/red] Sourcegraph API  [dim]未配置 SOURCEGRAPH_API_KEY[/dim]"
+            "  [red]✗[/red] Sourcegraph API  [dim]YapılandırılmadıSOURCEGRAPH_API_KEY[/dim]"
         )
-        console.print("      获取: https://sourcegraph.com/user/settings/tokens")
+        console.print("Elde etmek: https://sourcegraph.com/user/settings/tokens")
 
-    # CLI 状态
+    # CLIdurum
     cli = status["cli"]
     if cli["available"]:
         console.print(f"  [green]✓[/green] src CLI  [dim]{cli['path']}[/dim]")
     else:
-        console.print("  [red]✗[/red] src CLI  [dim]未安装[/dim]")
-        console.print("      安装: [cyan]omc search install[/cyan]")
+        console.print("  [red]✗[/red] src CLI  [dim]Kurulu değil[/dim]")
+        console.print("Düzenlemek: [cyan]omc search install[/cyan]")
 
     console.print()
     rec = status["recommendation"]
     if rec == "api":
-        console.print("  [green]推荐: 使用 Sourcegraph API[/green]")
+        console.print("  [green]tavsiye etmek:kullanmakSourcegraph API[/green]")
     elif rec == "cli":
-        console.print("  [green]推荐: 使用 src CLI[/green]")
+        console.print("  [green]tavsiye etmek:kullanmaksrc CLI[/green]")
     else:
-        console.print("  [yellow]⚠ 请先配置 API Key 或安装 src CLI[/yellow]")
-        console.print("  [cyan]omc search setup[/cyan]  # 配置 API Key")
-        console.print("  [cyan]omc search install[/cyan]  # 安装 src CLI")
+        console.print("  [yellow]⚠Lütfen önce yapılandırınAPI Keyveya yükleyinsrc CLI[/yellow]")
+        console.print("  [cyan]omc search setup[/cyan]  #YapılandırmaAPI Key")
+        console.print("  [cyan]omc search install[/cyan]  #Düzenlemeksrc CLI")
 
 
 @app.command("install")
 def install_cmd() -> None:
-    """安装 src CLI"""
-    console.print("[dim]正在安装 src CLI...[/dim]")
+    """Düzenlemeksrc CLI"""
+    console.print("[dim]Kurulumsrc CLI...[/dim]")
     ok, msg = install_src_cli()
     if ok:
         console.print(f"[green]✓ {msg}[/green]")
     else:
         console.print(f"[red]✗ {msg}[/red]")
         console.print()
-        console.print("手动安装方式：")
+        console.print("Manuel kurulum yöntemi:")
         console.print("  macOS:  [cyan]brew install sourcegraph/tap/src[/cyan]")
         console.print(
             "  Linux:  [cyan]curl -L https://sourcegraph.com/.api/src-cli.sh | sh[/cyan]"
         )
         console.print("  Windows:[cyan]scoop install src[/cyan]")
         console.print()
-        console.print("下载页: https://sourcegraph.com/cli")
+        console.print("İndirme sayfası: https://sourcegraph.com/cli")
 
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context) -> None:
-    """默认显示帮助"""
+    """Yardımı varsayılan olarak göster"""
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
 

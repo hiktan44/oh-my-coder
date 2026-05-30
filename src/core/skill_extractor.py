@@ -1,7 +1,7 @@
 """
-Skill 沉淀闭环 — 从任务执行中提取可复用的 Skill
+Skill biriktirkapali dongu - gorevyuruticindecikarolabilirtekrarkullan Skill
 
-流程：任务完成 → 反思 → 生成 Skill 提议 → 用户确认 → 保存
+akis: gorevtamamla → yansima → olustur Skill oneri → kullanicionayla → kaydet
 """
 
 from __future__ import annotations
@@ -18,14 +18,14 @@ SKILL_PROPOSALS_DIR = Path.home() / ".omc" / "skill-proposals"
 
 @dataclass
 class SkillProposal:
-    """Skill 提议"""
+    """Skill oneri"""
 
     id: str
     title: str
     description: str
-    trigger: str  # 触发条件
-    steps: list[str]  # 执行步骤
-    source_task: str  # 来源任务
+    trigger: str  # tetikgonderkosul
+    steps: list[str]  # yurutadim
+    source_task: str  # kaynakgorev
     created_at: str
     status: str = "pending"  # pending / accepted / rejected
 
@@ -36,21 +36,21 @@ def extract_skill_from_task(
     reflections: list[str],
 ) -> Optional[SkillProposal]:
     """
-    从任务执行中提取 Skill 提议
+    gorevyuruticindecikar Skill oneri
 
     Args:
-        task_description: 原始任务描述
-        execution_steps: 执行步骤列表
-        reflections: 反思记录
+        task_description: hamgorev aciklamasi
+        execution_steps: yurutadimliste
+        reflections: yansimakayit
 
     Returns:
-        SkillProposal 或 None（如果不值得提取）
+        SkillProposal veya None (egerhayirdegercikar) 
     """
-    # 判断是否有提取价值
+    # karar verolup olmadigivarcikardegerdeger
     if not _is_worth_extracting(task_description, execution_steps, reflections):
         return None
 
-    # 生成 Skill 内容
+    # olustur Skill icerik
     title = _generate_title(task_description)
     trigger = _generate_trigger(task_description)
     steps = _generate_steps(execution_steps, reflections)
@@ -70,7 +70,7 @@ def extract_skill_from_task(
 
 
 def save_proposal(proposal: SkillProposal) -> Path:
-    """保存 Skill 提议到文件"""
+    """kaydet Skill onerikadardosya"""
     SKILL_PROPOSALS_DIR.mkdir(parents=True, exist_ok=True)
 
     filepath = SKILL_PROPOSALS_DIR / f"{proposal.id}.json"
@@ -82,7 +82,7 @@ def save_proposal(proposal: SkillProposal) -> Path:
 
 
 def list_proposals() -> list[SkillProposal]:
-    """列出所有待处理的 Skill 提议"""
+    """tumunu listelevarbekleisle Skill oneri"""
     proposals = []
 
     if not SKILL_PROPOSALS_DIR.exists():
@@ -100,20 +100,20 @@ def list_proposals() -> list[SkillProposal]:
 
 def accept_proposal(proposal_id: str) -> Optional[Path]:
     """
-    接受 Skill 提议，生成 SKILL.md 文件
+    baglanal Skill oneri, olustur SKILL.md dosya
 
     Returns:
-        生成的 SKILL.md 路径
+        olustur SKILL.md yol
     """
     proposal = _find_proposal(proposal_id)
     if not proposal:
         return None
 
-    # 更新状态
+    # guncelledurum
     proposal.status = "accepted"
     save_proposal(proposal)
 
-    # 生成 SKILL.md
+    # olustur SKILL.md
     skill_content = _generate_skill_md(proposal)
 
     skills_dir = Path.home() / ".omc" / "skills" / proposal.id
@@ -126,7 +126,7 @@ def accept_proposal(proposal_id: str) -> Optional[Path]:
 
 
 def reject_proposal(proposal_id: str) -> bool:
-    """拒绝 Skill 提议"""
+    """reddet Skill oneri"""
     proposal = _find_proposal(proposal_id)
     if not proposal:
         return False
@@ -136,7 +136,7 @@ def reject_proposal(proposal_id: str) -> bool:
     return True
 
 
-# ===== 内部函数 =====
+# ===== icindekisimfonksiyon =====
 
 
 def _is_worth_extracting(
@@ -144,36 +144,36 @@ def _is_worth_extracting(
     execution_steps: list[str],
     reflections: list[str],
 ) -> bool:
-    """判断任务是否值得提取为 Skill"""
-    # 步骤太少不值得
+    """karar vergorevolup olmadigidegercikaricin Skill"""
+    # adimcokazhayirdeger
     if len(execution_steps) < 3:
         return False
 
-    # 检查是否有通用性关键词
+    # kontrololup olmadigivarkullananahtar kelime
     generic_keywords = [
-        "创建",
-        "生成",
-        "配置",
-        "设置",
-        "安装",
-        "部署",
-        "检查",
-        "修复",
-        "优化",
-        "重构",
-        "测试",
-        "文档",
-        "初始化",
-        "同步",
-        "更新",
-        "清理",
+        "olustur",
+        "olustur",
+        "yapilandirma",
+        "ayarlaayar",
+        "kurulum",
+        "kisimyerlestir",
+        "kontrol",
+        "duzeltme",
+        "iyi",
+        "yeniden duzenleme",
+        "test",
+        "dokumantasyon",
+        "baslat",
+        "esitle",
+        "guncelle",
+        "temizle",
     ]
 
     task_lower = task_description.lower()
     has_generic = any(kw in task_lower for kw in generic_keywords)
 
-    # 检查反思中是否有正面评价
-    positive_indicators = ["成功", "完成", "有效", "正确", "顺利", "✅"]
+    # kontrolyansimaicindeolup olmadigivaryuzdegerlendirdeger
+    positive_indicators = ["basarili", "tamamla", "varetki", "dogru", "duzgun", "✅"]
     has_positive = any(
         any(ind in ref for ind in positive_indicators) for ref in reflections
     )
@@ -182,11 +182,11 @@ def _is_worth_extracting(
 
 
 def _generate_title(task_description: str) -> str:
-    """生成 Skill 标题"""
-    # 提取动词 + 名词
+    """olustur Skill baslik"""
+    # cikarhareketkelime + isimkelime
     patterns = [
-        r"(?:实现|创建|生成|配置|设置|安装|部署|检查|修复|优化|重构|测试|文档化)\s*(.+?)(?:\s*[-—]|$)",
-        r"(.+?)(?:的|之)(?:实现|创建|生成|配置|设置|安装|部署|检查|修复|优化|重构|测试|文档)",
+        r"(?:uygula|olustur|olustur|yapilandirma|ayarlaayar|kurulum|kisimyerlestir|kontrol|duzeltme|iyi|yeniden duzenleme|test|dokumantasyon)\s*(.+?)(?:\s*[--]|$)",
+        r"(.+?)(?:|)(?:uygula|olustur|olustur|yapilandirma|ayarlaayar|kurulum|kisimyerlestir|kontrol|duzeltme|iyi|yeniden duzenleme|test|dokumantasyon)",
     ]
 
     for pattern in patterns:
@@ -194,33 +194,33 @@ def _generate_title(task_description: str) -> str:
         if match:
             return match.group(1).strip()[:50]
 
-    # 兜底：取前 30 个字符
+    # yedek: alonce 30 karakter
     if len(task_description) > 30:
         return task_description[:30] + "..."
     return task_description
 
 
 def _generate_trigger(task_description: str) -> str:
-    """生成触发条件"""
-    # 提取关键词作为触发条件
+    """olusturtetikgonderkosul"""
+    # cikaranahtar kelimeyapicintetikgonderkosul
     keywords = []
     trigger_keywords = [
-        "创建",
-        "生成",
-        "配置",
-        "设置",
-        "安装",
-        "部署",
-        "检查",
-        "修复",
-        "优化",
-        "重构",
-        "测试",
-        "文档",
-        "初始化",
-        "同步",
-        "更新",
-        "清理",
+        "olustur",
+        "olustur",
+        "yapilandirma",
+        "ayarlaayar",
+        "kurulum",
+        "kisimyerlestir",
+        "kontrol",
+        "duzeltme",
+        "iyi",
+        "yeniden duzenleme",
+        "test",
+        "dokumantasyon",
+        "baslat",
+        "esitle",
+        "guncelle",
+        "temizle",
     ]
 
     for kw in trigger_keywords:
@@ -228,55 +228,55 @@ def _generate_trigger(task_description: str) -> str:
             keywords.append(kw)
 
     if keywords:
-        return f"当用户需要{'/'.join(keywords[:3])}时"
+        return f"ne zamankullanicigerekister{'/'.join(keywords[:3])}zaman"
 
-    return "当用户有类似需求时"
+    return "ne zamankullanicivarsinifbenzergerekistezaman"
 
 
 def _generate_steps(execution_steps: list[str], reflections: list[str]) -> list[str]:
-    """生成标准化步骤"""
-    # 去重和简化步骤
+    """olusturstandartadim"""
+    # yinelenenleri kaldirvebasitadim
     simplified = []
     seen = set()
 
     for step in execution_steps:
-        # 去掉具体文件名、路径等细节
+        # kaldiraraçdosyaisim, yolvb.incebolum
         generalized = _generalize_step(step)
         if generalized and generalized not in seen:
             seen.add(generalized)
             simplified.append(generalized)
 
-    # 添加反思中的改进建议
+    # ekleyansimaicindedegistirilerleoneri
     for reflection in reflections:
-        if any(kw in reflection for kw in ["建议", "改进", "优化", "下次"]):
+        if any(kw in reflection for kw in ["oneri", "degistirilerle", "iyi", "altkez"]):
             tip = f"💡 {reflection[:100]}"
             if tip not in seen:
                 simplified.append(tip)
 
-    return simplified[:10]  # 最多 10 步
+    return simplified[:10]  # en fazla 10 adim
 
 
 def _generalize_step(step: str) -> str:
-    """将具体步骤泛化"""
-    # 去掉具体路径
-    step = re.sub(r"/[\w/\-.]+", "<路径>", step)
-    # 去掉具体文件名
-    step = re.sub(r"\b[\w\-]+\.(py|js|ts|html|css|md|json|yaml|yml)\b", "<文件>", step)
-    # 去掉具体时间
-    step = re.sub(r"\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2})?", "<时间>", step)
-    # 去掉 commit hash
+    """araçadimgenel"""
+    # kaldiraraçyol
+    step = re.sub(r"/[\w/\-.]+", "<yol>", step)
+    # kaldiraraçdosyaisim
+    step = re.sub(r"\b[\w\-]+\.(py|js|ts|html|css|md|json|yaml|yml)\b", "<dosya>", step)
+    # kaldiraraçzamanarasinda
+    step = re.sub(r"\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2})?", "<zamanarasinda>", step)
+    # kaldir commit hash
     step = re.sub(r"\b[0-9a-f]{7,40}\b", "<commit>", step)
 
     return step.strip()
 
 
 def _generate_description(title: str, steps: list[str]) -> str:
-    """生成 Skill 描述"""
-    return f"自动处理「{title}」任务，包含 {len(steps)} 个标准化步骤。"
+    """olustur Skill aciklama"""
+    return f"'{title}' gorevini otomatik isle, {len(steps)} standart adim icerir."
 
 
 def _find_proposal(proposal_id: str) -> Optional[SkillProposal]:
-    """查找指定提议"""
+    """arabelirtoneri"""
     filepath = SKILL_PROPOSALS_DIR / f"{proposal_id}.json"
     if not filepath.exists():
         return None
@@ -289,29 +289,29 @@ def _find_proposal(proposal_id: str) -> Optional[SkillProposal]:
 
 
 def _generate_skill_md(proposal: SkillProposal) -> str:
-    """生成 SKILL.md 内容"""
+    """olustur SKILL.md icerik"""
     steps_md = "\n".join(f"{i + 1}. {step}" for i, step in enumerate(proposal.steps))
 
     return f"""# {proposal.title}
 
-## 描述
+## aciklama
 
 {proposal.description}
 
-## 触发条件
+## tetikgonderkosul
 
 {proposal.trigger}
 
-## 执行步骤
+## yurutadim
 
 {steps_md}
 
-## 来源
+## kaynak
 
-- 原始任务: {proposal.source_task}
-- 提取时间: {proposal.created_at}
+- hamgorev: {proposal.source_task}
+- cikarzamanarasinda: {proposal.created_at}
 
 ---
 
-*由 Oh My Coder 自动提取*
+*tarafindan Oh My Coder otomatikcikar*
 """

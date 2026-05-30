@@ -1,22 +1,22 @@
 from __future__ import annotations
 
 """
-Checkpoint & Rollback 系统
+Checkpoint & Rollback sistem
 
-纯 Python 实现，不依赖 Git。
-功能：
-- 创建快照：记录工作区变更文件（SHA256 差异检测）
-- 列出快照：支持按 task_id 过滤
-- 恢复快照：覆盖工作区文件，恢复前先备份当前状态
-- 对比差异：展示 snapshot 与当前工作区的差异
-- 清理逻辑：每个 checkpoint 最多 100 个文件，超出自动清理最早的
+saf Python uygula, hayirbagimlilik Git. 
+Islev:
+- olusturhizligore: kayitisbolgedegisiklikdosya (SHA256 farkfarklialgilama) 
+- listelehizligore: destekgore task_id filtrele
+- kurtarhizligore: uzerine yazisbolgedosya, kurtaronceonceyedekmevcutdurum
+- icinkiyasfarkfarkli: goster snapshot ilemevcutisbolgefarkfarkli
+- temizlemantik: her checkpoint en fazla 100 dosya, asiriotomatiktemizleenerken
 
-目录结构：
+dizinyapi: 
 .omc/checkpoints/
-├── index.json              # 全量索引
+├── index.json              # tummiktarindeks
 └── <task-id>/
-    ├── manifest.json        # 文件列表 + SHA256
-    └── snapshot/            # 变更文件内容
+    ├── manifest.json        # dosyaliste + SHA256
+    └── snapshot/            # degisiklikdosyaicerik
         ├── <file1>
         └── <file2>
 """
@@ -33,31 +33,31 @@ from typing import TYPE_CHECKING, Any, Optional
 if TYPE_CHECKING:
     import builtins
 
-# 变更文件上限（超出时自动清理最早的 snapshot）
+# degisiklikdosyaustsinir (asirizamanotomatiktemizleenerken snapshot) 
 MAX_SNAPSHOT_FILES = 100
 
 
 @dataclass
 class SnapshotEntry:
-    """快照中的单个文件条目"""
+    """hizligoreicindetekildosyaogrehedef"""
 
-    path: str  # 相对路径
-    sha256: str  # 文件内容 SHA256
-    size: int  # 文件大小（字节）
-    modified_at: str  # 修改时间（ISO 8601）
+    path: str  # icinyol
+    sha256: str  # dosyaicerik SHA256
+    size: int  # dosyabuyukkucuk (byte) 
+    modified_at: str  # degistirzamanarasinda (ISO 8601) 
 
 
 @dataclass
 class Checkpoint:
-    """快照元数据"""
+    """hizligoreogresayigore"""
 
-    id: str  # checkpoint ID（时间戳 + task_id）
-    task_id: str  # 关联任务 ID
-    description: str  # 快照描述
-    created_at: str  # 创建时间（ISO 8601）
-    file_count: int  # 快照文件数量
-    total_size: int  # 快照总大小（字节）
-    working_dir: str  # 工作区根目录
+    id: str  # checkpoint ID (zamanarasindadamga + task_id) 
+    task_id: str  # iliskiligorev ID
+    description: str  # hizligoreaciklama
+    created_at: str  # olusturzamanarasinda (ISO 8601) 
+    file_count: int  # hizligoredosya sayisimiktar
+    total_size: int  # hizligoretoplambuyukkucuk (byte) 
+    working_dir: str  # isbolgekokdizin
     entries: list[SnapshotEntry] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -89,16 +89,16 @@ class Checkpoint:
 
 class CheckpointManager:
     """
-    Checkpoint 管理器
+    Checkpoint yonet
 
-    用法：
+    kullanyontem: 
         cm = CheckpointManager(project_path=Path("."))
-        cp_id = cm.create(task_id="build-flask", description="开始重构")
+        cp_id = cm.create(task_id="build-flask", description="baslatyeniden duzenleme")
         cm.restore(cp_id)
         cm.diff(cp_id)
     """
 
-    # 不纳入快照的目录/文件模式
+    # hayirkabulgirishizligoredizin/dosyamod
     IGNORE_PATTERNS: set[str] = {
         ".git",
         ".omc",
@@ -131,12 +131,12 @@ class CheckpointManager:
         self.index_file = self.checkpoint_root / "index.json"
         self.backup_root = Path.home() / ".omc" / "backup"
         self._index: dict[str, dict[str, Any]] = {}
-        self._seq = 0  # 单调递增序列号，确保 cp_id 唯一
+        self._seq = 0  # tekilayariletartsirano, saglar cp_id tekbir
         self._init()
         self._load_index()
 
     # ------------------------------------------------------------------
-    # 初始化
+    # baslat
     # ------------------------------------------------------------------
 
     def _init(self) -> None:
@@ -158,7 +158,7 @@ class CheckpointManager:
         )
 
     # ------------------------------------------------------------------
-    # 核心操作
+    # cekirdekislem
     # ------------------------------------------------------------------
 
     def create(
@@ -168,14 +168,14 @@ class CheckpointManager:
         max_files: int = MAX_SNAPSHOT_FILES,
     ) -> str:
         """
-        创建 checkpoint（快照当前工作区）
+        olustur checkpoint (hizligoremevcutisbolge) 
 
-        只保存有变更的文件（SHA256 对比）。
+        sadecekaydetvardegisiklikdosya (SHA256 icinkiyas) . 
 
         Args:
-            task_id: 任务 ID
-            description: 快照描述
-            max_files: 本次快照最多保存的文件数
+            task_id: gorev ID
+            description: hizligoreaciklama
+            max_files: kezhizligoreen fazlakaydetdosya sayisi
 
         Returns:
             checkpoint ID
@@ -190,9 +190,9 @@ class CheckpointManager:
         entries: list[SnapshotEntry] = []
         total_size = 0
 
-        # 遍历工作区文件
+        # dolasisbolgedosya
         for file_path in self._iter_files():
-            # 跳过忽略的模式
+            # atlayoksaymod
             if self._is_ignored(file_path):
                 continue
 
@@ -201,11 +201,11 @@ class CheckpointManager:
             except OSError:
                 continue
 
-            # 计算 SHA256
+            # hesapla SHA256
             sha256 = hashlib.sha256(content).hexdigest()
             rel_path = str(file_path.relative_to(self.project_path))
 
-            # 记录条目
+            # kayitogrehedef
             entry = SnapshotEntry(
                 path=rel_path,
                 sha256=sha256,
@@ -214,20 +214,20 @@ class CheckpointManager:
             )
             entries.append(entry)
 
-            # 写入 snapshot（只存内容，manifest 单独存）
+            # yazgiris snapshot (sadecekaydeticerik, manifest tekiltekkaydet) 
             dest = snapshot_dir / rel_path
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(content)
             total_size += entry.size
 
-        # 限制文件数（超出时取最近的）
+        # sinirdosya sayisi (asirizamanalenyakin) 
         if len(entries) > max_files:
             entries.sort(key=lambda e: e.modified_at, reverse=True)
             entries = entries[:max_files]
 
         created_at = time.strftime("%Y-%m-%dT%H:%M:%S") + f".{self._seq:04d}"
 
-        # 写 manifest
+        # yaz manifest
         manifest = {
             "id": cp_id,
             "task_id": task_id,
@@ -242,7 +242,7 @@ class CheckpointManager:
             json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
-        # 更新索引
+        # guncelleindeks
         self._index[cp_id] = {
             "id": cp_id,
             "task_id": task_id,
@@ -259,25 +259,25 @@ class CheckpointManager:
 
     def restore(self, checkpoint_id: str) -> str:
         """
-        恢复 checkpoint（覆盖工作区文件）
+        kurtar checkpoint (uzerine yazisbolgedosya) 
 
-        恢复前自动将当前工作区备份到 ~/.omc/backup/<timestamp>/
+        kurtaronceotomatikmevcutisbolgeyedekkadar ~/.omc/backup/<timestamp>/
 
         Args:
             checkpoint_id: checkpoint ID
 
         Returns:
-            备份路径
+            yedekyol
         """
         cp_dir = self._get_checkpoint_dir(checkpoint_id)
         manifest_file = cp_dir / "manifest.json"
         if not manifest_file.exists():
-            raise FileNotFoundError(f"Checkpoint '{checkpoint_id}' 不存在")
+            raise FileNotFoundError(f"Checkpoint '{checkpoint_id}' mevcut degil")
 
         manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
         snapshot_dir = cp_dir / "snapshot"
 
-        # 备份当前状态
+        # yedekmevcutdurum
         backup_ts = time.strftime("%Y%m%d-%H%M%S")
         backup_dir = self.backup_root / backup_ts
         backup_dir.mkdir(parents=True, exist_ok=True)
@@ -287,13 +287,13 @@ class CheckpointManager:
             rel_path = entry_data["path"]
             current_file = self.project_path / rel_path
 
-            # 1. 先备份当前文件（如果存在）
+            # 1. onceyedekmevcutdosya (egerkaydeticinde) 
             if current_file.exists():
                 dest = backup_dir / rel_path
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(current_file, dest)
 
-            # 2. 再恢复 snapshot 文件
+            # 2. tekrarkurtar snapshot dosya
             snap_file = snapshot_dir / rel_path
             if snap_file.exists():
                 dest = self.project_path / rel_path
@@ -301,7 +301,7 @@ class CheckpointManager:
                 dest.write_bytes(snap_file.read_bytes())
                 restored_files.append(rel_path)
 
-        # 写备份元数据
+        # yazyedekogresayigore
         (backup_dir / "metadata.json").write_text(
             json.dumps(
                 {
@@ -319,7 +319,7 @@ class CheckpointManager:
 
     def diff(self, checkpoint_id: str) -> dict[str, builtins.list[str]]:
         """
-        对比 checkpoint 与当前工作区的差异
+        icinkiyas checkpoint ilemevcutisbolgefarkfarkli
 
         Returns:
             {"added": [...], "removed": [...], "modified": [...], "unchanged": [...]}
@@ -327,7 +327,7 @@ class CheckpointManager:
         cp_dir = self._get_checkpoint_dir(checkpoint_id)
         manifest_file = cp_dir / "manifest.json"
         if not manifest_file.exists():
-            raise FileNotFoundError(f"Checkpoint '{checkpoint_id}' 不存在")
+            raise FileNotFoundError(f"Checkpoint '{checkpoint_id}' mevcut degil")
 
         manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
         cp_dir / "snapshot"
@@ -339,12 +339,12 @@ class CheckpointManager:
             "unchanged": [],
         }
 
-        # 从 manifest 构建 path -> sha256 映射
+        #  manifest olustur path -> sha256 esle
         snapshot_map: dict[str, str] = {}
         for entry_data in manifest.get("entries", []):
             snapshot_map[entry_data["path"]] = entry_data["sha256"]
 
-        # 遍历当前工作区文件
+        # dolasmevcutisbolgedosya
         current_files: set[str] = set()
         for file_path in self._iter_files():
             if self._is_ignored(file_path):
@@ -352,7 +352,7 @@ class CheckpointManager:
             rel_path = str(file_path.relative_to(self.project_path))
             current_files.add(rel_path)
 
-        # 对比 snapshot vs 当前
+        # icinkiyas snapshot vs mevcut
         for rel_path, snapshot_sha in snapshot_map.items():
             current_file = self.project_path / rel_path
             if rel_path not in current_files:
@@ -364,7 +364,7 @@ class CheckpointManager:
                 else:
                     result["modified"].append(rel_path)
 
-        # 当前有但 snapshot 没有的 → added
+        # mevcutvarancak snapshot yokvar → added
         for file_path in self._iter_files():
             if self._is_ignored(file_path):
                 continue
@@ -375,7 +375,7 @@ class CheckpointManager:
         return result
 
     def delete(self, checkpoint_id: str) -> bool:
-        """删除 checkpoint"""
+        """sil checkpoint"""
         if checkpoint_id not in self._index:
             return False
         cp_dir = Path(self._index[checkpoint_id]["path"])
@@ -391,14 +391,14 @@ class CheckpointManager:
         limit: int = 50,
     ) -> builtins.list[dict[str, Any]]:
         """
-        列出 checkpoint
+        listele checkpoint
 
         Args:
-            task_id: 按任务 ID 过滤
-            limit: 返回上限
+            task_id: goregorev ID filtrele
+            limit: donusustsinir
 
         Returns:
-            checkpoint 信息列表
+            checkpoint bilgiliste
         """
         results = []
         for cp_id, info in self._index.items():
@@ -406,12 +406,12 @@ class CheckpointManager:
                 continue
             results.append({**info, "id": cp_id})
 
-        # 按时间倒序
+        # gorezamanarasindaters sira
         results.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         return results[:limit]
 
     def get_checkpoint(self, checkpoint_id: str) -> Optional[Checkpoint]:
-        """获取单个 checkpoint 完整信息"""
+        """altekil checkpoint tambilgi"""
         if checkpoint_id not in self._index:
             return None
         cp_dir = Path(self._index[checkpoint_id]["path"])
@@ -422,11 +422,11 @@ class CheckpointManager:
         return Checkpoint.from_dict(data)
 
     # ------------------------------------------------------------------
-    # 辅助方法
+    # yardimciyontem
     # ------------------------------------------------------------------
 
     def _iter_files(self):
-        """迭代工作区中的所有文件"""
+        """iterasyonisbolgeicindevardosya"""
         if not self.project_path.exists():
             return
         for item in self.project_path.rglob("*"):
@@ -434,7 +434,7 @@ class CheckpointManager:
                 yield item
 
     def _is_ignored(self, path: Path) -> bool:
-        """判断文件是否应该忽略"""
+        """karar verdosyaolup olmadigiolmalibuyoksay"""
         rel_str = str(path.relative_to(self.project_path))
         for part in rel_str.split("/"):
             if part in self.IGNORE_PATTERNS:
@@ -446,26 +446,26 @@ class CheckpointManager:
 
     @staticmethod
     def _file_sha256(path: Path) -> str:
-        """计算文件 SHA256"""
+        """hesapladosya SHA256"""
         return hashlib.sha256(path.read_bytes()).hexdigest()
 
     def _get_checkpoint_dir(self, checkpoint_id: str) -> Path:
-        """根据 ID 找到 checkpoint 目录"""
+        """gore ID bulkadar checkpoint dizin"""
         if checkpoint_id in self._index:
             return Path(self._index[checkpoint_id]["path"])
-        # 尝试从 task_id 目录查找
+        # dene task_id dizinara
         for cp_dir in self.checkpoint_root.rglob("*/manifest.json"):
             manifest = json.loads(cp_dir.read_text(encoding="utf-8"))
             if manifest.get("id") == checkpoint_id:
                 return cp_dir.parent
-        raise FileNotFoundError(f"Checkpoint '{checkpoint_id}' 不存在")
+        raise FileNotFoundError(f"Checkpoint '{checkpoint_id}' mevcut degil")
 
     # ------------------------------------------------------------------
-    # 统计
+    # istatistik
     # ------------------------------------------------------------------
 
     def get_stats(self) -> dict[str, Any]:
-        """获取快照统计"""
+        """alhizligoreistatistik"""
         total = len(self._index)
         total_size = sum(c.get("total_size", 0) for c in self._index.values())
         total_files = sum(c.get("file_count", 0) for c in self._index.values())
@@ -476,30 +476,30 @@ class CheckpointManager:
         }
 
     def format_diff(self, diff_result: dict[str, builtins.list[str]]) -> str:
-        """格式化 diff 结果为可读字符串"""
+        """format diff sonucicinolabilirokukarakter dizisi"""
         lines = []
         if diff_result["added"]:
-            lines.append(f"🆕 新增 ({len(diff_result['added'])}):")
+            lines.append(f"🆕 yeniart ({len(diff_result['added'])}):")
             lines.extend([f"  + {f}" for f in diff_result["added"][:20]])
             if len(diff_result["added"]) > 20:
-                lines.append(f"  ... 还有 {len(diff_result['added']) - 20} 个")
+                lines.append(f"  ... halavar {len(diff_result['added']) - 20} ")
 
         if diff_result["removed"]:
-            lines.append(f"❌ 已删除 ({len(diff_result['removed'])}):")
+            lines.append(f"❌ sil ({len(diff_result['removed'])}):")
             lines.extend([f"  - {f}" for f in diff_result["removed"][:20]])
             if len(diff_result["removed"]) > 20:
-                lines.append(f"  ... 还有 {len(diff_result['removed']) - 20} 个")
+                lines.append(f"  ... halavar {len(diff_result['removed']) - 20} ")
 
         if diff_result["modified"]:
-            lines.append(f"🔄 已修改 ({len(diff_result['modified'])}):")
+            lines.append(f"🔄 degistir ({len(diff_result['modified'])}):")
             lines.extend([f"  ~ {f}" for f in diff_result["modified"][:20]])
             if len(diff_result["modified"]) > 20:
-                lines.append(f"  ... 还有 {len(diff_result['modified']) - 20} 个")
+                lines.append(f"  ... halavar {len(diff_result['modified']) - 20} ")
 
         if diff_result["unchanged"]:
-            lines.append(f"✅ 未变 ({len(diff_result['unchanged'])})")
+            lines.append(f"✅ henuzdegis ({len(diff_result['unchanged'])})")
 
         if not lines:
-            lines.append("（无差异）")
+            lines.append(" (yokfarkfarkli) ")
 
         return "\n".join(lines)

@@ -1,13 +1,13 @@
 """
-Agent 状态持久化模块
+Ajan durum kalıcılaştırma modülü
 
-将 Agent 会话状态保存到本地文件系统，支持重启恢复和 export/import。
+Ajan oturum durumunu yerel dosya sistemine kaydeder, yeniden başlatma kurtarması ve export/import destekler.
 
-目录结构:
+Dizin yapısı:
     ~/.oh-my-coder/agents/<agent_name>/
-    ├── config.json       # Agent 配置快照
-    ├── history.jsonl     # 对话历史（append-only）
-    └── state.json        # 运行时状态
+    ├── config.json       # Ajan yapılandırma anlık görüntüsü
+    ├── history.jsonl     # Sohbet geçmişi (append-only)
+    └── state.json        # Çalışma zamanı durumu
 """
 
 from .store import AgentStateStore

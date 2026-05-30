@@ -1,13 +1,13 @@
 """
-Auth Agent - 认证与授权智能体
+Auth Agent - Kimlik Doğrulama ve Yetkilendirme Aracısı
 
-职责：
-1. JWT / OAuth2 / API Key 认证方案设计
-2. RBAC 权限模型设计
-3. 登录注册流程实现
-4. 安全中间件配置
+Sorumluluklar:
+1. JWT / OAuth2 / API Key Sertifika şeması tasarımı
+2. RBAC İzin modeli tasarımı
+3. Giriş kayıt işleminin uygulanması
+4. Güvenlik ara yazılımı yapılandırması
 
-模型层级：MEDIUM（平衡）
+Modeli seviyesi:MEDIUM(denge)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class AuthAgent(BaseAgent):
-    """认证与授权智能体"""
+    """Kimlik Doğrulama ve Yetkilendirme Aracısı"""
 
     name = "auth"
-    description = "认证与授权智能体 - JWT、OAuth、RBAC、登录注册"
+    description = "Kimlik Doğrulama ve Yetkilendirme Aracısı - JWT,OAuth,RBAC, giriş yapın ve kaydolun"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "🔐"
@@ -34,12 +34,12 @@ class AuthAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个身份认证与授权专家。
+        return """Siz bir kimlik doğrulama ve yetkilendirme uzmanısınız.
 
-## 角色
-你擅长设计安全的认证方案和权限模型。
+## Rol
+Güvenli kimlik doğrulama şemaları ve izin modelleri tasarlama konusunda iyisiniz.
 
-## 认证方案
+## Sertifika şeması
 
 ### JWT
 ```python
@@ -57,34 +57,34 @@ def verify_token(token: str) -> dict:
     return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
 ```
 
-### RBAC 权限模型
+### RBAC izin modeli
 ```
-角色: admin, editor, viewer
-权限: user.read, user.write, user.delete, post.read, post.write
-分配:
-  admin → 所有权限
+Rol: admin, editor, viewer
+İzinler: user.read, user.write, user.delete, post.read, post.write
+dağıtmak:
+  admin → Tüm izinler
   editor → user.read, post.read, post.write
   viewer → user.read, post.read
 ```
 
-## 输出格式
-1. 认证方案选型建议
-2. 核心代码实现
-3. 中间件配置
-4. 权限装饰器
+## Çıkış formatı
+1. Sertifikasyon çözümlerinin seçimine ilişkin öneriler
+2. Çekirdek kod uygulaması
+3. Ara yazılım yapılandırması
+4. izin dekoratörü
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行认证设计"""
+        """Sertifikalı tasarım gerçekleştirin"""
         auth_hint = """
 
-请设计认证与授权方案：
-1. 根据项目需求选择认证方案（JWT / OAuth2 / API Key）
-2. 设计权限模型（RBAC / ABAC）
-3. 提供完整的认证代码
-4. 配置中间件和路由保护
+Lütfen bir kimlik doğrulama ve yetkilendirme şeması tasarlayın:
+1. Proje ihtiyaçlarına göre bir sertifika programı seçin (JWT / OAuth2 / API Key)
+2. Tasarım izin modeli (RBAC / ABAC)
+3. Kimlik doğrulama kodunun tamamını sağlayın
+4. Ara yazılım ve rota korumasını yapılandırma
 """
         prompt.append({"role": "user", "content": auth_hint})
 
@@ -104,9 +104,9 @@ def verify_token(token: str) -> dict:
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "在 .env 中配置 SECRET_KEY",
-                "为敏感接口添加权限验证",
-                "实现 token 刷新机制",
+                "var olmak .env Orta konfigürasyon SECRET_KEY",
+                "Hassas arayüzler için izin doğrulaması ekleyin",
+                "sonuçlandırmak token Yenileme mekanizması",
             ],
             next_agent="executor",
         )

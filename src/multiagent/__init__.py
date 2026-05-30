@@ -1,4 +1,4 @@
-"""多 Agent 协作模块"""
+"""cok Agent isbirligiyapmodul"""
 
 from .coordinator import (
     AgentRole,

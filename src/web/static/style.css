@@ -1,11 +1,11 @@
 /* ========================================
    Oh My Coder - Unified Dark Theme
-   与 Desktop 端一致的深色主题
+   Desktop tarafı ile tutarlı koyu tema
    ======================================== */
 
 /* ===== CSS Variables ===== */
 :root {
-    /* Dark Theme (默认) */
+    /* Dark Theme (varsayılan) */
     --bg: #0c0e14;
     --bg-secondary: #13161f;
     --bg-tertiary: #1a1d28;

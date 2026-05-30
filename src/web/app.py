@@ -4,8 +4,8 @@ from __future__ import annotations
 
 
 """
-Web 界面入口 - FastAPI 应用
-提供可视化界面执行 AI 编程任务
+Web arayüzü giriş noktası - FastAPI uygulaması
+AI programlama görevlerini yürütmek için görsel arayüz sağlar
 """
 
 import asyncio
@@ -29,12 +29,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-# 确保可以导入 src 模块
+# src modülünün içe aktarılabildiğinden emin ol
 project_root = Path(__file__).parent.parent.parent
 
 sys.path.insert(0, str(project_root))
 
-# 导入必须在 sys.path.insert 之后
+# İçe aktarma işlemi sys.path.insert sonrasında yapılmalı
 try:
     from src.agents.base import AgentContext, AgentOutput, AgentStatus, get_agent
     from src.config.workflow_loader import WorkflowLoader
@@ -52,16 +52,16 @@ try:
     from src.web.share_api import router as share_router
     from src.web.team_api import router as team_router
 except ImportError as e:
-    print(f"导入错误: {e}")
+    print(f"İçe aktarma hatası: {e}")
     raise
 
 # ========================================
-# URL / 目标预处理
+# URL / hedef ön işleme
 # ========================================
 
 
 def _detect_target_type(target: str) -> str:
-    """自动检测输入类型：github / url / local"""
+    """Girdi türünü otomatik tespit et: github / url / local"""
     target = target.strip()
     if not target:
         return "local"
@@ -71,7 +71,7 @@ def _detect_target_type(target: str) -> str:
     # Git URL (git@...)
     if target.startswith("git@"):
         return "github"
-    # 其他 HTTP URL
+    # Diğer HTTP URL
     if target.startswith("http://") or target.startswith("https://"):
         return "url"
     return "local"
@@ -79,17 +79,17 @@ def _detect_target_type(target: str) -> str:
 
 def _preprocess_target(target: str, target_type: str, task_id: str) -> tuple:
     """
-    预处理分析目标，返回 (project_path, extra_context).
-    - github: clone 到临时目录，返回路径
-    - url: fetch 网页内容，返回 ('.', extra_context)
-    - local: 直接返回原路径
+    Analiz hedefini ön işle, (project_path, extra_context) döndürür.
+    - github: geçici dizine klonla, yolu döndür
+    - url: web içeriğini çek, ('.', extra_context) döndür
+    - local: orijinal yolu doğrudan döndür
     """
     target = target.strip()
     if not target:
         return ".", ""
 
     if target_type == "github":
-        # 规范化 GitHub URL → .git clone URL
+        # GitHub URL'yi normalleştir → .git klon URL'si
         clone_url = target
         if not target.endswith(".git"):
             clone_url = target.rstrip("/") + ".git"
@@ -106,17 +106,17 @@ def _preprocess_target(target: str, target_type: str, task_id: str) -> tuple:
             )
             if result.returncode != 0:
                 shutil.rmtree(tmp_dir, ignore_errors=True)
-                raise RuntimeError(f"git clone 失败: {result.stderr.strip()[:200]}")
+                raise RuntimeError(f"git clone başarısız: {result.stderr.strip()[:200]}")
             return str(
                 tmp_dir
-            ), f"\n\n## 源代码来源\nGitHub 仓库: {target}\n已克隆到: {tmp_dir}"
+            ), f"\n\n## Kaynak kodu konumu\nGitHub deposu: {target}\nKlonlandığı yer: {tmp_dir}"
         except Exception as e:
             print(f"[ERROR] Git clone failed: {e}")
             shutil.rmtree(tmp_dir, ignore_errors=True)
             raise
 
     elif target_type == "url":
-        # Fetch 网页内容
+        # Web içeriğini çek
         try:
             import requests
 
@@ -127,27 +127,27 @@ def _preprocess_target(target: str, target_type: str, task_id: str) -> tuple:
                     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
                 },
             )
-            # 自动检测编码
+            # Kodlamayı otomatik algıla
             content = resp.text
-            # 简单 HTML → 文本：去标签
+            # Basit HTML → metin: etiketleri kaldır
             text = re.sub(r"<script[^>]*>[\s\S]*?</script>", "", content, flags=re.I)
             text = re.sub(r"<style[^>]*>[\s\S]*?</style>", "", text, flags=re.I)
             text = re.sub(r"<[^>]+>", " ", text)
             text = re.sub(r"\s+", " ", text).strip()
-            # 截断到 8000 字符避免 token 爆炸
+            # Token patlamasını önlemek için 8000 karaktere kırp
             if len(text) > 8000:
-                text = text[:8000] + "\n\n... (内容已截断)"
-            return ".", f"\n\n## 网页内容\n来源: {target}\n\n{text}"
+                text = text[:8000] + "\n\n... (içerik kısaltıldı)"
+            return ".", f"\n\n## Web içeriği\nKaynak: {target}\n\n{text}"
         except Exception as e:
-            raise RuntimeError(f"获取网页失败: {e}")
+            raise RuntimeError(f"Web sayfası alınamadı: {e}")
 
     else:
-        # 本地路径
+        # Yerel yol
         return target, ""
 
 
 def _cleanup_target(project_path: str, target_type: str):
-    """清理临时目录（GitHub clone）"""
+    """Geçici dizini temizle (GitHub clone)"""
     if target_type == "github" and project_path.startswith(tempfile.gettempdir()):
         shutil.rmtree(project_path, ignore_errors=True)
 
@@ -157,11 +157,11 @@ def _cleanup_target(project_path: str, target_type: str):
 # ========================================
 app = FastAPI(
     title="Oh My Coder Web",
-    description="多智能体 AI 编程助手 Web 界面",
+    description="Çoklu ajanlı AI programlama asistanı Web arayüzü",
     version="0.1.0",
 )
 
-# 挂载静态文件和模板
+# Statik dosyaları ve şablonları bağla
 web_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=web_dir / "static"), name="static")
 templates = Jinja2Templates(directory=web_dir / "templates")
@@ -172,7 +172,7 @@ async def favicon():
     from fastapi.responses import FileResponse
     return FileResponse(web_dir / "static" / "favicon.svg", media_type="image/svg+xml")
 
-# 注册增强路由
+# Geliştirme rotalarını kaydet
 app.include_router(history_router)
 app.include_router(agent_router)
 app.include_router(dashboard_router)
@@ -185,7 +185,7 @@ app.include_router(share_router)
 # SSE Manager (Task → SSE subscribers)
 # ========================================
 class TaskManager:
-    """管理所有运行中的任务"""
+    """Çalışan tüm görevleri yönetir"""
 
     def __init__(self):
         self._tasks: dict[str, dict[str, Any]] = {}
@@ -308,7 +308,7 @@ _global_orchestrator = None
 
 
 def get_orchestrator() -> Orchestrator:
-    """获取全局 Orchestrator 单例（复用已有 router）"""
+    """Global Orchestrator tekil örneğini al (mevcut router'ı yeniden kullanır)"""
     global _global_orchestrator
     if _global_orchestrator is None:
         router = create_router()
@@ -320,16 +320,16 @@ def get_orchestrator() -> Orchestrator:
 # Model & Orchestrator Factory
 # ========================================
 def create_router() -> ModelRouter:
-    """创建模型路由器"""
+    """Model router oluştur"""
     config = RouterConfig()
     return ModelRouter(config)
 
 
 def create_orchestrator(router: ModelRouter) -> Orchestrator:
-    """创建编排器"""
+    """Orkestratör oluştur"""
     orch = Orchestrator(model_router=router, state_dir=project_root / ".omc" / "state")
 
-    # 注册所有已实现的 Agent
+    # Uygulanmış tüm Agent'ları kaydet
     for name in [
         "explore",
         "analyst",
@@ -357,7 +357,7 @@ def create_orchestrator(router: ModelRouter) -> Orchestrator:
 # ========================================
 @app.get("/sse/execute/{task_id}")
 async def sse_execute(task_id: str):
-    """SSE 流式推送执行进度"""
+    """SSE akışı ile yürütme ilerlemesini gönder"""
     queue = task_manager.get_queue(task_id)
     if not queue:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -384,11 +384,11 @@ async def sse_execute(task_id: str):
 @app.get("/api/agent/live")
 async def agent_live_stream():
     """
-    SSE 实时推送当前 Agent 协作状态
+    SSE ile mevcut Agent işbirliği durumunu gerçek zamanlı gönder
 
     Returns:
-        StreamingResponse: text/event-stream，每 2 秒推送一次
-        orchestrator.get_current_state()
+        StreamingResponse: text/event-stream, her 2 saniyede bir
+        orchestrator.get_current_state() gönderir
     """
     orch = get_orchestrator()
 
@@ -401,7 +401,7 @@ async def agent_live_stream():
             except Exception as e:
                 print(f"[WARNING] Failed to get orchestrator state: {e}")
                 error_state = {
-                    "error": "服务端状态获取失败",
+                    "error": "Sunucu durumu alınamadı",
                     "timestamp": datetime.now().isoformat(),
                 }
                 yield f"data: {json_dumps(error_state)}\n\n"
@@ -432,37 +432,37 @@ def json_dumps(obj):
 # ========================================
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    """主页 - Web 界面"""
+    """Ana sayfa - Web arayüzü"""
     return templates.TemplateResponse(request, "index.html")
 
 
 @app.get("/history", response_class=HTMLResponse)
 async def history_page(request: Request):
-    """历史记录页面"""
+    """Geçmiş kayıt sayfası"""
     return templates.TemplateResponse(request, "history.html")
 
 
 @app.get("/agents", response_class=HTMLResponse)
 async def agents_page(request: Request):
-    """Agent 状态页面"""
+    """Agent durum sayfası"""
     return templates.TemplateResponse(request, "agents.html")
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(request: Request):
-    """项目仪表板页面"""
+    """Proje gösterge paneli sayfası"""
     return templates.TemplateResponse(request, "dashboard.html")
 
 
 @app.get("/api/tasks")
 async def list_tasks():
-    """列出所有任务"""
+    """Tüm görevleri listele"""
     return JSONResponse({"tasks": task_manager.list_tasks()})
 
 
 @app.get("/api/tasks/{task_id}")
 async def get_task(task_id: str):
-    """获取任务状态"""
+    """Görev durumunu al"""
     task = task_manager.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -474,7 +474,7 @@ async def delete_task(
     task_id: str,
     token: Optional[str] = Depends(verify_api_token),
 ):
-    """删除任务（需要 API token 校验）"""
+    """Görevi sil (API token doğrulaması gerekir)"""
     if not task_manager.delete_task(task_id):
         raise HTTPException(status_code=404, detail="Task not found")
     return JSONResponse({"status": "deleted"})
@@ -482,7 +482,7 @@ async def delete_task(
 
 @app.get("/api/history")
 async def api_history():
-    """获取任务历史（兼容 history.html）"""
+    """Görev geçmişini al (history.html ile uyumlu)"""
     tasks = task_manager.list_tasks()
     tasks.sort(key=lambda t: t.get("started_at", ""), reverse=True)
     return JSONResponse({"records": tasks})
@@ -490,15 +490,15 @@ async def api_history():
 
 @app.get("/api/dashboard/stats")
 async def dashboard_stats():
-    """仪表板统计数据 — 返回真实的任务统计"""
+    """Gösterge paneli istatistik verileri — gerçek görev istatistiklerini döndürür"""
     stats = history_store.get_stats()
     return JSONResponse(stats)
 
 
 @app.get("/api/dashboard/files")
 async def dashboard_files():
-    """仪表板项目文件列表 — 从最近任务获取项目路径并列出文件"""
-    # 从最近任务获取项目路径
+    """Gösterge paneli proje dosya listesi — en son görevden proje yolunu alır ve dosyaları listeler"""
+    # En son görevden proje yolunu al
     records = history_store.list_all(limit=10)
     project_path = "."
 
@@ -507,11 +507,11 @@ async def dashboard_files():
             project_path = r.get("project_path", ".")
             break
 
-    # 如果没有历史任务，使用当前工作目录
+    # Geçmiş görev yoksa geçerli çalışma dizinini kullan
     if project_path == "." and project_root.exists():
         project_path = str(project_root)
 
-    # 列出文件
+    # Dosyaları listele
     files = []
     try:
         p = Path(project_path)
@@ -531,7 +531,7 @@ async def dashboard_files():
 
 @app.post("/api/open-folder")
 async def open_folder(payload: Optional[dict] = None):
-    """打开指定路径的文件夹（在文件管理器中显示）"""
+    """Belirtilen yoldaki klasörü aç (dosya yöneticisinde göster)"""
     if not payload or not payload.get("path"):
         raise HTTPException(status_code=400, detail="path required")
 
@@ -547,68 +547,68 @@ async def open_folder(payload: Optional[dict] = None):
             subprocess.run(["explorer", path], check=True)
         else:  # Linux
             subprocess.run(["xdg-open", path], check=True)
-        return JSONResponse({"status": "ok", "message": f"已打开: {path}"})
+        return JSONResponse({"status": "ok", "message": f"Açıldı: {path}"})
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
 
 @app.post("/api/save-report")
 async def save_report(payload: Optional[dict] = None):
-    """保存任务报告到文件"""
+    """Görev raporunu dosyaya kaydet"""
     if not payload or not payload.get("task_id"):
         raise HTTPException(status_code=400, detail="task_id required")
 
     task_id = payload["task_id"]
-    # 先从内存查找（当前会话任务）
+    # Önce bellekten ara (geçerli oturum görevi)
     task = task_manager.get_task(task_id)
-    # 如果内存没有，从历史记录查找（持久化任务）
+    # Bellekte yoksa, geçmiş kayıtlardan ara (kalıcı görev)
     if not task:
         task = history_store.load(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    # 默认保存到桌面
+    # Varsayılan olarak masaüstüne kaydet
     desktop = Path.home() / "Desktop" / "omc-reports"
     desktop.mkdir(parents=True, exist_ok=True)
 
-    # 生成文件名
+    # Dosya adı oluştur
     ts = task.get("started_at", "").replace(":", "-").replace(" ", "_")[:19]
     task_desc = task.get("task", "task")[:30].replace("/", "_").replace("\\", "_")
     filename = f"{ts}_{task_desc}_{task_id[:8]}.md"
     filepath = desktop / filename
 
-    # 生成报告内容
+    # Rapor içeriği oluştur
     lines = [
-        f"# 任务报告: {task.get('task', '未知任务')}\n",
-        f"- **任务 ID**: {task_id}",
-        f"- **状态**: {task.get('status', 'unknown')}",
-        f"- **开始时间**: {task.get('started_at', '-')}",
-        f"- **模型**: {task.get('model', '-')}",
-        f"- **工作流**: {task.get('workflow', '-')}",
-        f"- **项目路径**: {task.get('project_path', '-')}\n",
-        "## 统计\n",
+        f"# Görev raporu: {task.get('task', 'Bilinmeyen görev')}\n",
+        f"- **Görev ID**: {task_id}",
+        f"- **Durum**: {task.get('status', 'unknown')}",
+        f"- **Başlangıç zamanı**: {task.get('started_at', '-')}",
+        f"- **Model**: {task.get('model', '-')}",
+        f"- **İş akışı**: {task.get('workflow', '-')}",
+        f"- **Proje yolu**: {task.get('project_path', '-')}\n",
+        "## İstatistikler\n",
         f"- Tokens: {task.get('stats', {}).get('total_tokens', 0)}",
-        f"- 执行时间: {task.get('stats', {}).get('execution_time', 0)}s",
-        f"- 成本: ¥{task.get('stats', {}).get('total_cost', 0):.4f}",
-        f"- 完成步骤: {task.get('stats', {}).get('steps_completed', [])}",
-        f"- 失败步骤: {task.get('stats', {}).get('steps_failed', [])}\n",
+        f"- Yürütme süresi: {task.get('stats', {}).get('execution_time', 0)}s",
+        f"- Maliyet: ¥{task.get('stats', {}).get('total_cost', 0):.4f}",
+        f"- Tamamlanan adımlar: {task.get('stats', {}).get('steps_completed', [])}",
+        f"- Başarısız adımlar: {task.get('stats', {}).get('steps_failed', [])}\n",
     ]
 
-    # 各步骤输出
-    # 先从 result.outputs 找（持久化历史任务）
+    # Her bir adımın çıktıları
+    # Önce result.outputs içinde ara (kalıcı geçmiş görev)
     step_outputs = task.get("result", {}).get("outputs", {})
-    # 兼容：如果 result.outputs 没有，尝试 step_outputs（内存任务）
+    # Uyumluluk: result.outputs yoksa, step_outputs'u dene (bellek görevi)
     if not step_outputs:
         step_outputs = task.get("step_outputs", {})
     if step_outputs:
-        lines.append("## 各步骤输出\n")
+        lines.append("## Adım çıktıları\n")
         for step_name, output in step_outputs.items():
             lines.append(f"### {step_name}\n")
-            # 根据类型正确处理换行符
+            # Türüne göre satır sonlarını doğru işle
             if isinstance(output, str):
                 lines.append(output)
             elif isinstance(output, dict):
-                # 如果字典中有 result 字段，直接使用 result 字符串
+                # Sözlükte result alanı varsa, doğrudan result dizesini kullan
                 result = (
                     output.get("result")
                     or output.get("output")
@@ -622,22 +622,22 @@ async def save_report(payload: Optional[dict] = None):
                 lines.append(
                     _json.dumps(output, ensure_ascii=False, indent=2)
                     if output
-                    else "无输出"
+                    else "Çıktı yok"
                 )
             lines.append("")
 
-    # 最终结果
+    # Nihai sonuç
     final = task.get("result", {})
     if final:
-        lines.append("## 最终结果\n")
+        lines.append("## Nihai sonuç\n")
         if isinstance(final, dict):
-            lines.append(f"- 摘要: {final.get('summary', '-')}")
-            lines.append(f"- 耗时: {final.get('execution_time', 0)}s")
+            lines.append(f"- Özet: {final.get('summary', '-')}")
+            lines.append(f"- Süre: {final.get('execution_time', 0)}s")
             lines.append(f"- Tokens: {final.get('total_tokens', 0)}\n")
             for key, val in final.items():
                 if key not in ("summary", "execution_time", "total_tokens", "outputs"):
                     lines.append(f"### {key}\n")
-                    # 正确处理不同类型
+                    # Farklı türleri doğru işle
                     if isinstance(val, str):
                         lines.append(val)
                     elif isinstance(val, dict):
@@ -653,7 +653,7 @@ async def save_report(payload: Optional[dict] = None):
 
 
 # ========================================
-# Chat API - 对话式任务创建
+# Chat API - Sohbet tabanlı görev oluşturma
 # ========================================
 
 
@@ -674,28 +674,28 @@ class ChatResponse(BaseModel):
     task: dict | None = None
 
 
-# 工作流关键词映射
+# İş akışı anahtar kelime eşlemesi
 WORKFLOW_KEYWORDS = {
-    "review": ["审查", "review", "检查", "代码质量", "安全漏洞", "security", "quality"],
-    "debug": ["调试", "debug", "修复", "fix", "bug", "错误", "error", "问题"],
-    "test": ["测试", "test", "单元测试", "unittest", "coverage", "覆盖率"],
-    "build": ["开发", "实现", "build", "create", "写", "添加", "开发"],
+    "review": ["inceleme", "review", "kontrol", "kod kalitesi", "güvenlik açığı", "security", "quality"],
+    "debug": ["hata ayıklama", "debug", "düzelt", "fix", "bug", "hata", "error", "sorun"],
+    "test": ["test", "unittest", "birim test", "coverage", "kapsama"],
+    "build": ["geliştirme", "uygula", "build", "create", "yaz", "ekle"],
 }
 
-# 模型关键词映射
+# Model anahtar kelime eşlemesi
 MODEL_KEYWORDS = {
-    "deepseek": ["deepseek", "v4", "便宜", "低成本"],
-    "glm-4-flash": ["glm", "flash", "免费", "智谱"],
-    "MiniMax-Text-01": ["mimo", "小米", "minimax"],
-    "moonshot-v1-128k": ["kimi", "月之暗面", "128k"],
-    "doubao-pro-32k": ["doubao", "豆包", "字节"],
-    "tiangong-3": ["tiangong", "天工"],
-    "Baichuan4": ["baichuan", "百川"],
+    "deepseek": ["deepseek", "v4", "ucuz", "düşük maliyet"],
+    "glm-4-flash": ["glm", "flash", "ücretsiz", "zhipu"],
+    "MiniMax-Text-01": ["mimo", "xiaomi", "minimax"],
+    "moonshot-v1-128k": ["kimi", "moonshot", "128k"],
+    "doubao-pro-32k": ["doubao", "bytedance"],
+    "tiangong-3": ["tiangong"],
+    "Baichuan4": ["baichuan"],
 }
 
 
 def _detect_workflow(message: str) -> str:
-    """根据消息内容检测工作流类型"""
+    """Mesaj içeriğine göre iş akışı türünü tespit et"""
     message_lower = message.lower()
     scores = {}
     for workflow, keywords in WORKFLOW_KEYWORDS.items():
@@ -706,7 +706,7 @@ def _detect_workflow(message: str) -> str:
 
 
 def _detect_model(message: str) -> str:
-    """根据消息内容检测模型偏好"""
+    """Mesaj içeriğine göre model tercihini tespit et"""
     message_lower = message.lower()
     scores = {}
     for model, keywords in MODEL_KEYWORDS.items():
@@ -717,7 +717,7 @@ def _detect_model(message: str) -> str:
 
 
 def _detect_target_type_from_message(message: str) -> tuple[str, str]:
-    """检测目标类型和路径"""
+    """Hedef türünü ve yolunu tespit et"""
     # GitHub URL
     github_match = re.search(r"github\.com/[^/\s]+/[^/\s]+", message)
     if github_match:
@@ -731,7 +731,7 @@ def _detect_target_type_from_message(message: str) -> tuple[str, str]:
             return "github", parsed.geturl()
         return "url", parsed.geturl()
 
-    # 本地路径（简单检测）
+    # Yerel yol (basit tespit)
     path_match = re.search(r'[~./][^\s<>"\']*', message)
     if path_match:
         path = path_match.group(0)
@@ -742,12 +742,12 @@ def _detect_target_type_from_message(message: str) -> tuple[str, str]:
 
 
 def _generate_task_summary(task: dict) -> str:
-    """生成任务摘要"""
+    """Görev özeti oluştur"""
     workflow_names = {
-        "build": "完整开发",
-        "review": "代码审查",
-        "debug": "调试修复",
-        "test": "测试用例",
+        "build": "Tam geliştirme",
+        "review": "Kod incelemesi",
+        "debug": "Hata ayıklama ve düzeltme",
+        "test": "Test senaryoları",
     }
     model_names = {
         "deepseek": "DeepSeek V4",
@@ -755,8 +755,8 @@ def _generate_task_summary(task: dict) -> str:
         "MiniMax-Text-01": "MiMo Flash",
         "moonshot-v1-128k": "Kimi 128K",
         "doubao-pro-32k": "Doubao-Pro",
-        "tiangong-3": "天工 3.0",
-        "Baichuan4": "百川 4",
+        "tiangong-3": "Tiangong 3.0",
+        "Baichuan4": "Baichuan 4",
     }
 
     wf_name = workflow_names.get(task["workflow"], task["workflow"])
@@ -764,9 +764,9 @@ def _generate_task_summary(task: dict) -> str:
 
     target_desc = task["project_path"]
     if task["target_type"] == "github":
-        target_desc = f"GitHub 仓库 {task['project_path']}"
+        target_desc = f"GitHub deposu {task['project_path']}"
     elif task["target_type"] == "url":
-        target_desc = f"网页 {task['project_path']}"
+        target_desc = f"Web sayfası {task['project_path']}"
 
     return f"{wf_name} · {model_name} · {target_desc}"
 
@@ -774,27 +774,27 @@ def _generate_task_summary(task: dict) -> str:
 @app.post("/api/chat")
 async def chat_endpoint(request: ChatRequest):
     """
-    对话式任务创建 API
+    Sohbet tabanlı görev oluşturma API
 
-    理解用户意图，收集必要信息，最终生成可执行的任务配置
+    Kullanıcının niyetini anlar, gerekli bilgileri toplar ve sonunda yürütülebilir görev yapılandırması üretir
     """
     message = request.message.strip()
     history = request.history
 
-    # 检测意图
+    # Niyeti tespit et
     workflow = _detect_workflow(message)
     model = _detect_model(message)
     target_type, target_path = _detect_target_type_from_message(message)
 
-    # 检查是否需要更多信息
-    # 简单启发式：如果消息很短（<10字），可能需要更多信息
+    # Daha fazla bilgi gerekip gerekmediğini kontrol et
+    # Basit sezgisel: mesaj çok kısaysa (<10 karakter), daha fazla bilgi gerekebilir
     if len(message) < 10 and len(history) < 2:
         return ChatResponse(
-            reply="请详细描述你的需求，比如：\n• 你想实现什么功能？\n• 需要审查/修复什么代码？\n• 目标代码在哪里（本地路径/GitHub链接）？",
+            reply="Lütfen ihtiyacını detaylı bir şekilde açıkla, örneğin:\n• Hangi işlevi uygulamak istiyorsun?\n• Hangi kodu incelemek/düzeltmek gerekiyor?\n• Hedef kod nerede (yerel yol/GitHub bağlantısı)?",
             ready_to_execute=False,
         )
 
-    # 构建任务配置
+    # Görev yapılandırmasını oluştur
     task_config = {
         "description": message,
         "workflow": workflow,
@@ -805,19 +805,19 @@ async def chat_endpoint(request: ChatRequest):
 
     summary = _generate_task_summary(task_config)
 
-    # 生成确认回复
+    # Onay yanıtı oluştur
     workflow_desc = {
-        "build": "开发新功能",
-        "review": "审查代码质量",
-        "debug": "调试修复问题",
-        "test": "生成测试用例",
+        "build": "Yeni özellik geliştir",
+        "review": "Kod kalitesini incele",
+        "debug": "Sorunları ayıkla ve düzelt",
+        "test": "Test senaryoları üret",
     }
 
-    reply = "好的，我理解了！让我确认一下：\n\n"
-    reply += f"**任务类型：** {workflow_desc.get(workflow, workflow)}\n"
-    reply += f"**使用模型：** {model}\n"
-    reply += f"**目标：** {target_path if target_type == 'local' else target_path}\n\n"
-    reply += "确认无误后，我将启动 AI 团队开始执行。"
+    reply = "Tamam, anladım! Şunu onaylayalım:\n\n"
+    reply += f"**Görev türü:** {workflow_desc.get(workflow, workflow)}\n"
+    reply += f"**Kullanılan model:** {model}\n"
+    reply += f"**Hedef:** {target_path if target_type == 'local' else target_path}\n\n"
+    reply += "Onayladığında AI ekibini başlatacağım."
 
     return ChatResponse(
         reply=reply, ready_to_execute=True, summary=summary, task=task_config
@@ -825,15 +825,15 @@ async def chat_endpoint(request: ChatRequest):
 
 
 class ChatCompletionRequest(BaseModel):
-    """AI 聊天补全请求"""
+    """AI sohbet tamamlama isteği"""
 
     messages: list[dict]  # [{role: "user"|"assistant", content: "..."}]
-    model: str = "deepseek"  # 模型 ID
-    stream: bool = False  # 是否流式返回
+    model: str = "deepseek"  # Model ID
+    stream: bool = False  # Akış halinde dönülsün mü
 
 
 class ChatCompletionResponse(BaseModel):
-    """AI 聊天补全响应"""
+    """AI sohbet tamamlama yanıtı"""
 
     content: str
     model: str
@@ -843,14 +843,14 @@ class ChatCompletionResponse(BaseModel):
 @app.post("/api/chat/completions")
 async def chat_completion_endpoint(request: ChatCompletionRequest):
     """
-    真正的 AI 聊天接口 — 调用模型路由器生成回复
+    Gerçek AI sohbet arayüzü — yanıt üretmek için model router'ı çağırır
 
-    支持流式 (SSE) 和非流式两种模式。
+    Hem akış (SSE) hem de akışsız modu destekler.
     """
     orch = get_orchestrator()
     router = orch.model_router
 
-    # 构建消息列表
+    # Mesaj listesi oluştur
     from src.models.base import Message as BaseMessage
 
     base_messages = [
@@ -858,7 +858,7 @@ async def chat_completion_endpoint(request: ChatCompletionRequest):
     ]
 
     if request.stream:
-        # 流式响应：使用 SSE
+        # Akış yanıtı: SSE kullan
         async def event_stream():
             try:
                 response = await router.route_and_call(
@@ -869,14 +869,14 @@ async def chat_completion_endpoint(request: ChatCompletionRequest):
                     override_model=request.model,
                 )
                 content = response.content or ""
-                # 分块发送（模拟流式）
+                # Parçalar halinde gönder (akışı simüle et)
                 chunk_size = max(1, len(content) // 20)
                 for i in range(0, len(content), chunk_size):
                     chunk = content[i : i + chunk_size]
                     data = _json.dumps({"content": chunk, "done": False})
                     yield f"data: {data}\n\n"
                     await asyncio.sleep(0.02)
-                # 发送完成信号
+                # Tamamlama sinyali gönder
                 done_data = _json.dumps(
                     {
                         "content": "",
@@ -893,7 +893,7 @@ async def chat_completion_endpoint(request: ChatCompletionRequest):
             except Exception as e:
                 err_data = _json.dumps(
                     {
-                        "content": f"\n\n❌ 模型调用失败: {type(e).__name__}",
+                        "content": f"\n\n❌ Model çağrısı başarısız: {type(e).__name__}",
                         "done": True,
                         "error": True,
                     }
@@ -906,7 +906,7 @@ async def chat_completion_endpoint(request: ChatCompletionRequest):
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
     else:
-        # 非流式响应
+        # Akışsız yanıt
         try:
             response = await router.route_and_call(
                 task_type="chat",
@@ -926,7 +926,7 @@ async def chat_completion_endpoint(request: ChatCompletionRequest):
             )
         except Exception as e:
             return ChatCompletionResponse(
-                content=f"❌ 模型调用失败: {type(e).__name__}",
+                content=f"❌ Model çağrısı başarısız: {type(e).__name__}",
                 model=request.model,
             )
 
@@ -934,12 +934,12 @@ async def chat_completion_endpoint(request: ChatCompletionRequest):
 @app.post("/api/execute")
 async def execute_task(background: BackgroundTasks, payload: Optional[dict] = None):
     """
-    执行任务 API（异步，事件驱动）
+    Görev yürütme API (asenkron, olay tabanlı)
 
-    步骤：
-    1. 创建任务，返回 task_id
-    2. 通过 SSE /sse/execute/{task_id} 接收实时进度
-    3. 完成后 SSE 推送 complete 事件
+    Adımlar:
+    1. Görev oluştur, task_id döndür
+    2. SSE /sse/execute/{task_id} üzerinden gerçek zamanlı ilerleme al
+    3. Tamamlandığında SSE complete olayı gönderir
     """
     if not payload:
         raise HTTPException(status_code=400, detail="Missing JSON body")
@@ -953,11 +953,11 @@ async def execute_task(background: BackgroundTasks, payload: Optional[dict] = No
     if not task:
         raise HTTPException(status_code=400, detail="Missing 'task' field")
 
-    # 自动检测目标类型
+    # Hedef türünü otomatik tespit et
     if not target_type or target_type == "auto":
         target_type = _detect_target_type(project_path)
 
-    # 创建任务
+    # Görev oluştur
     task_id = task_manager.create_task(
         task_desc=task, model=model, workflow=workflow_name, project_path=project_path
     )
@@ -965,7 +965,7 @@ async def execute_task(background: BackgroundTasks, payload: Optional[dict] = No
     task_manager._tasks[task_id]["status"] = "running"
     task_manager._tasks[task_id]["target_type"] = target_type
 
-    # 后台执行
+    # Arka planda yürüt
     background.add_task(
         run_task, task_id, task, project_path, model, workflow_name, target_type
     )
@@ -975,7 +975,7 @@ async def execute_task(background: BackgroundTasks, payload: Optional[dict] = No
             "status": "started",
             "task_id": task_id,
             "target_type": target_type,
-            "message": "任务已启动，请通过 SSE 连接获取进度",
+            "message": "Görev başlatıldı, ilerlemeyi SSE bağlantısı üzerinden alın",
         }
     )
 
@@ -988,21 +988,21 @@ async def run_task(
     workflow_name: str,
     target_type: str = "local",
 ):
-    """后台执行任务"""
+    """Arka planda görev yürüt"""
     import time
 
     start_time = time.time()
     orch = None
     extra_context = ""
 
-    # 预处理目标（clone GitHub / fetch URL）
+    # Hedefi ön işle (clone GitHub / fetch URL)
     try:
         project_path, extra_context = _preprocess_target(
             project_path, target_type, task_id
         )
     except Exception as e:
         err_type = type(e).__name__
-        task_manager.complete_task(task_id, error=f"目标预处理失败 ({err_type})")
+        task_manager.complete_task(task_id, error=f"Hedef ön işleme başarısız ({err_type})")
         history_store.save(
             task_id,
             {
@@ -1016,16 +1016,16 @@ async def run_task(
         return
 
     try:
-        # 复用全局 orchestrator（与 SSE /api/agent/live 共用同一实例）
+        # Global orchestrator'ı yeniden kullan (SSE /api/agent/live ile aynı örneği paylaşır)
         orch = get_orchestrator()
 
-        # 确定工作流
+        # İş akışını belirle
         steps = WORKFLOW_TEMPLATES.get(workflow_name, WORKFLOW_TEMPLATES["build"])
 
-        # 更新任务状态中的步骤总数
+        # Görev durumundaki toplam adım sayısını güncelle
         task_manager._tasks[task_id]["stats"]["steps_total"] = len(steps)
 
-        # 在 orchestrator 中注册当前任务（供 /api/agent/live SSE 消费）
+        # Orchestrator'a geçerli görevi kaydet (/api/agent/live SSE tüketicisi için)
         from src.core.orchestrator import WorkflowResult, WorkflowStatus
 
         workflow_id = task_id
@@ -1042,7 +1042,7 @@ async def run_task(
         )
         orch._active_workflows[workflow_id] = wf_result
 
-        # 按顺序执行每个步骤
+        # Her adımı sırayla yürüt
         # context = {
         #             "project_path": project_path,
         #             "task": task,
@@ -1052,7 +1052,7 @@ async def run_task(
         for step in steps:
             agent_name = step.agent_name
 
-            # 通知开始
+            # Başlangıcı bildir
             task_manager.update_step(task_id, agent_name, "active")
 
             try:
@@ -1094,28 +1094,28 @@ async def run_task(
 
             except TimeoutError:
                 wf_result.steps_failed.append(agent_name)
-                task_manager.update_step(task_id, agent_name, "failed", "执行超时")
+                task_manager.update_step(task_id, agent_name, "failed", "Yürütme zaman aşımı")
                 task_manager._tasks[task_id]["stats"]["steps_failed"].append(agent_name)
             except Exception as e:
                 wf_result.steps_failed.append(agent_name)
-                # 提取用户友好的错误信息
+                # Kullanıcı dostu hata mesajı çıkar
                 err_str = str(e)
                 if "429" in err_str or "Too Many Requests" in err_str:
-                    error_msg = "API 限流 (429)，请稍后重试或切换模型"
+                    error_msg = "API hız sınırı (429), lütfen sonra deneyin veya model değiştirin"
                 elif "401" in err_str or "Unauthorized" in err_str:
-                    error_msg = "API Key 无效或已过期，请检查设置"
+                    error_msg = "API Anahtarı geçersiz veya süresi dolmuş, lütfen ayarları kontrol edin"
                 elif "403" in err_str or "Forbidden" in err_str:
-                    error_msg = "API 访问被拒绝，请检查 API Key 权限"
-                elif "timeout" in err_str.lower() or "超时" in err_str:
-                    error_msg = "API 请求超时，请稍后重试"
+                    error_msg = "API erişimi reddedildi, lütfen API Anahtarı izinlerini kontrol edin"
+                elif "timeout" in err_str.lower() or "zaman aşımı" in err_str:
+                    error_msg = "API isteği zaman aşımına uğradı, lütfen sonra deneyin"
                 elif "NoModelAvailable" in type(e).__name__:
-                    error_msg = f"所有模型均不可用: {err_str[:150]}"
+                    error_msg = f"Tüm modeller kullanılamıyor: {err_str[:150]}"
                 else:
                     error_msg = f"{type(e).__name__}: {err_str[:200]}"
                 task_manager.update_step(task_id, agent_name, "failed", error_msg)
                 task_manager._tasks[task_id]["stats"]["steps_failed"].append(agent_name)
 
-        # 标记工作流完成
+        # İş akışını tamamlandı olarak işaretle
         wf_result.execution_time = time.time() - start_time
         wf_result.status = (
             WorkflowStatus.COMPLETED
@@ -1123,12 +1123,12 @@ async def run_task(
             else WorkflowStatus.FAILED
         )
 
-        # 汇总结果
+        # Sonuçları topla
         total_time = time.time() - start_time
         task_manager._tasks[task_id]["stats"]["execution_time"] = round(total_time, 1)
 
         result = {
-            "result": f"工作流 '{workflow_name}' 执行完成",
+            "result": f"İş akışı '{workflow_name}' tamamlandı",
             "outputs": {
                 name: {
                     "result": out.result,
@@ -1142,7 +1142,7 @@ async def run_task(
 
         task_manager.complete_task(task_id, result=result)
 
-        # 保存历史记录
+        # Geçmiş kaydını sakla
         history_record = {
             "task_id": task_id,
             "task": task,
@@ -1160,9 +1160,9 @@ async def run_task(
     except Exception as e:
         if orch is not None and workflow_id in orch._active_workflows:
             orch._active_workflows[workflow_id].status = WorkflowStatus.FAILED
-        task_manager.complete_task(task_id, error="任务执行失败")
+        task_manager.complete_task(task_id, error="Görev yürütme başarısız")
 
-        # 保存失败记录（仅记录异常类型，不泄露详情）
+        # Başarısızlık kaydını sakla (yalnızca istisna türü, detay sızdırmaz)
         history_record = {
             "task_id": task_id,
             "task": task,
@@ -1177,11 +1177,11 @@ async def run_task(
         history_store.save(task_id, history_record)
 
     finally:
-        # 清理临时目录（GitHub clone）
+        # Geçici dizini temizle (GitHub clone)
         _cleanup_target(project_path, target_type)
 
 
-# ===== 同步执行端点（适用于小任务）=====
+# ===== Senkron yürütme uç noktası (küçük görevler için uygundur) =====
 class ExecuteRequest(BaseModel):
     task: str
     project_path: str = "."
@@ -1191,7 +1191,7 @@ class ExecuteRequest(BaseModel):
 
 @app.post("/api/execute-sync")
 async def execute_task_sync(req: ExecuteRequest):
-    """同步执行任务（直接返回结果，适合小任务）"""
+    """Senkron görev yürüt (sonucu doğrudan döner, küçük görevler için uygundur)"""
     import time
 
     start_time = time.time()
@@ -1226,7 +1226,7 @@ async def execute_task_sync(req: ExecuteRequest):
                     return JSONResponse(
                         {
                             "status": "error",
-                            "message": f"{agent_name} 执行失败: {output.error}",
+                            "message": f"{agent_name} yürütme başarısız: {output.error}",
                         }
                     )
 
@@ -1234,7 +1234,7 @@ async def execute_task_sync(req: ExecuteRequest):
                 return JSONResponse(
                     {
                         "status": "error",
-                        "message": f"{agent_name} 执行超时",
+                        "message": f"{agent_name} yürütme zaman aşımı",
                     }
                 )
 
@@ -1259,15 +1259,15 @@ async def execute_task_sync(req: ExecuteRequest):
         return JSONResponse(
             {
                 "status": "error",
-                "message": "服务器内部错误，请稍后重试",
+                "message": "Sunucu iç hatası, lütfen sonra deneyin",
             }
         )
 
 
-# ===== 配置端点 =====
+# ===== Yapılandırma uç noktası =====
 @app.get("/api/config")
 async def get_config():
-    """获取可用配置"""
+    """Kullanılabilir yapılandırmayı al"""
     return JSONResponse(
         {
             "models": ["deepseek", "tongyi", "wenxin"],
@@ -1277,13 +1277,13 @@ async def get_config():
     )
 
 
-# ===== Settings 页面 & API =====
+# ===== Settings sayfası ve API =====
 SETTINGS_DIR = Path.home() / ".omc"
 SETTINGS_FILE = SETTINGS_DIR / "config.json"
 
 
 def _read_settings() -> dict[str, Any]:
-    """读取 ~/.omc/config.json，不存在则返回默认值"""
+    """~/.omc/config.json oku, yoksa varsayılan değerleri döndür"""
     if not SETTINGS_FILE.exists():
         return {
             "models": {
@@ -1294,13 +1294,13 @@ def _read_settings() -> dict[str, Any]:
                     "enabled": True,
                 },
                 "tongyi": {
-                    "provider": "阿里云",
+                    "provider": "Alibaba Cloud",
                     "api_key": "",
                     "cost_level": "low",
                     "enabled": False,
                 },
                 "wenxin": {
-                    "provider": "百度",
+                    "provider": "Baidu",
                     "api_key": "",
                     "cost_level": "low",
                     "enabled": False,
@@ -1330,13 +1330,13 @@ def _read_settings() -> dict[str, Any]:
                         "enabled": True,
                     },
                     "tongyi": {
-                        "provider": "阿里云",
+                        "provider": "Alibaba Cloud",
                         "api_key": "",
                         "cost_level": "low",
                         "enabled": False,
                     },
                     "wenxin": {
-                        "provider": "百度",
+                        "provider": "Baidu",
                         "api_key": "",
                         "cost_level": "low",
                         "enabled": False,
@@ -1349,7 +1349,7 @@ def _read_settings() -> dict[str, Any]:
                 },
             }
         )
-    # 确保必要字段存在
+    # Gerekli alanların mevcut olduğundan emin ol
     if "models" not in raw:
         raw["models"] = {}
     if "defaults" not in raw:
@@ -1359,8 +1359,8 @@ def _read_settings() -> dict[str, Any]:
             raw["models"][key] = {
                 "provider": {
                     "deepseek": "DeepSeek",
-                    "tongyi": "阿里云",
-                    "wenxin": "百度",
+                    "tongyi": "Alibaba Cloud",
+                    "wenxin": "Baidu",
                 }.get(key, key),
                 "api_key": "",
                 "cost_level": {
@@ -1380,7 +1380,7 @@ def _read_settings() -> dict[str, Any]:
 
 
 def _mask_key(key: str) -> str:
-    """对 API Key 做脱敏处理，只显示后 4 位"""
+    """API Anahtarını maskele, yalnızca son 4 hane gösterilir"""
     if not key or len(key) <= 4:
         return key or ""
     return "*" * (len(key) - 4) + key[-4:]
@@ -1388,47 +1388,47 @@ def _mask_key(key: str) -> str:
 
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request):
-    """设置页面"""
+    """Ayarlar sayfası"""
     return templates.TemplateResponse(request, "settings.html")
 
 
 @app.get("/api/settings")
 async def get_settings():
-    """获取当前设置（API Key 脱敏）"""
+    """Geçerli ayarları al (API Anahtarı maskelenir)"""
     settings = _read_settings()
-    # 脱敏 API Key
+    # API Anahtarını maskele
     # masked = json_dumps(settings, ensure_ascii=False)  # keep original for structure
     # Deep-copy models with masked keys
     for _m in settings.get("models", {}).values():
         raw_key = _m.get("api_key", "")
         _m["api_key_masked"] = _mask_key(raw_key)
         _m["has_key"] = bool(raw_key)
-        # 保留原始 key 供前端回填（localhost 安全）
-        # 不删除 api_key 字段，前端需要回填到 input
+        # Ön ucun geri doldurması için orijinal anahtarı koru (localhost güvenli)
+        # api_key alanı silinmez, ön uç giriş alanına geri doldurması için gerekir
     return JSONResponse(settings)
 
 
 @app.post("/api/settings")
 async def save_settings(payload: dict):
-    """保存设置到 ~/.omc/config.json"""
+    """Ayarları ~/.omc/config.json dosyasına kaydet"""
     import json
 
-    # 读取现有设置做合并
+    # Mevcut ayarları okuyup birleştir
     current = _read_settings()
 
-    # 合并 models
+    # models'i birleştir
     if "models" in payload:
         for name, model_conf in payload["models"].items():
             if name not in current["models"]:
                 current["models"][name] = {}
             for k, v in model_conf.items():
                 if k == "api_key":
-                    # 跳过脱敏值（以 * 开头的不写入）
+                    # Maskelenmiş değeri atla (* ile başlayanı yazma)
                     if isinstance(v, str) and v.startswith("*"):
                         continue
                 current["models"][name][k] = v
 
-    # 合并 defaults
+    # defaults'u birleştir
     if "defaults" in payload:
         current["defaults"].update(payload["defaults"])
 
@@ -1436,19 +1436,19 @@ async def save_settings(payload: dict):
     SETTINGS_FILE.write_text(
         json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    return JSONResponse({"status": "ok", "message": "设置已保存"})
+    return JSONResponse({"status": "ok", "message": "Ayarlar kaydedildi"})
 
 
-# ===== 连接测试 =====
+# ===== Bağlantı testi =====
 @app.post("/api/test-connection")
 async def test_connection(payload: dict):
-    """测试 API Key 是否可用。
+    """API Anahtarının kullanılabilirliğini test eder.
 
-    支持两类模式：
-    - provider 模式: { provider, api_key, base_url } → 用已知模型测试指定 provider
-    - custom 模式: { url, api_key, model_id } → 用指定 URL 测试自定义模型
+    İki mod destekler:
+    - provider modu: { provider, api_key, base_url } → Bilinen modelle belirli provider'ı test eder
+    - custom modu: { url, api_key, model_id } → Belirtilen URL ile özel modeli test eder
 
-    返回: { ok: bool, msg: str, latency_ms?: number }
+    Döner: { ok: bool, msg: str, latency_ms?: number }
     """
     import time
 
@@ -1457,11 +1457,11 @@ async def test_connection(payload: dict):
     provider = payload.get("provider")
     api_key = payload.get("api_key")
     base_url = payload.get("base_url")
-    model_id = payload.get("model_id")  # 仅 custom 模式
+    model_id = payload.get("model_id")  # Yalnızca custom modu
 
-    # ── Provider 模式 ──────────────────────────────────
+    # ── Provider modu ──────────────────────────────────
     if provider:
-        # 构造最小请求体（不实际发 token 消耗）
+        # En küçük istek gövdesi oluştur (token tüketmez)
         try:
             if provider == "glm":
                 url = (
@@ -1524,7 +1524,7 @@ async def test_connection(payload: dict):
                 }
             else:
                 return JSONResponse(
-                    {"ok": False, "msg": f"未知供应商: {provider}"}, status_code=400
+                    {"ok": False, "msg": f"Bilinmeyen sağlayıcı: {provider}"}, status_code=400
                 )
 
             headers = {
@@ -1543,23 +1543,23 @@ async def test_connection(payload: dict):
                     return JSONResponse(
                         {
                             "ok": False,
-                            "msg": "返回了网页而非 API 响应——请检查 Base URL 是否为 API 接口地址（非网页地址）",
+                            "msg": "API yanıtı yerine bir web sayfası döndü — lütfen Base URL'nin API uç noktası (web sayfası değil) olduğundan emin olun",
                         }
                     )
                 return JSONResponse(
                     {
                         "ok": True,
-                        "msg": f"连接成功 ({latency_ms}ms)",
+                        "msg": f"Bağlantı başarılı ({latency_ms}ms)",
                         "latency_ms": latency_ms,
                     }
                 )
             elif resp.status_code == 401:
                 return JSONResponse(
-                    {"ok": False, "msg": "API Key 无效（401 Unauthorized）"}
+                    {"ok": False, "msg": "API Anahtarı geçersiz (401 Unauthorized)"}
                 )
             elif resp.status_code == 403:
                 return JSONResponse(
-                    {"ok": False, "msg": "API Key 被拒绝（403 Forbidden）"}
+                    {"ok": False, "msg": "API Anahtarı reddedildi (403 Forbidden)"}
                 )
             else:
                 try:
@@ -1568,24 +1568,24 @@ async def test_connection(payload: dict):
                     print(f"[WARNING] Failed to parse error JSON: {e}")
                     err = resp.text[:100]
                 return JSONResponse(
-                    {"ok": False, "msg": f"API 错误 {resp.status_code}: {err}"},
+                    {"ok": False, "msg": f"API hatası {resp.status_code}: {err}"},
                     status_code=502,
                 )
 
         except httpx.TimeoutException:
             return JSONResponse(
-                {"ok": False, "msg": "连接超时（15s），请检查 Base URL 或网络"}
+                {"ok": False, "msg": "Bağlantı zaman aşımına uğradı (15s), lütfen Base URL veya ağ bağlantısını kontrol edin"}
             )
         except httpx.ConnectError as e:
-            return JSONResponse({"ok": False, "msg": f"连接失败：{e}"}, status_code=502)
+            return JSONResponse({"ok": False, "msg": f"Bağlantı başarısız: {e}"}, status_code=502)
         except Exception as e:
-            return JSONResponse({"ok": False, "msg": f"测试失败: {e}"}, status_code=500)
+            return JSONResponse({"ok": False, "msg": f"Test başarısız: {e}"}, status_code=500)
 
-    # ── Custom 模式 ──────────────────────────────────
+    # ── Custom modu ──────────────────────────────────
     if base_url and model_id:
         if not api_key:
             return JSONResponse(
-                {"ok": False, "msg": "API Key 为空（自定义模型通常需要 Key）"},
+                {"ok": False, "msg": "API Anahtarı boş (özel model genellikle Anahtar gerektirir)"},
                 status_code=400,
             )
         try:
@@ -1607,7 +1607,7 @@ async def test_connection(payload: dict):
                 return JSONResponse(
                     {
                         "ok": True,
-                        "msg": f"连接成功 ({latency_ms}ms)",
+                        "msg": f"Bağlantı başarılı ({latency_ms}ms)",
                         "latency_ms": latency_ms,
                     }
                 )
@@ -1618,28 +1618,28 @@ async def test_connection(payload: dict):
                     print(f"[WARNING] Failed to parse error JSON: {e}")
                     err = resp.text[:100]
                 return JSONResponse(
-                    {"ok": False, "msg": f"API 错误 {resp.status_code}: {err}"},
+                    {"ok": False, "msg": f"API hatası {resp.status_code}: {err}"},
                     status_code=502,
                 )
         except httpx.TimeoutException:
-            return JSONResponse({"ok": False, "msg": "连接超时（15s）"})
+            return JSONResponse({"ok": False, "msg": "Bağlantı zaman aşımı (15s)"})
         except httpx.ConnectError as e:
-            return JSONResponse({"ok": False, "msg": f"连接失败：{e}"}, status_code=502)
+            return JSONResponse({"ok": False, "msg": f"Bağlantı başarısız: {e}"}, status_code=502)
         except Exception as e:
-            return JSONResponse({"ok": False, "msg": f"测试失败: {e}"}, status_code=500)
+            return JSONResponse({"ok": False, "msg": f"Test başarısız: {e}"}, status_code=500)
 
     return JSONResponse(
-        {"ok": False, "msg": "参数不完整（需 provider 或 base_url+model_id）"},
+        {"ok": False, "msg": "Parametreler eksik (provider veya base_url+model_id gerekir)"},
         status_code=400,
     )
 
 
-# ===== 工作流管理 API（P1-6 Agent 子系统重构 Phase 1）=====
+# ===== İş akışı yönetim API (P1-6 Agent alt sistem yeniden yapılandırması Aşama 1) =====
 
 
 @app.get("/api/workflows")
 async def list_workflows():
-    """列出所有可用工作流（内置 + 用户自定义）"""
+    """Tüm kullanılabilir iş akışlarını listele (yerleşik + kullanıcı tanımlı)"""
     loader = WorkflowLoader()
     names = loader.list_workflows()
     builtin = set(loader.list_builtins())
@@ -1654,11 +1654,11 @@ async def list_workflows():
 
 @app.get("/api/workflows/{name}")
 async def get_workflow(name: str):
-    """获取指定工作流完整配置"""
+    """Belirtilen iş akışının tam yapılandırmasını al"""
     loader = WorkflowLoader()
     config = loader.get_workflow_config(name)
     if config is None:
-        # Fallback: 尝试从 WORKFLOW_TEMPLATES
+        # Yedek: WORKFLOW_TEMPLATES'ten dene
         steps = WORKFLOW_TEMPLATES.get(name, [])
         if steps:
             return JSONResponse(
@@ -1671,52 +1671,52 @@ async def get_workflow(name: str):
                     ],
                 }
             )
-        return JSONResponse({"error": f"工作流 '{name}' 不存在"}, status_code=404)
+        return JSONResponse({"error": f"İş akışı '{name}' bulunamadı"}, status_code=404)
     d = config.model_dump() if hasattr(config, "model_dump") else asdict(config)
     return JSONResponse({"name": name, **d})
 
 
 @app.put("/api/workflows/{name}")
 async def save_workflow(name: str, payload: dict):
-    """保存或更新自定义工作流（PUT 用于创建或覆盖）"""
+    """Özel iş akışını kaydet veya güncelle (PUT oluşturma veya üzerine yazma için)"""
     try:
         loader = WorkflowLoader()
-        # 清除旧缓存
+        # Eski önbelleği temizle
         loader._cache.pop(name, None)
-        # 解析 YAML 字符串
+        # YAML dizesini ayrıştır
         yaml_str = payload.get("yaml", "")
         config = loader.parse_yaml_string(yaml_str, name)
         if config is None:
-            return JSONResponse({"error": "YAML 解析失败，请检查格式"}, status_code=400)
-        # 确保名称一致
+            return JSONResponse({"error": "YAML ayrıştırma başarısız, lütfen biçimi kontrol edin"}, status_code=400)
+        # Adın tutarlı olduğundan emin ol
         config.name = name
         config.source = "user"
         loader.save_workflow(name, config)
-        return JSONResponse({"status": "ok", "message": f"工作流 '{name}' 已保存"})
+        return JSONResponse({"status": "ok", "message": f"İş akışı '{name}' kaydedildi"})
     except Exception as e:
         return JSONResponse(
-            {"error": f"工作流 '{name}' 保存失败: {e}"}, status_code=400
+            {"error": f"İş akışı '{name}' kaydedilemedi: {e}"}, status_code=400
         )
 
 
 @app.delete("/api/workflows/{name}")
 async def delete_workflow(name: str):
-    """删除自定义工作流（内置不可删除）"""
+    """Özel iş akışını sil (yerleşik silinemez)"""
     loader = WorkflowLoader()
     if loader.is_builtin(name):
-        return JSONResponse({"error": "内置工作流不可删除"}, status_code=403)
+        return JSONResponse({"error": "Yerleşik iş akışları silinemez"}, status_code=403)
     try:
         loader.delete_workflow(name)
-        return JSONResponse({"status": "ok", "message": f"工作流 '{name}' 已删除"})
+        return JSONResponse({"status": "ok", "message": f"İş akışı '{name}' silindi"})
     except FileNotFoundError:
-        return JSONResponse({"error": f"工作流 '{name}' 不存在"}, status_code=404)
+        return JSONResponse({"error": f"İş akışı '{name}' bulunamadı"}, status_code=404)
     except Exception as e:
         print(f"[ERROR] Failed to delete workflow '{name}': {e}")
-        return JSONResponse({"error": f"工作流 '{name}' 删除失败"}, status_code=400)
+        return JSONResponse({"error": f"İş akışı '{name}' silinemedi"}, status_code=400)
 
 
 # ========================================
-# Session API - 会话管理
+# Session API - Oturum yönetimi
 # ========================================
 
 SESSIONS_DIR = Path.home() / ".omc" / "sessions"
@@ -1724,7 +1724,7 @@ SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class SessionCreate(BaseModel):
-    title: str = "新会话"
+    title: str = "Yeni oturum"
 
 
 class SessionUpdate(BaseModel):
@@ -1734,7 +1734,7 @@ class SessionUpdate(BaseModel):
 
 @app.get("/api/sessions")
 async def list_sessions():
-    """获取所有会话列表"""
+    """Tüm oturum listesini al"""
     sessions = []
     for f in sorted(
         SESSIONS_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True
@@ -1744,7 +1744,7 @@ async def list_sessions():
             sessions.append(
                 {
                     "id": data.get("id", f.stem),
-                    "title": data.get("title", "新会话"),
+                    "title": data.get("title", "Yeni oturum"),
                     "created_at": data.get("created_at", ""),
                     "updated_at": data.get("updated_at", ""),
                     "message_count": len(data.get("messages", [])),
@@ -1757,7 +1757,7 @@ async def list_sessions():
 
 @app.post("/api/sessions")
 async def create_session(req: SessionCreate):
-    """创建新会话"""
+    """Yeni oturum oluştur"""
     session_id = str(uuid.uuid4())[:12]
     now = datetime.now().isoformat()
     session_data = {
@@ -1787,7 +1787,7 @@ async def create_session(req: SessionCreate):
 
 @app.get("/api/sessions/{session_id}")
 async def get_session(session_id: str):
-    """获取单个会话详情"""
+    """Tek bir oturum detayını al"""
     filepath = SESSIONS_DIR / f"{session_id}.json"
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="Session not found")
@@ -1801,7 +1801,7 @@ async def get_session(session_id: str):
 
 @app.put("/api/sessions/{session_id}")
 async def update_session(session_id: str, req: SessionUpdate):
-    """更新会话（标题或消息）"""
+    """Oturumu güncelle (başlık veya mesajlar)"""
     filepath = SESSIONS_DIR / f"{session_id}.json"
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="Session not found")
@@ -1823,7 +1823,7 @@ async def update_session(session_id: str, req: SessionUpdate):
 
 @app.delete("/api/sessions/{session_id}")
 async def delete_session(session_id: str):
-    """删除会话"""
+    """Oturumu sil"""
     filepath = SESSIONS_DIR / f"{session_id}.json"
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="Session not found")
@@ -1835,10 +1835,10 @@ async def delete_session(session_id: str):
         raise HTTPException(status_code=500, detail="Failed to delete session")
 
 
-# ===== 覆盖率 API =====
+# ===== Kapsama API =====
 @app.get("/api/coverage")
 async def get_coverage():
-    """获取测试覆盖率数据"""
+    """Test kapsama verilerini al"""
     try:
         summary = run_coverage_analysis(project_root)
         report = format_coverage_report(summary)
@@ -1846,7 +1846,7 @@ async def get_coverage():
     except Exception as e:
         return JSONResponse(
             {
-                "error": f"覆盖率分析失败: {type(e).__name__}",
+                "error": f"Kapsama analizi başarısız: {type(e).__name__}",
                 "overall": {"coverage": 0, "color": "#ef4444"},
             },
             status_code=500,
@@ -1855,7 +1855,7 @@ async def get_coverage():
 
 @app.post("/api/coverage/run")
 async def run_coverage():
-    """重新运行覆盖率分析"""
+    """Kapsama analizini yeniden çalıştır"""
     try:
         summary = run_coverage_analysis(project_root)
         report = format_coverage_report(summary)
@@ -1863,31 +1863,31 @@ async def run_coverage():
     except Exception as e:
         return JSONResponse(
             {
-                "error": f"覆盖率分析失败: {type(e).__name__}",
+                "error": f"Kapsama analizi başarısız: {type(e).__name__}",
                 "overall": {"coverage": 0, "color": "#ef4444"},
             },
             status_code=500,
         )
 
 
-# ===== 健康检查 =====
+# ===== Sağlık kontrolü =====
 @app.get("/health")
 async def health_check():
-    """健康检查"""
+    """Sağlık kontrolü"""
     return JSONResponse({"status": "healthy", "version": "0.1.0"})
 
 
-# ===== 覆盖率页面 =====
+# ===== Kapsama sayfası =====
 @app.get("/coverage", response_class=HTMLResponse)
 async def coverage_page(request: Request):
-    """测试覆盖率页面"""
+    """Test kapsama sayfası"""
     return templates.TemplateResponse(request, "coverage.html")
 
 
-# ===== API 文档覆盖 =====
+# ===== API belgeleri sayfası =====
 @app.get("/docs", response_class=HTMLResponse)
 async def docs_page(request: Request):
-    """使用文档页面"""
+    """Kullanım belgeleri sayfası"""
     return templates.TemplateResponse(request, "docs.html")
 
 
@@ -1895,7 +1895,7 @@ async def docs_page(request: Request):
 # Main Entry
 # ========================================
 def run():
-    """启动服务"""
+    """Servisi başlat"""
     print("=" * 50)
     print("  🤖 Oh My Coder Web Interface")
     print("  📍 http://localhost:8000")

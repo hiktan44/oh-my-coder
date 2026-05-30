@@ -4,20 +4,20 @@ from __future__ import annotations
 from typing import Optional
 
 """
-代码清理 Agent - 自动清理冗余代码，提升可维护性
+kod temizleme Agent - Bakım kolaylığını artırmak için gereksiz kodu otomatik olarak temizleyin
 
-清理策略白名单：
-1. 未使用的 import / 函数 / 变量（ruff 可检测）
-2. 重复代码片段（>5 行相同视为重复）
-3. 死代码文件（无引用模块）
-4. 空文件 / 占位文件
-5. 过时配置文件
+Temiz politika beyaz listesi:
+1. kullanılmayan import / işlev / değişken(ruff tespit edilebilir)
+2. Kod pasajını tekrarlayın (>5 Aynı satırlar kopya olarak kabul edilir)
+3. Ölü kod dosyaları (başvurulan modül yok)
+4. boş dosya / yer tutucu dosyası
+5. Güncel olmayan yapılandırma dosyası
 
-不删除：
-- 有注释的业务逻辑文件
-- 测试文件
-- 配置文件
-- 文档文件
+Silmeyin:
+- Açıklamalı iş mantığı dosyaları
+- test dosyası
+- Yapılandırma dosyası
+- Dokümantasyon dosyası
 """
 
 
@@ -31,29 +31,29 @@ from pathlib import Path
 
 @dataclass
 class CleanerStrategy:
-    """清理策略白名单"""
+    """Temiz politika beyaz listesi"""
 
-    # 是否启用该策略
+    # Bu politikanın etkinleştirilip etkinleştirilmeyeceği
     enabled: bool = True
 
-    # 1. 未使用 import/函数/变量
+    # 1. Kullanılmıyor import/işlev/değişken
     unused_imports: bool = True  # ruff check --fix
     unused_functions: bool = True
     unused_variables: bool = True
 
-    # 2. 重复代码检测
+    # 2. Yinelenen kod tespiti
     detect_duplicates: bool = True
-    duplicate_min_lines: int = 5  # 超过此行数视为重复
+    duplicate_min_lines: int = 5  # Bu satır sayısını aşan kopyalar kabul edilecektir
 
-    # 3. 死代码检测
+    # 3. Ölü kod tespiti
     detect_dead_code: bool = True
-    dead_code_safe_mode: bool = True  # 标记但不自动删除
+    dead_code_safe_mode: bool = True  # İşaretle ancak otomatik olarak kaldırılmıyor
 
-    # 4. 空文件检测
+    # 4. Boş dosya tespiti
     detect_empty_files: bool = True
-    auto_delete_empty: bool = False  # 是否自动删除空文件
+    auto_delete_empty: bool = False  # Boş dosyaların otomatik olarak silinip silinmeyeceği
 
-    # 5. 过时配置文件
+    # 5. Güncel olmayan yapılandırma dosyası
     detect_outdated_configs: bool = True
     outdated_patterns: list[str] = field(
         default_factory=lambda: [
@@ -67,13 +67,13 @@ class CleanerStrategy:
 
 @dataclass
 class CleaningIssue:
-    """单个清理问题"""
+    """Tek temizleme sorunu"""
 
     file_path: str
     issue_type: str  # unused_import, duplicate, dead_code, empty, outdated
     line_start: Optional[int] = None
     line_end: Optional[int] = None
-    content: str = ""  # 问题内容摘要
+    content: str = ""  # Sorun içeriğinin özeti
     severity: str = "warning"  # info/warning/error
     auto_fixable: bool = False
     fix_suggestion: str = ""
@@ -81,38 +81,38 @@ class CleaningIssue:
 
 @dataclass
 class CleanerReport:
-    """清理报告"""
+    """temizleme raporu"""
 
     timestamp: str = ""
     project_path: str = ""
 
-    # 统计
+    # istatistikler
     total_issues: int = 0
     files_scanned: int = 0
 
-    # 按类型统计
+    # Türe göre istatistikler
     by_type: dict[str, int] = field(default_factory=dict)
 
-    # 问题列表
+    # Soru listesi
     issues: list[CleaningIssue] = field(default_factory=list)
 
-    # 已修复
+    # Sabit
     fixed_count: int = 0
     fixed_files: list[str] = field(default_factory=list)
 
-    # 待确认（需人工审核）
+    # Onaylanacak (manuel inceleme gerektirir)
     pending_count: int = 0
     pending_issues: list[CleaningIssue] = field(default_factory=list)
 
-    # token 节省估算
+    # token Tasarruf tahmini
     lines_removed: int = 0
     estimated_token_savings: int = 0
 
 
 class CodeCleaner:
-    """代码清理器
+    """kod temizleyici
 
-    使用策略白名单自动检测和清理冗余代码。
+    Politika beyaz listesini kullanarak gereksiz kodu otomatik olarak algılayın ve temizleyin.
     """
 
     def __init__(
@@ -123,24 +123,24 @@ class CodeCleaner:
         self.project_path = Path(project_path)
         self.strategy = strategy or CleanerStrategy()
 
-        # 扫描到的 Python 文件
+        # Tarandı Python belge
         self.python_files: list[Path] = []
 
-        # 分析结果
+        # Sonuçları analiz edin
         self.issues: list[CleaningIssue] = []
 
     def scan(self) -> CleanerReport:
-        """扫描项目，返回清理报告"""
+        """Projeyi tarayın ve temizleme raporunu geri gönderin"""
         report = CleanerReport(
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             project_path=str(self.project_path),
         )
 
-        # 1. 收集 Python 文件
+        # 1. TOPLAMAK Python belge
         self.python_files = self._collect_python_files()
         report.files_scanned = len(self.python_files)
 
-        # 2. 执行各项检测
+        # 2. Çeşitli testler gerçekleştirin
         if self.strategy.unused_imports or self.strategy.unused_functions:
             self._check_unused_code()
 
@@ -156,34 +156,34 @@ class CodeCleaner:
         if self.strategy.detect_outdated_configs:
             self._check_outdated_configs()
 
-        # 3. 生成报告
+        # 3. Rapor oluştur
         self.issues = self.issues
         report.issues = self.issues
         report.total_issues = len(self.issues)
 
-        # 按类型统计
+        # Türe göre istatistikler
         for issue in self.issues:
             report.by_type[issue.issue_type] = (
                 report.by_type.get(issue.issue_type, 0) + 1
             )
 
-        # 分类：自动修复 vs 待确认
+        # Kategori: Otomatik tamir vs Onaylanacak
         auto_fixable = [i for i in self.issues if i.auto_fixable]
         pending = [i for i in self.issues if not i.auto_fixable]
 
         report.pending_issues = pending
         report.pending_count = len(pending)
 
-        # 计算 token 节省
+        # hesaplamak token kaydetmek
         report.lines_removed = sum(
             (i.line_end or 0) - (i.line_start or 0) + 1 for i in auto_fixable
         )
-        report.estimated_token_savings = report.lines_removed * 10  # 估算
+        report.estimated_token_savings = report.lines_removed * 10  # Tahmin etmek
 
         return report
 
     def _collect_python_files(self) -> list[Path]:
-        """收集所有 Python 文件（排除测试、虚拟环境等）"""
+        """hepsini topla Python Dosyalar (testleri, sanal ortamları vb. hariç tutun)"""
         files = []
         exclude_dirs = {
             ".git",
@@ -199,10 +199,10 @@ class CodeCleaner:
         }
 
         for path in self.project_path.rglob("*.py"):
-            # 跳过排除目录
+            # Hariç tutulan dizinleri atla
             if any(ex in path.parts for ex in exclude_dirs):
                 continue
-            # 跳过测试文件（可选）
+            # Test dosyalarını atla (isteğe bağlı)
             if "test_" in path.name or path.name.startswith("test_"):
                 continue
             files.append(path)
@@ -210,8 +210,8 @@ class CodeCleaner:
         return files
 
     def _check_unused_code(self):
-        """检测未使用的 import/函数/变量"""
-        # 使用 ruff 检测
+        """Kullanılmayanları tespit et import/işlev/değişken"""
+        # kullanmak ruff Algılama
         try:
             result = subprocess.run(
                 [
@@ -243,7 +243,7 @@ class CodeCleaner:
                     if not file_path:
                         continue
 
-                    # 判断问题类型
+                    # Soru türünü belirleyin
                     code = err.get("code", "")
                     if code == "F401":
                         issue_type = "unused_import"
@@ -261,16 +261,16 @@ class CodeCleaner:
                             content=err.get("message", "")[:100],
                             severity="warning",
                             auto_fixable=True,
-                            fix_suggestion="删除未使用的代码",
+                            fix_suggestion="Kullanılmayan kodu kaldır",
                         )
                     )
         except (subprocess.TimeoutExpired, FileNotFoundError):
-            pass  # ruff 未安装或超时，跳过
+            pass  # ruff Yüklenmedi veya zaman aşımına uğradı, atlandı
 
     def _check_duplicate_code(self):
-        """检测重复代码片段"""
-        # 简化版：按函数/方法哈希检测
-        # 完整实现需要更复杂的 AST 分析
+        """Yinelenen kod parçacıklarını algılama"""
+        # Basitleştirilmiş versiyon: fonksiyona göre/Yöntem karma tespiti
+        # Tam uygulama daha karmaşık gerektirir AST analiz etmek
 
         code_hashes: dict[str, list[tuple[Path, int]]] = {}
 
@@ -279,7 +279,7 @@ class CodeCleaner:
                 content = py_file.read_text(encoding="utf-8")
                 lines = content.split("\n")
 
-                # 按函数分割（简化：空行分隔的大于5行代码块）
+                # İşleve göre bölme (basitleştirilmiş: büyüktür ile ayrılmış boş satır)5satır kodu bloğu)
                 current_block = []
                 for i, line in enumerate(lines, 1):
                     stripped = line.strip()
@@ -287,7 +287,7 @@ class CodeCleaner:
                         continue
                     current_block.append(line)
 
-                    # 如果遇到函数定义，处理之前的块
+                    # Bir fonksiyon tanımıyla karşılaşılırsa önceki bloğu işleyin
                     if re.match(r"^def\s+", stripped) or re.match(
                         r"^class\s+", stripped
                     ):
@@ -302,7 +302,7 @@ class CodeCleaner:
 
                         current_block = []
 
-                # 处理最后一个块
+                # Son bloğu işle
                 if len(current_block) >= self.strategy.duplicate_min_lines:
                     block_text = "\n".join(current_block)
                     block_hash = hash(block_text)
@@ -315,7 +315,7 @@ class CodeCleaner:
             except Exception:
                 continue
 
-        # 找出重复的代码块
+        # Yinelenen kod bloklarını bulma
         for locations in code_hashes.values():
             if len(locations) >= 2:
                 locations_str = ", ".join(
@@ -327,30 +327,30 @@ class CodeCleaner:
                         issue_type="duplicate_code",
                         line_start=locations[0][1],
                         line_end=locations[0][1] + self.strategy.duplicate_min_lines,
-                        content=f"疑似重复代码，可能在其他位置出现: {locations_str}",
+                        content=f"Yinelenen kod olduğundan şüpheleniliyor, başka yerde görünebilir: {locations_str}",
                         severity="info",
                         auto_fixable=False,
-                        fix_suggestion="提取为公共函数",
+                        fix_suggestion="Genel işlev olarak çıkar",
                     )
                 )
 
     def _check_dead_code(self):
-        """检测死代码（无引用的函数/类）"""
-        # 构建引用图
-        all_names: set[str] = set()  # 所有定义的名称
-        referenced_names: set[str] = set()  # 被引用的名称
+        """Ölü kodu tespit et (referanssız işlevler/tür)"""
+        # Referans grafiği oluşturun
+        all_names: set[str] = set()  # Tanımlanan tüm adlar
+        referenced_names: set[str] = set()  # başvurulan ad
 
         for py_file in self.python_files:
             try:
                 content = py_file.read_text(encoding="utf-8")
 
-                # 提取定义的函数/类名
+                # Tanımlanmış işlevleri çıkar/Sınıf adı
                 for match in re.finditer(
                     r"^(?:def|class)\s+(\w+)", content, re.MULTILINE
                 ):
                     all_names.add(match.group(1))
 
-                # 提取被引用的名称（简化）
+                # Alıntılanan adları çıkarın (basitleştirilmiş)
                 for match in re.finditer(r"\b(\w+)\b", content):
                     name = match.group(1)
                     if name in all_names:
@@ -359,15 +359,15 @@ class CodeCleaner:
             except Exception:
                 continue
 
-        # 找出未被引用的定义
+        # Alıntı yapılmayan tanımları bulun
         dead_names = all_names - referenced_names
 
-        # 只报告明显未使用的（谨慎）
+        # Yalnızca açıkça kullanılmayanları bildirin (ihtiyatlı)
         for py_file in self.python_files:
             try:
                 content = py_file.read_text(encoding="utf-8")
                 for name in dead_names:
-                    # 检查是否在文件中定义
+                    # Dosyada tanımlı olup olmadığını kontrol edin
                     if re.search(
                         rf"^(?:def|class)\s+{re.escape(name)}", content, re.MULTILINE
                     ):
@@ -375,23 +375,23 @@ class CodeCleaner:
                             CleaningIssue(
                                 file_path=str(py_file),
                                 issue_type="dead_code",
-                                content=f"函数/类 '{name}' 未被引用",
+                                content=f"işlev/tür '{name}' Alıntı yapılmadı",
                                 severity="info",
                                 auto_fixable=False,
-                                fix_suggestion="确认后删除或添加文档说明其用途",
+                                fix_suggestion="Onaylandıktan sonra amacını açıklayan belgeleri silin veya ekleyin.",
                             )
                         )
             except Exception:
                 continue
 
     def _check_empty_files(self):
-        """检测空文件"""
+        """Boş dosyaları tespit et"""
         for py_file in self.python_files:
             try:
                 content = py_file.read_text(encoding="utf-8")
                 stripped = content.strip()
 
-                # 空文件或只有注释的文件
+                # Boş dosya veya yalnızca yorum içeren dosya
                 if not stripped or (
                     stripped
                     and all(
@@ -403,17 +403,17 @@ class CodeCleaner:
                         CleaningIssue(
                             file_path=str(py_file),
                             issue_type="empty_file",
-                            content="空文件或只有注释",
+                            content="Boş dosya veya yalnızca yorumlar",
                             severity="info",
                             auto_fixable=self.strategy.auto_delete_empty,
-                            fix_suggestion="删除或添加内容",
+                            fix_suggestion="İçerik kaldırma veya ekleme",
                         )
                     )
             except Exception:
                 continue
 
     def _check_outdated_configs(self):
-        """检测过时的配置文件"""
+        """Güncelliğini yitirmiş yapılandırma dosyalarını tespit edin"""
         patterns = self.strategy.outdated_patterns
 
         for pattern in patterns:
@@ -423,21 +423,21 @@ class CodeCleaner:
                         CleaningIssue(
                             file_path=str(path),
                             issue_type="outdated_config",
-                            content=f"疑似过时配置文件: {path.name}",
+                            content=f"Güncelliğini yitirdiğinden şüphelenilen yapılandırma dosyası: {path.name}",
                             severity="info",
                             auto_fixable=False,
-                            fix_suggestion="确认后删除或归档",
+                            fix_suggestion="Onaylandıktan sonra silin veya arşivleyin",
                         )
                     )
 
     def fix(self, issue: CleaningIssue) -> bool:
-        """尝试自动修复单个问题"""
+        """Tek bir sorunu otomatik olarak düzeltmeyi deneyin"""
         if not issue.auto_fixable:
             return False
 
         try:
             if issue.issue_type in ("unused_import", "unused_variable", "unused_code"):
-                # 使用 ruff auto-fix
+                # kullanmak ruff auto-fix
                 result = subprocess.run(
                     [
                         "python3",
@@ -453,7 +453,7 @@ class CodeCleaner:
                 return result.returncode == 0
 
             if issue.issue_type == "empty_file" and self.strategy.auto_delete_empty:
-                # 删除空文件
+                # Boş dosyaları sil
                 Path(issue.file_path).unlink()
                 return True
 
@@ -463,13 +463,13 @@ class CodeCleaner:
         return False
 
     def fix_all_auto(self) -> CleanerReport:
-        """自动修复所有可修复的问题"""
+        """Düzeltilebilir tüm sorunları otomatik olarak düzeltin"""
         report = CleanerReport(
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             project_path=str(self.project_path),
         )
 
-        # 先扫描
+        # Önce tarayın
         self.scan()
 
         fixed_files = set()
@@ -483,84 +483,84 @@ class CodeCleaner:
         return report
 
     def generate_report_md(self, report: CleanerReport) -> str:
-        """生成 Markdown 格式的清理报告"""
+        """oluşturmak Markdown Temizleme raporunu biçimlendir"""
         lines = [
-            "# 代码清理报告",
+            "# Kod Temizleme Raporu",
             "",
-            f"**时间**: {report.timestamp}",
-            f"**项目**: {report.project_path}",
-            f"**扫描文件数**: {report.files_scanned}",
+            f"**zaman**: {report.timestamp}",
+            f"**proje**: {report.project_path}",
+            f"**Taranan dosya sayısı**: {report.files_scanned}",
             "",
             "---",
             "",
-            "## 统计",
+            "## istatistikler",
             "",
-            f"- **问题总数**: {report.total_issues}",
-            f"- **已自动修复**: {report.fixed_count}",
-            f"- **待确认**: {report.pending_count}",
-            f"- **预计减少行数**: {report.lines_removed}",
-            f"- **预计节省 Token**: ~{report.estimated_token_savings}",
+            f"- **toplam soru sayısı**: {report.total_issues}",
+            f"- **Otomatik olarak onarıldı**: {report.fixed_count}",
+            f"- **Onaylanacak**: {report.pending_count}",
+            f"- **Satır sayısında beklenen azalma**: {report.lines_removed}",
+            f"- **Tahmini tasarruf Token**: ~{report.estimated_token_savings}",
             "",
         ]
 
         if report.by_type:
-            lines.extend(["## 问题类型分布", ""])
+            lines.extend(["## Soru türü dağılımı", ""])
             for issue_type, count in sorted(report.by_type.items()):
                 lines.append(f"- {issue_type}: {count}")
             lines.append("")
 
         if report.fixed_files:
-            lines.extend(["## 已自动修复", ""])
+            lines.extend(["## Otomatik olarak onarıldı", ""])
             lines.extend([f"- {f}" for f in report.fixed_files])
             lines.append("")
 
         if report.pending_issues:
-            lines.extend(["## 待确认（需人工审核）", ""])
+            lines.extend(["## Onaylanacak (manuel inceleme gerektirir)", ""])
             for issue in report.pending_issues:
                 lines.append(f"### {issue.file_path}")
-                lines.append(f"- 类型: {issue.issue_type}")
-                lines.append(f"- 内容: {issue.content}")
-                lines.append(f"- 建议: {issue.fix_suggestion}")
+                lines.append(f"- tip: {issue.issue_type}")
+                lines.append(f"- içerik: {issue.content}")
+                lines.append(f"- telkin: {issue.fix_suggestion}")
                 lines.append("")
 
         return "\n".join(lines)
 
 
 # ------------------------------------------------------------------
-# CLI 入口
+# CLI Giriş
 # ------------------------------------------------------------------
 
 
 def main():
-    """CLI 入口"""
+    """CLI Giriş"""
     import argparse
 
-    parser = argparse.ArgumentParser(description="代码清理工具")
-    parser.add_argument("path", nargs="?", default=".", help="项目路径")
+    parser = argparse.ArgumentParser(description="kod temizleme araçları")
+    parser.add_argument("path", nargs="?", default=".", help="Proje yolu")
     parser.add_argument("--strategy", choices=["safe", "aggressive"], default="safe")
-    parser.add_argument("--fix", action="store_true", help="自动修复")
-    parser.add_argument("--output", "-o", help="报告输出路径")
+    parser.add_argument("--fix", action="store_true", help="Otomatik onarım")
+    parser.add_argument("--output", "-o", help="Rapor çıktı yolu")
 
     args = parser.parse_args()
 
-    # 策略
+    # Strateji
     strategy = CleanerStrategy()
     if args.strategy == "aggressive":
         strategy.auto_delete_empty = True
         strategy.dead_code_safe_mode = False
 
-    # 清理
+    # Temizlemek
     cleaner = CodeCleaner(Path(args.path), strategy)
 
     report = cleaner.fix_all_auto() if args.fix else cleaner.scan()
 
-    # 输出报告
+    # Çıktı raporu
     report_md = cleaner.generate_report_md(report)
     print(report_md)
 
     if args.output:
         Path(args.output).write_text(report_md, encoding="utf-8")
-        print(f"\n报告已保存到: {args.output}")
+        print(f"\nRapor şuraya kaydedildi:: {args.output}")
 
 
 if __name__ == "__main__":

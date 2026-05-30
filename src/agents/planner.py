@@ -4,18 +4,18 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Planner Agent - 任务规划智能体（增强版）
+Planner Agent - Görev planlama aracısı (geliştirilmiş sürüm)
 
-增强功能：
-1. 结构化任务分解 - 使用 Pydantic 模型
-2. COT 推理链 - 多步推理能力
-3. 依赖图分析 - 自动拓扑排序
-4. 自适应调整 - 根据执行反馈优化计划
-5. 上下文理解 - 利用项目探索结果
+Geliştirmeler:
+1. Yapılandırılmış görev dökümü - kullanmak Pydantic Modeli
+2. COT mantık zinciri - çok adımlı akıl yürütme yeteneği
+3. Bağımlılık grafiği analizi - otomatik topolojik sıralama
+4. uyarlanabilir ayar - Yürütme geri bildirimlerine göre planı optimize edin
+5. bağlamsal anlayış - Projelerle sonuçları keşfedin
 
-参考：
-- Windsurf Cascade 的深度推理
-- LangGraph 的状态机编排
+bakın:
+- Windsurf Cascade derin muhakeme
+- LangGraph Durum makinesi orkestrasyonu
 """
 
 import re
@@ -35,74 +35,74 @@ from .base import (
 )
 
 # ============================================================
-# 结构化任务模型
+# yapılandırılmış görev modeli
 # ============================================================
 
 
-# 中文 → 英文映射表，用于模型返回中文值时的容错
+# Çince → Model Çince değerleri döndürdüğünde hata toleransı için kullanılan İngilizce eşleme tablosu
 _PRIORITY_CN_MAP: dict[str, str] = {
-    "紧急": "critical",
-    "极高": "critical",
-    "阻塞": "critical",
-    "高": "high",
-    "重要": "high",
-    "中": "medium",
-    "中等": "medium",
-    "普通": "medium",
-    "常规": "medium",
-    "低": "low",
-    "次要": "low",
-    "可延后": "low",
+    "acil": "critical",
+    "son derece yüksek": "critical",
+    "engellemek": "critical",
+    "yüksek": "high",
+    "önemli": "high",
+    "orta": "medium",
+    "orta": "medium",
+    "sıradan": "medium",
+    "geleneksel": "medium",
+    "Düşük": "low",
+    "ikincil": "low",
+    "Ertelenebilir": "low",
 }
 
 _COMPLEXITY_CN_MAP: dict[str, str] = {
-    "简单": "simple",
-    "低": "simple",
-    "容易": "simple",
-    "中等": "moderate",
-    "中": "moderate",
-    "普通": "moderate",
-    "高": "complex",
-    "复杂": "complex",
-    "困难": "complex",
-    "难": "complex",
+    "Basit": "simple",
+    "Düşük": "simple",
+    "kolay": "simple",
+    "orta": "moderate",
+    "orta": "moderate",
+    "sıradan": "moderate",
+    "yüksek": "complex",
+    "karmaşık": "complex",
+    "zorluk": "complex",
+    "Felaket": "complex",
 }
 
 
 class TaskPriority(str, Enum):
-    """任务优先级"""
+    """Görev önceliği"""
 
-    CRITICAL = "critical"  # 阻塞其他任务
-    HIGH = "high"  # 重要任务
-    MEDIUM = "medium"  # 常规任务
-    LOW = "low"  # 可延后任务
+    CRITICAL = "critical"  # Diğer görevleri engelle
+    HIGH = "high"  # önemli görevler
+    MEDIUM = "medium"  # Rutin görevler
+    LOW = "low"  # Görevler ertelenebilir
 
     @classmethod
     def from_string(cls, value: str) -> TaskPriority:
-        """从字符串解析优先级，支持中文容错。
+        """Dizeden ayrıştırma önceliği, Çin hata toleransını destekleyin.
 
-        优先级：英文精确匹配 > 中文映射 > 默认 MEDIUM
+        Öncelik: İngilizce tam eşleşme > Çin haritalaması > varsayılan MEDIUM
         """
         if not value:
             return cls.MEDIUM
         normalized = value.strip().lower()
-        # 1. 直接英文匹配
+        # 1. Doğrudan İngilizce eşleştirme
         try:
             return cls(normalized)
         except ValueError:
             pass
-        # 2. 中文映射
+        # 2. Çin haritalaması
         if normalized in _PRIORITY_CN_MAP:
             return cls(_PRIORITY_CN_MAP[normalized])
-        # 3. 默认值
+        # 3. varsayılan değer
         return cls.MEDIUM
 
 
 class TaskStatus(str, Enum):
-    """任务状态"""
+    """Görev durumu"""
 
     PENDING = "pending"
-    READY = "ready"  # 依赖已满足
+    READY = "ready"  # Bağımlılıklar karşılanıyor
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -110,82 +110,82 @@ class TaskStatus(str, Enum):
 
 
 class TaskComplexity(str, Enum):
-    """任务复杂度"""
+    """görev karmaşıklığı"""
 
-    SIMPLE = "simple"  # 单文件修改
-    MODERATE = "moderate"  # 多文件修改
-    COMPLEX = "complex"  # 架构级别改动
+    SIMPLE = "simple"  # Tek dosya değişikliği
+    MODERATE = "moderate"  # Çoklu dosya değişikliği
+    COMPLEX = "complex"  # Mimari düzeyindeki değişiklikler
 
     @classmethod
     def from_string(cls, value: str) -> TaskComplexity:
-        """从字符串解析复杂度，支持中文容错。
+        """Dizeden karmaşıklığın ayrıştırılması, Çin hata toleransının desteklenmesi.
 
-        优先级：英文精确匹配 > 中文映射 > 默认 MODERATE
+        Öncelik: İngilizce tam eşleşme > Çin haritalaması > varsayılan MODERATE
         """
         if not value:
             return cls.MODERATE
         normalized = value.strip().lower()
-        # 1. 直接英文匹配
+        # 1. Doğrudan İngilizce eşleştirme
         try:
             return cls(normalized)
         except ValueError:
             pass
-        # 2. 中文映射
+        # 2. Çin haritalaması
         if normalized in _COMPLEXITY_CN_MAP:
             return cls(_COMPLEXITY_CN_MAP[normalized])
-        # 3. 默认值
+        # 3. varsayılan değer
         return cls.MODERATE
 
 
 class SubTask(BaseModel):
-    """子任务"""
+    """alt görev"""
 
-    id: str = Field(..., description="任务ID，格式 T1, T2, T3...")
-    title: str = Field(..., description="任务标题")
-    description: str = Field(..., description="任务描述")
-    agent: str = Field(..., description="推荐的执行 Agent")
+    id: str = Field(..., description="GörevID,Biçim T1, T2, T3...")
+    title: str = Field(..., description="Görev başlığı")
+    description: str = Field(..., description="Görev açıklaması")
+    agent: str = Field(..., description="Önerilen uygulama Agent")
     priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
     complexity: TaskComplexity = Field(default=TaskComplexity.MODERATE)
     dependencies: list[str] = Field(
-        default_factory=list, description="依赖的任务ID列表"
+        default_factory=list, description="bağımlı görevlerIDliste"
     )
-    estimated_time: str = Field(default="5m", description="预估耗时")
+    estimated_time: str = Field(default="5m", description="Tahmini süre")
     files_to_modify: list[str] = Field(
-        default_factory=list, description="需要修改的文件"
+        default_factory=list, description="Değiştirilmesi gereken dosyalar"
     )
-    acceptance_criteria: list[str] = Field(default_factory=list, description="验收标准")
-    risks: list[str] = Field(default_factory=list, description="潜在风险")
+    acceptance_criteria: list[str] = Field(default_factory=list, description="Kabul kriterleri")
+    risks: list[str] = Field(default_factory=list, description="Potansiyel riskler")
 
 
 class TaskPhase(BaseModel):
-    """任务阶段"""
+    """görev aşaması"""
 
-    name: str = Field(..., description="阶段名称")
-    description: str = Field(..., description="阶段描述")
+    name: str = Field(..., description="Sahne adı")
+    description: str = Field(..., description="Aşama açıklaması")
     tasks: list[SubTask] = Field(default_factory=list)
-    parallel: bool = Field(default=False, description="是否可并行执行")
+    parallel: bool = Field(default=False, description="Paralel olarak yürütülebilir mi?")
 
 
 class ExecutionPlan(BaseModel):
-    """执行计划"""
+    """yürütme planı"""
 
-    title: str = Field(..., description="计划标题")
-    summary: str = Field(..., description="计划摘要")
+    title: str = Field(..., description="Program başlığı")
+    summary: str = Field(..., description="Plan özeti")
     phases: list[TaskPhase] = Field(default_factory=list)
     total_tasks: int = Field(default=0)
     estimated_time: str = Field(default="1h")
-    critical_path: list[str] = Field(default_factory=list, description="关键路径")
-    milestones: list[str] = Field(default_factory=list, description="里程碑")
+    critical_path: list[str] = Field(default_factory=list, description="kritik yol")
+    milestones: list[str] = Field(default_factory=list, description="dönüm noktası")
 
 
 # ============================================================
-# COT 推理链
+# COT mantık zinciri
 # ============================================================
 
 
 @dataclass
 class ReasoningStep:
-    """推理步骤"""
+    """muhakeme adımları"""
 
     step: int
     thought: str
@@ -195,7 +195,7 @@ class ReasoningStep:
 
 
 class ChainOfThought:
-    """思维链推理"""
+    """Düşünce zinciri muhakemesi"""
 
     def __init__(self):
         self.steps: list[ReasoningStep] = []
@@ -208,7 +208,7 @@ class ChainOfThought:
         observation: Optional[str] = None,
         conclusion: Optional[str] = None,
     ) -> ReasoningStep:
-        """添加推理步骤"""
+        """Çıkarım adımı ekle"""
         self.current_step += 1
         step = ReasoningStep(
             step=self.current_step,
@@ -221,49 +221,49 @@ class ChainOfThought:
         return step
 
     def to_prompt(self) -> str:
-        """转换为 Prompt 格式"""
-        lines = ["## 思维链推理过程\n"]
+        """Şuna dönüştür: Prompt Biçim"""
+        lines = ["## Düşünce zinciri muhakeme süreci\n"]
         for step in self.steps:
-            lines.append(f"### 步骤 {step.step}")
-            lines.append(f"**思考**: {step.thought}")
+            lines.append(f"### adım {step.step}")
+            lines.append(f"**düşünmek**: {step.thought}")
             if step.action:
-                lines.append(f"**行动**: {step.action}")
+                lines.append(f"**aksiyon**: {step.action}")
             if step.observation:
-                lines.append(f"**观察**: {step.observation}")
+                lines.append(f"**gözlemlemek**: {step.observation}")
             if step.conclusion:
-                lines.append(f"**结论**: {step.conclusion}")
+                lines.append(f"**Sonuç olarak**: {step.conclusion}")
             lines.append("")
         return "\n".join(lines)
 
 
 # ============================================================
-# 依赖图分析
+# Bağımlılık grafiği analizi
 # ============================================================
 
 
 class DependencyGraph:
-    """依赖图"""
+    """bağımlılık grafiği"""
 
     def __init__(self):
         self.nodes: set[str] = set()
         self.edges: dict[str, set[str]] = {}  # task_id -> set of dependencies
 
     def add_task(self, task_id: str, dependencies: list[str] = None):
-        """添加任务节点"""
+        """Görev düğümü ekle"""
         self.nodes.add(task_id)
         self.edges[task_id] = set(dependencies or [])
 
     def topological_sort(self) -> tuple[list[str], bool]:
-        """拓扑排序，返回 (排序结果, 是否有环)"""
+        """Topolojik sıralama, dönüş (Sonuçları sırala, Bir yüzük var mı)"""
         in_degree = dict.fromkeys(self.nodes, 0)
 
-        # 计算入度
+        # Derece olarak hesapla
         for node in self.nodes:
             for dep in self.edges.get(node, set()):
                 if dep in in_degree:
                     in_degree[node] += 1
 
-        # 找出入度为 0 的节点
+        # Dereceyi şu şekilde bulun: 0 düğüm
         queue = [node for node in self.nodes if in_degree[node] == 0]
         result = []
 
@@ -271,7 +271,7 @@ class DependencyGraph:
             node = queue.pop(0)
             result.append(node)
 
-            # 减少依赖此节点的其他节点的入度
+            # Bu düğüme bağlı diğer düğümlerin derecesini azaltın
             for other in self.nodes:
                 if node in self.edges.get(other, set()):
                     in_degree[other] -= 1
@@ -282,11 +282,11 @@ class DependencyGraph:
         return result, has_cycle
 
     def find_critical_path(self) -> list[str]:
-        """找到关键路径（最长路径）"""
-        # 简化实现：返回拓扑排序中优先级最高的路径
+        """Kritik yolu bulun (en uzun yol)"""
+        # Basitleştirilmiş uygulama: topolojik sıralamada en yüksek önceliğe sahip yolu döndür
         sorted_nodes, _ = self.topological_sort()
 
-        # 按 CRITICAL > HIGH > MEDIUM > LOW 排序
+        # buna göre CRITICAL > HIGH > MEDIUM > LOW düzenlemek
         _priority_order = {
             TaskPriority.CRITICAL: 0,
             TaskPriority.HIGH: 1,
@@ -297,7 +297,7 @@ class DependencyGraph:
         return sorted_nodes
 
     def get_ready_tasks(self, completed: set[str]) -> list[str]:
-        """获取就绪任务（依赖已满足）"""
+        """Görevleri hazırlayın (bağımlılıklar karşılanır)"""
         ready = []
         for node in self.nodes:
             if node not in completed:
@@ -308,16 +308,16 @@ class DependencyGraph:
 
 
 # ============================================================
-# 增强 PlannerAgent
+# Genişletmek PlannerAgent
 # ============================================================
 
 
 @register_agent
 class PlannerAgent(BaseAgent):
-    """规划 Agent - 任务分解和执行计划（增强版）"""
+    """planlama Agent - Görev ayrıştırma ve yürütme planı (geliştirilmiş sürüm)"""
 
     name = "planner"
-    description = "规划智能体 - 任务分解和执行计划"
+    description = "planlama temsilcisi - Görev dökümü ve yürütme planı"
     lane = AgentLane.BUILD_ANALYSIS
     default_tier = "high"
     icon = "📋"
@@ -325,128 +325,128 @@ class PlannerAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个资深的项目架构师和规划师。
+        return """Kıdemli bir proje mimarı ve planlayıcısısınız.
 
-## 角色
-你的职责是将复杂任务分解为可执行的小任务，并制定合理的执行计划。
+## Rol
+Sizin sorumluluğunuz, karmaşık görevleri yürütülebilir küçük görevlere bölmek ve makul bir yürütme planı geliştirmektir.
 
-## 核心能力
+## temel yeterlilikler
 
-### 1. 结构化任务分解
-- 使用 SMART 原则定义任务
-- 每个任务独立、可测试、可验收
-- 明确任务的输入、输出和验收标准
+### 1. Yapılandırılmış görev dökümü
+- kullanmak SMART İlkeler görevleri tanımlar
+- Her görev bağımsız, test edilebilir ve kabul edilebilirdir
+- Görevin girdi, çıktı ve kabul kriterlerini netleştirin
 
-### 2. 依赖分析
-- 识别任务间依赖关系
-- 构建依赖图
-- 计算最优执行顺序（拓扑排序）
+### 2. Bağımlılık analizi
+- Görevler arasındaki bağımlılıkları belirleyin
+- Bağımlılık grafiği oluşturun
+- Optimum yürütme sırasını hesaplayın (topolojik sıralama)
 
-### 3. 复杂度评估
-- SIMPLE: 单文件修改，< 50 行代码
-- MODERATE: 多文件修改，50-200 行代码
-- COMPLEX: 架构级改动，> 200 行代码
+### 3. Karmaşıklık değerlendirmesi
+- SIMPLE: Tek dosya modifikasyonu,< 50 kod satırları
+- MODERATE: Çoklu dosya değişiklikleri,50-200 kod satırları
+- COMPLEX: Mimari düzeydeki değişiklikler,> 200 kod satırları
 
-### 4. 风险识别
-- 技术风险：新技术、复杂算法
-- 依赖风险：外部服务、第三方库
-- 业务风险：需求不明确、边界情况
+### 4. Risk tanımlama
+- Teknik riskler: yeni teknolojiler, karmaşık algoritmalar
+- Bağımlılık riskleri: harici hizmetler, üçüncü taraf kütüphaneler
+- İş riskleri: belirsiz gereksinimler, sınır koşulları
 
-### 5. 自适应调整
-- 根据执行反馈调整计划
-- 处理任务失败和重试
-- 动态添加新任务
+### 5. uyarlanabilir ayar
+- Planları yürütme geri bildirimlerine göre ayarlayın
+- Görev başarısızlıklarını ve yeniden denemeleri yönetme
+- Dinamik olarak yeni görevler ekleyin
 
-## 思维链推理
+## Düşünce zinciri muhakemesi
 
-请按以下步骤思考：
+Lütfen şu adımları düşünün:
 
-**步骤 1: 理解任务**
-- 任务的核心目标是什么？
-- 有哪些约束条件？
-- 成功的标准是什么？
+**adım 1: Görevi anlayın**
+- Misyonun temel amacı nedir?
+- Kısıtlamalar nelerdir?
+- Başarının kriterleri nelerdir?
 
-**步骤 2: 分析上下文**
-- 项目的技术栈是什么？
-- 现有代码结构如何？
+**adım 2: Bağlamı analiz edin**
+- Projenin teknoloji yığını nedir?
+- Mevcut kod nasıl yapılandırılmıştır?
 
-**步骤 3: 风险评估**
-- 有哪些潜在风险？
-- 如何规避或缓解？
+**adım 3: risk değerlendirmesi**
+- Potansiyel riskler nelerdir?
+- Nasıl önlenir veya hafifletilir?
 
-## 输出格式
+## Çıkış formatı
 
-请输出以下结构：
+Lütfen aşağıdaki yapının çıktısını alın:
 
-### 📋 执行计划摘要
-- 任务总数: X
-- 预计耗时: X
-- 关键路径: T1 → T2 → T3
+### 📋 Yürütme planı özeti
+- Toplam görev sayısı: X
+- Tahmini süre: X
+- kritik yol: T1 → T2 → T3
 
-### 📊 阶段分解
+### 📊 Aşama dökümü
 
-#### 阶段 1: [阶段名]
-| ID | 任务 | Agent | 优先级 | 复杂度 | 依赖 | 耗时 |
+#### sahne 1: [Sahne adı]
+| ID | Görev | Agent | öncelik | karmaşıklık | güvenmek | zaman tükeniyor |
 |----|------|-------|--------|--------|------|------|
 | T1 | ... | explore | HIGH | SIMPLE | - | 5m |
 
-#### 阶段 2: [阶段名]
+#### sahne 2: [Sahne adı]
 ...
 
-### 🎯 验收标准
-- [ ] 标准 1
-- [ ] 标准 2
+### 🎯 Kabul kriterleri
+- [ ] standart 1
+- [ ] standart 2
 
-### ⚠️ 风险提示
-- ⚠️ 风险 1: ...
-- ⚠️ 风险 2: ...
+### ⚠️ Risk uyarısı
+- ⚠️ risk 1: ...
+- ⚠️ risk 2: ...
 
-### 📝 执行顺序
+### 📝 İnfaz emri
 ```
 1. T1 (explore)
-2. T2 (analyst) - 依赖 T1
-3. T3, T4 并行 - 依赖 T2
+2. T2 (analyst) - güvenmek T1
+3. T3, T4 paralel - güvenmek T2
 ...
 ```
 
-### 🔄 自适应调整
-- 如果 T3 失败，回退到 T2 重新分析
-- 如果发现新需求，添加 T5
+### 🔄 uyarlanabilir ayar
+- eğer T3 Başarısızlık, geri dönüş T2 Yeniden analiz et
+- Yeni gereksinimler bulunursa ekleyin T5
 """
 
     def _build_context_prompt(self, context: AgentContext) -> str:
-        """构建上下文提示"""
+        """Bağlamsal ipuçları oluşturun"""
         parts = []
 
-        # 项目探索结果
+        # Proje keşif sonuçları
         if context.previous_outputs.get("explore"):
             explore_result = context.previous_outputs["explore"]
             if isinstance(explore_result, dict):
                 parts.append(
-                    f"""## 项目探索结果
-- 文件数量: {explore_result.get("files_count", "N/A")}
-- 技术栈: {", ".join(explore_result.get("tech_stack", []))}
-- 项目结构: {explore_result.get("structure", "N/A")}
+                    f"""## Proje keşif sonuçları
+- Dosya sayısı: {explore_result.get("files_count", "N/A")}
+- teknoloji yığını: {", ".join(explore_result.get("tech_stack", []))}
+- Proje yapısı: {explore_result.get("structure", "N/A")}
 """
                 )
 
-        # 需求分析结果
+        # Gereksinim analizi sonuçları
         if context.previous_outputs.get("analyst"):
             analyst_result = context.previous_outputs["analyst"]
             if isinstance(analyst_result, dict):
                 parts.append(
-                    f"""## 需求分析结果
-- 实体: {", ".join(analyst_result.get("entities", []))}
-- 功能: {", ".join(analyst_result.get("features", []))}
-- 约束: {", ".join(analyst_result.get("constraints", []))}
+                    f"""## Gereksinim analizi sonuçları
+- varlık: {", ".join(analyst_result.get("entities", []))}
+- İşlev: {", ".join(analyst_result.get("features", []))}
+- kısıtlama: {", ".join(analyst_result.get("constraints", []))}
 """
                 )
 
-        # 相关文件
+        # İlgili belgeler
         if context.relevant_files:
             files_str = "\n".join(f"  - {f}" for f in context.relevant_files[:10])
             parts.append(
-                f"""## 相关文件
+                f"""## İlgili belgeler
 {files_str}
 """
             )
@@ -454,24 +454,24 @@ class PlannerAgent(BaseAgent):
         return "\n".join(parts) if parts else ""
 
     def _parse_structured_plan(self, result: str) -> ExecutionPlan:
-        """解析结构化计划"""
+        """Yapılandırılmış planları analiz edin"""
         plan = ExecutionPlan(
-            title="执行计划",
-            summary="任务执行计划",
+            title="yürütme planı",
+            summary="Görev yürütme planı",
         )
 
-        # 解析任务表格
+        # Görev formunu ayrıştır
         task_pattern = (
             r"\| (T\d+) \| (.+?) \| (\w+) \| (\w+) \| (\w+) \| (.+?) \| (\w+) \|"
         )
         matches = re.findall(task_pattern, result)
 
-        current_phase = TaskPhase(name="默认阶段", description="执行阶段")
+        current_phase = TaskPhase(name="varsayılan aşama", description="Yürütme aşaması")
 
         for match in matches:
             task_id, title, agent, priority, complexity, deps, time = match
 
-            # 解析依赖
+            # Bağımlılıkları çözümle
             dependencies = [d.strip() for d in deps.split(",") if d.strip() != "-"]
 
             task = SubTask(
@@ -494,7 +494,7 @@ class PlannerAgent(BaseAgent):
 
     @staticmethod
     def _build_dependency_graph(plan: ExecutionPlan) -> DependencyGraph:
-        """构建依赖图"""
+        """Bağımlılık grafiği oluşturun"""
         graph = DependencyGraph()
 
         for phase in plan.phases:
@@ -506,28 +506,28 @@ class PlannerAgent(BaseAgent):
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行规划"""
-        # 构建上下文
+        """yürütme planı"""
+        # Bağlam oluştur
         context_prompt = self._build_context_prompt(context)
 
-        # COT 推理
+        # COT muhakeme
         cot = ChainOfThought()
 
-        # 步骤 1: 理解任务
+        # adım 1: Görevi anlayın
         cot.add_step(
-            thought=f"分析任务: {context.task_description}",
-            conclusion="需要将任务分解为可执行的子任务",
+            thought=f"Analiz görevleri: {context.task_description}",
+            conclusion="Görevlerin yürütülebilir alt görevlere bölünmesi gerekir",
         )
 
-        # 步骤 2: 分析上下文
+        # adım 2: Bağlamı analiz edin
         if context_prompt:
             cot.add_step(
-                thought="分析项目上下文",
+                thought="Proje bağlamını analiz edin",
                 observation=context_prompt[:500],
-                conclusion="已获取项目结构和技术栈信息",
+                conclusion="Elde edilen proje yapısı ve teknoloji yığını bilgileri",
             )
 
-        # 构建完整 prompt
+        # Yapıyı tamamla prompt
         full_prompt = [
             {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": context_prompt},
@@ -535,17 +535,17 @@ class PlannerAgent(BaseAgent):
             {
                 "role": "user",
                 "content": f"""
-请为以下任务制定执行计划：
+Lütfen aşağıdaki görevler için bir yürütme planı geliştirin:
 
-## 任务
+## Görev
 {context.task_description}
 
-请按照上述格式输出结构化的执行计划。
+Lütfen yapılandırılmış yürütme planının çıktısını yukarıdaki formatta alın.
 """,
             },
         ]
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [
@@ -561,25 +561,25 @@ class PlannerAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理 - 解析结构化输出"""
-        # 解析计划
+        """İşlem sonrası - Yapılandırılmış çıktıyı ayrıştır"""
+        # ayrıştırma planı
         plan = self._parse_structured_plan(result)
 
-        # 构建依赖图
+        # Bağımlılık grafiği oluşturun
         graph = self._build_dependency_graph(plan)
 
-        # 获取执行顺序
+        # İnfaz emrini al
         execution_order, has_cycle = graph.topological_sort()
 
-        # 构建推荐
+        # Öneriler oluşturun
         recommendations = [
-            f"按拓扑顺序执行: {' → '.join(execution_order[:5])}",
-            "关注关键路径上的任务",
-            "每个任务完成后验证验收标准",
+            f"Topolojik sıraya göre yürüt: {' → '.join(execution_order[:5])}",
+            "Kritik yoldaki görevlere odaklanın",
+            "Her görev tamamlandıktan sonra kabul kriterlerini doğrulayın",
         ]
 
         if has_cycle:
-            recommendations.append("⚠️ 检测到循环依赖，需要调整计划")
+            recommendations.append("⚠️ Döngüsel bağımlılık algılandı, planın ayarlanması gerekiyor")
 
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
@@ -601,32 +601,32 @@ class PlannerAgent(BaseAgent):
         new_requirements: Optional[list[str]] = None,
     ) -> ExecutionPlan:
         """
-        自适应调整计划
+        uyarlanabilir ayarlama planı
 
         Args:
-            plan: 原计划
-            completed_tasks: 已完成的任务ID
-            failed_tasks: 失败的任务ID
-            new_requirements: 新增需求
+            plan: orijinal plan
+            completed_tasks: Tamamlanan görevlerID
+            failed_tasks: başarısız görevID
+            new_requirements: Yeni gereksinimler
 
         Returns:
-            调整后的计划
+            Düzeltilmiş plan
         """
         graph = PlannerAgent._build_dependency_graph(plan)
 
-        # 获取就绪任务
+        # Görevleri hazırlayın
         _ready_tasks = graph.get_ready_tasks(completed_tasks)
 
-        # 处理失败任务
+        # Başarısız görevleri ele alın
         for failed_id in failed_tasks:
-            # 找到失败任务
+            # Başarısız görevleri bulma
             for phase in plan.phases:
                 for task in phase.tasks:
                     if task.id == failed_id:
-                        # 添加重试任务
+                        # Yeniden deneme görevi ekle
                         retry_task = SubTask(
                             id=f"{failed_id}_retry",
-                            title=f"重试: {task.title}",
+                            title=f"Tekrar deneyin: {task.title}",
                             description=task.description,
                             agent=task.agent,
                             priority=TaskPriority.HIGH,
@@ -635,11 +635,11 @@ class PlannerAgent(BaseAgent):
                         )
                         phase.tasks.append(retry_task)
 
-        # 添加新需求
+        # Yeni gereksinimler ekleyin
         if new_requirements:
             new_phase = TaskPhase(
-                name="新增需求",
-                description="根据执行反馈新增的任务",
+                name="Yeni gereksinimler",
+                description="Yürütme geri bildirimlerine dayalı yeni görevler",
                 tasks=[
                     SubTask(
                         id=f"N{i + 1}",

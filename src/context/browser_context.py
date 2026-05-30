@@ -1,15 +1,15 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-浏览器上下文感知 - Browser Context Awareness
+tarayicibaglamhisbil - Browser Context Awareness
 
-通过浏览器扩展/API 获取当前标签页上下文，支持：
-- 获取当前标签页的标题、URL、内容摘要
-- 搜索相关上下文
-- 与 AI Agent 集成
+araciligiylatarayicigenislet/API almevcutetiketsayfabaglam, destek: 
+- almevcutetiketsayfabaslik, URL, icerikalintiister
+- arailgilibaglam
+- ile AI Agent setol
 
-注意：此功能需要浏览器扩展或 Playwright/Selenium 支持。
-当无可用浏览器时，功能降级为优雅的空实现。
+dikkat: buislevgerekistertarayicigenisletveya Playwright/Selenium destek. 
+ne zamanyokolabilirkullantarayicizaman, islevdusurseviyeiciniyizarifbosuygula. 
 """
 
 import asyncio
@@ -20,47 +20,47 @@ from dataclasses import dataclass, field
 @dataclass
 class BrowserContext:
     """
-    浏览器上下文
+    tarayicibaglam
 
-    存储当前浏览器标签页的信息。
+    depolamamevcuttarayicietiketsayfabilgi. 
     """
 
     title: str = ""
     url: str = ""
-    content: str = ""  # 页面内容摘要
+    content: str = ""  # sayfayuzicerikalintiister
     links: list[str] = field(default_factory=list)
     timestamp: str = ""
-    available: bool = False  # 浏览器是否可用
+    available: bool = False  # tarayiciolup olmadigiolabilirkullan
 
     def to_context_string(self) -> str:
-        """生成上下文字符串"""
+        """olusturbaglamkarakter dizisi"""
         if not self.available:
-            return "[浏览器上下文不可用]"
+            return "[tarayicibaglamhayirolabilirkullan]"
 
         parts = [
-            f"标题: {self.title}",
+            f"baslik: {self.title}",
             f"URL: {self.url}",
         ]
 
         if self.content:
-            parts.append(f"内容摘要: {self.content[:500]}")
+            parts.append(f"icerikalintiister: {self.content[:500]}")
 
         if self.links:
-            parts.append(f"链接 ({len(self.links)}): {', '.join(self.links[:10])}")
+            parts.append(f"baglanti ({len(self.links)}): {', '.join(self.links[:10])}")
 
         return "\n".join(parts)
 
 
 class BrowserAwareness:
     """
-    浏览器感知模块
+    tarayicihisbilmodul
 
-    通过多种方式获取浏览器上下文：
-    1. Playwright（推荐，支持 Chromium/Chrome/Edge）
-    2. Selenium（备选，支持多种浏览器）
-    3. OpenClaw Browser CDP（如果有）
+    araciligiylacokturyontemaltarayicibaglam: 
+    1. Playwright (oner, destek Chromium/Chrome/Edge) 
+    2. Selenium (hazirlasec, destekcokturtarayici) 
+    3. OpenClaw Browser CDP (egervar) 
 
-    当所有方式都不可用时，返回空的 BrowserContext。
+    ne zamanvaryontemtumhayirolabilirkullanzaman, donusbos BrowserContext. 
     """
 
     def __init__(self):
@@ -70,12 +70,12 @@ class BrowserAwareness:
         self._browser_type = self._detect_browser()
 
     def _detect_browser(self) -> str:
-        """检测可用的浏览器自动化方式"""
-        # 优先检测 OpenClaw Browser CDP
+        """algilamaolabilirkullantarayiciotomatikyontem"""
+        # oncelikalgilama OpenClaw Browser CDP
         if os.getenv("OPENCLAW_BROWSER_ENABLED") == "1":
             return "openclaw"
 
-        # 检测 Playwright
+        # algilama Playwright
         try:
             import playwright
 
@@ -84,7 +84,7 @@ class BrowserAwareness:
         except ImportError:
             pass
 
-        # 检测 Selenium
+        # algilama Selenium
         try:
             import selenium
 
@@ -97,10 +97,10 @@ class BrowserAwareness:
 
     async def get_current_tab(self) -> BrowserContext:
         """
-        获取当前浏览器标签页上下文
+        almevcuttarayicietiketsayfabaglam
 
         Returns:
-            BrowserContext: 当前标签页上下文
+            BrowserContext: mevcutetiketsayfabaglam
         """
         if self._browser_type == "none":
             return BrowserContext(available=False)
@@ -115,22 +115,22 @@ class BrowserAwareness:
         except Exception as e:
             return BrowserContext(
                 available=False,
-                content=f"[浏览器获取失败: {e}]",
+                content=f"[tarayicialbasarisiz: {e}]",
             )
 
         return BrowserContext(available=False)
 
     async def _get_current_tab_playwright(self) -> BrowserContext:
-        """通过 Playwright 获取当前标签页"""
+        """araciligiyla Playwright almevcutetiketsayfa"""
         from playwright.async_api import async_playwright
 
         ctx = BrowserContext(available=True)
 
         async with async_playwright() as p:
-            # 尝试连接已有浏览器或启动新浏览器
+            # denebaglabaglanvartarayiciveyabaslatyenitarayici
             browser = None
             try:
-                # 尝试连接 Chrome DevTools Protocol
+                # denebaglabaglan Chrome DevTools Protocol
                 browser = await p.chromium.connect_over_cdp("http://localhost:9222")
             except Exception:
                 try:
@@ -138,7 +138,7 @@ class BrowserAwareness:
                 except Exception:
                     return BrowserContext(
                         available=False,
-                        content="[无法启动 Chromium 浏览器]",
+                        content="[yokyontembaslat Chromium tarayici]",
                     )
 
             try:
@@ -146,20 +146,20 @@ class BrowserAwareness:
                 if page is None:
                     return BrowserContext(
                         available=False,
-                        content="[未找到浏览器标签页]",
+                        content="[henuzbulkadartarayicietiketsayfa]",
                     )
 
                 ctx.title = page.title()
                 ctx.url = page.url
 
-                # 获取页面正文文本（简化版）
+                # alsayfayuzmetinmetin (basitsurum) 
                 try:
                     body_text = await page.inner_text("body")
                     ctx.content = body_text[:1000] if body_text else ""
                 except Exception:
                     pass
 
-                # 获取链接
+                # albaglanti
                 try:
                     links = await page.query_selector_all("a")
                     ctx.links = [
@@ -176,7 +176,7 @@ class BrowserAwareness:
         return ctx
 
     async def _get_current_tab_selenium(self) -> BrowserContext:
-        """通过 Selenium 获取当前标签页"""
+        """araciligiyla Selenium almevcutetiketsayfa"""
         from selenium import webdriver
         from selenium.webdriver.chrome.options import Options
 
@@ -192,14 +192,14 @@ class BrowserAwareness:
             ctx.title = driver.title
             ctx.url = driver.current_url
 
-            # 获取 body 文本
+            # al body metin
             try:
                 body = driver.find_element("tag name", "body")
                 ctx.content = body.text[:1000]
             except Exception:
                 pass
 
-            # 获取链接
+            # albaglanti
             try:
                 links = driver.find_elements("tag name", "a")
                 ctx.links = [
@@ -217,13 +217,13 @@ class BrowserAwareness:
         return ctx
 
     async def _get_current_tab_openclaw(self) -> BrowserContext:
-        """通过 OpenClaw Browser CDP 获取当前标签页"""
+        """araciligiyla OpenClaw Browser CDP almevcutetiketsayfa"""
         import json
         import subprocess
 
         ctx = BrowserContext(available=True)
 
-        # 使用 openclaw browser snapshot 命令
+        # kullan openclaw browser snapshot komut
         try:
             result = subprocess.run(
                 ["openclaw", "browser", "snapshot", "--json"],
@@ -244,37 +244,37 @@ class BrowserAwareness:
 
     async def search_context(self, query: str) -> BrowserContext:
         """
-        搜索相关上下文
+        arailgilibaglam
 
-        在当前浏览器页面中搜索相关内容。
+        icindemevcuttarayicisayfayuzicindearailgiliicerik. 
 
         Args:
-            query: 搜索关键词
+            query: arama anahtar kelimeleri
 
         Returns:
-            BrowserContext: 搜索结果上下文
+            BrowserContext: arasonucbaglam
         """
         if self._browser_type == "none":
             return BrowserContext(
                 available=False,
-                content=f"[搜索 '{query}' - 浏览器不可用]",
+                content=f"[ara '{query}' - tarayicihayirolabilirkullan]",
             )
 
-        # 对于 Playwright，可以在页面中执行搜索
+        # icinde Playwright, olabilirileicindesayfayuzicindeyurutara
         if self._browser_type == "playwright":
             return await self._search_in_page_playwright(query)
 
         return BrowserContext(
             available=False,
-            content=f"[搜索 '{query}' - 当前浏览器类型不支持]",
+            content=f"[ara '{query}' - mevcuttarayicitiphayirdestek]",
         )
 
     async def _search_in_page_playwright(self, query: str) -> BrowserContext:
-        """在 Playwright 页面中搜索"""
+        """icinde Playwright sayfayuzicindeara"""
         from playwright.async_api import async_playwright
 
         ctx = BrowserContext(available=True)
-        ctx.content = f"搜索 '{query}' 的结果将在页面中显示"
+        ctx.content = f"ara '{query}' sonucicindesayfayuzicindegoster"
 
         async with async_playwright() as p:
             try:
@@ -282,25 +282,25 @@ class BrowserAwareness:
                 page = browser.contexts[0].pages[0] if browser.contexts else None
 
                 if page:
-                    # 在页面中查找匹配的文本
+                    # icindesayfayuzicindearaeslestirmetin
                     matches = await page.locator(f"text={query}").count()
-                    ctx.content = f"在当前页面找到 {matches} 处匹配 '{query}'"
+                    ctx.content = f"icindemevcutsayfayuzbulkadar {matches} yereslestir '{query}'"
                     ctx.url = page.url
                     ctx.title = page.title()
                 else:
-                    ctx.content = "[未找到活动标签页]"
+                    ctx.content = "[henuzbulkadaryasahareketetiketsayfa]"
 
                 await browser.close()
             except Exception as e:
-                ctx.content = f"[搜索失败: {e}]"
+                ctx.content = f"[arabasarisiz: {e}]"
 
         return ctx
 
     def to_context_string(self) -> str:
-        """生成上下文字符串（同步版本，获取当前标签页）"""
+        """olusturbaglamkarakter dizisi (esitlesurum, almevcutetiketsayfa) """
         try:
             asyncio.get_running_loop()
-            # 在 async context 中无法使用 asyncio.run()，返回默认值
-            return "[浏览器上下文: 请在同步环境中调用]"
+            # icinde async context icindeyokyontemkullan asyncio.run(), donusvarsayilandeger
+            return "[tarayicibaglam: lutfenicindeesitleortamicindecagri]"
         except RuntimeError:
             return asyncio.run(self.get_current_tab()).to_context_string()

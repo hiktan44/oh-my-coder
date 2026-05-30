@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>设置 - Oh My Coder</title>
+    <title>Ayarlar - Oh My Coder</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/style.css?v=20260506">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -249,15 +249,15 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/" class="nav-link">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link">历史</a>
-                <a href="/coverage" class="nav-link">覆盖率</a>
-                <a href="/docs" class="nav-link">文档</a>
-                <a href="/settings" class="nav-link active">设置</a>
+                <a href="/" class="nav-link">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link">Gösterge Paneli</a>
+                <a href="/history" class="nav-link">Geçmiş</a>
+                <a href="/coverage" class="nav-link">Kapsama</a>
+                <a href="/docs" class="nav-link">Belgeler</a>
+                <a href="/settings" class="nav-link active">Ayarlar</a>
             </div>
             <div class="nav-actions">
-                <div class="nav-toggle" id="themeToggle" title="切换主题">☀️</div>
+                <div class="nav-toggle" id="themeToggle" title="Temayı değiştir">☀️</div>
                 <button class="nav-hamburger" id="navHamburger">☰</button>
             </div>
         </div>
@@ -266,94 +266,94 @@
     <div class="settings-layout">
         <!-- Sidebar -->
         <aside class="settings-sidebar">
-            <button class="settings-nav-item active" data-panel="models">🖥️ 模型选择</button>
+            <button class="settings-nav-item active" data-panel="models">🖥️ Model Seçimi</button>
             <button class="settings-nav-item" data-panel="apikeys">🔑 API Keys</button>
-            <button class="settings-nav-item" data-panel="preferences">⚙️ 偏好设置</button>
-            <button class="settings-nav-item" data-panel="workflows">🔄 工作流</button>
+            <button class="settings-nav-item" data-panel="preferences">⚙️ Tercihler</button>
+            <button class="settings-nav-item" data-panel="workflows">🔄 İş Akışları</button>
         </aside>
 
         <!-- Content -->
         <main class="settings-content">
             <!-- Models Panel -->
             <div class="settings-panel active" id="panel-models">
-                <h1 class="page-title">模型选择</h1>
-                <p class="page-desc">选择适合你的模型，本地模型零成本且保护隐私。</p>
+                <h1 class="page-title">Model Seçimi</h1>
+                <p class="page-desc">Size uygun modeli seçin, yerel modeller sıfır maliyetli ve gizliliği korur.</p>
 
                 <div class="ollama-status" id="ollamaStatus">
                     <div class="status-dot offline"></div>
-                    <span>检测中...</span>
+                    <span>Algılanıyor...</span>
                 </div>
 
                 <div class="card" style="margin-bottom:24px;">
                     <div class="card-header">
-                        <div class="card-title">🖥️ 本地模型 (Ollama)</div>
+                        <div class="card-title">🖥️ Yerel Modeller (Ollama)</div>
                     </div>
                     <div class="model-grid" id="localModels">
-                        <div style="color:var(--text-muted);font-size:14px;">检测中...</div>
+                        <div style="color:var(--text-muted);font-size:14px;">Algılanıyor...</div>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
-                        <div class="card-title">☁️ 云端模型</div>
+                        <div class="card-title">☁️ Bulut Modeller</div>
                     </div>
                     <div class="model-grid" id="cloudModels">
                         <div class="model-card" data-model="deepseek">
                             <div class="model-card-header">
                                 <span class="model-card-name">DeepSeek V4</span>
-                                <span class="badge badge-warning">低成本</span>
+                                <span class="badge badge-warning">Düşük maliyet</span>
                             </div>
-                            <div class="model-card-desc">高性能对话模型，支持函数调用</div>
-                            <div class="model-card-meta"><span>🇨🇳 国内直连</span></div>
+                            <div class="model-card-desc">Yüksek performanslı sohbet modeli, fonksiyon çağrısı desteği</div>
+                            <div class="model-card-meta"><span>🌏 Çin doğrudan bağlantı</span></div>
                         </div>
 
                         <div class="model-card" data-model="glm">
                             <div class="model-card-header">
                                 <span class="model-card-name">GLM-4.7-Flash</span>
-                                <span class="badge badge-success">免费</span>
+                                <span class="badge badge-success">Ücretsiz</span>
                             </div>
-                            <div class="model-card-desc">免费高性能，支持函数调用、视觉</div>
-                            <div class="model-card-meta"><span>🇨🇳 国内直连</span></div>
+                            <div class="model-card-desc">Ücretsiz yüksek performans, fonksiyon çağrısı ve görsel destekli</div>
+                            <div class="model-card-meta"><span>🌏 Çin doğrudan bağlantı</span></div>
                         </div>
                         <div class="model-card" data-model="mimo">
                             <div class="model-card-header">
                                 <span class="model-card-name">MiMo Flash</span>
-                                <span class="badge badge-success">免费</span>
+                                <span class="badge badge-success">Ücretsiz</span>
                             </div>
-                            <div class="model-card-desc">小米 MiMo，免费超长上下文（256K）</div>
-                            <div class="model-card-meta"><span>🇨🇳 国内直连</span></div>
+                            <div class="model-card-desc">Xiaomi MiMo, ücretsiz çok uzun bağlam (256K)</div>
+                            <div class="model-card-meta"><span>🌏 Çin doğrudan bağlantı</span></div>
                         </div>
                         <div class="model-card" data-model="kimi">
                             <div class="model-card-header">
                                 <span class="model-card-name">Kimi 128K</span>
-                                <span class="badge badge-warning">低成本</span>
+                                <span class="badge badge-warning">Düşük maliyet</span>
                             </div>
-                            <div class="model-card-desc">月之暗面，128K 超长上下文</div>
-                            <div class="model-card-meta"><span>🇨🇳 国内直连</span></div>
+                            <div class="model-card-desc">Moonshot, 128K çok uzun bağlam</div>
+                            <div class="model-card-meta"><span>🌏 Çin doğrudan bağlantı</span></div>
                         </div>
                         <div class="model-card" data-model="doubao">
                             <div class="model-card-header">
                                 <span class="model-card-name">Doubao-Pro</span>
-                                <span class="badge badge-warning">低成本</span>
+                                <span class="badge badge-warning">Düşük maliyet</span>
                             </div>
-                            <div class="model-card-desc">字节跳动大模型，性价比高</div>
-                            <div class="model-card-meta"><span>🇨🇳 国内直连</span></div>
+                            <div class="model-card-desc">ByteDance büyük model, yüksek fiyat performansı</div>
+                            <div class="model-card-meta"><span>🌏 Çin doğrudan bağlantı</span></div>
                         </div>
                         <div class="model-card" data-model="tiangong">
                             <div class="model-card-header">
-                                <span class="model-card-name">天工 3.0</span>
-                                <span class="badge badge-warning">低成本</span>
+                                <span class="model-card-name">Tiangong 3.0</span>
+                                <span class="badge badge-warning">Düşük maliyet</span>
                             </div>
-                            <div class="model-card-desc">天工大模型 3.0</div>
-                            <div class="model-card-meta"><span>🇨🇳 国内直连</span></div>
+                            <div class="model-card-desc">Tiangong büyük model 3.0</div>
+                            <div class="model-card-meta"><span>🌏 Çin doğrudan bağlantı</span></div>
                         </div>
                         <div class="model-card" data-model="baichuan">
                             <div class="model-card-header">
-                                <span class="model-card-name">百川 4</span>
-                                <span class="badge badge-warning">低成本</span>
+                                <span class="model-card-name">Baichuan 4</span>
+                                <span class="badge badge-warning">Düşük maliyet</span>
                             </div>
-                            <div class="model-card-desc">百川智能 4</div>
-                            <div class="model-card-meta"><span>🇨🇳 国内直连</span></div>
+                            <div class="model-card-desc">Baichuan AI 4</div>
+                            <div class="model-card-meta"><span>🌏 Çin doğrudan bağlantı</span></div>
                         </div>
                     </div>
                 </div>
@@ -362,7 +362,7 @@
                         <!-- API Keys Panel -->
             <div class="settings-panel" id="panel-apikeys">
                 <h1 class="page-title">API Keys</h1>
-                <p class="page-desc">配置各模型供应商的 API Key。密钥仅本地存储，不会上传。</p>
+                <p class="page-desc">Her model sağlayıcısının API Anahtarını yapılandırın. Anahtarlar yalnızca yerel olarak saklanır, yüklenmez.</p>
 
                 <style>
                     .provider-card { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
@@ -416,13 +416,13 @@
                             <span class="provider-emoji">🔮</span>
                             <div>
                                 <div class="provider-name">DeepSeek</div>
-                                <div class="provider-models">V4 · R1（共享同一 API Key）</div>
+                                <div class="provider-models">V4 · R1 (aynı API Anahtarını paylaşır)</div>
                             </div>
                         </div>
-                        <span class="badge badge-low">低成本</span>
+                        <span class="badge badge-low">Düşük maliyet</span>
                     </div>
                     <div class="provider-card-body">
-                        <span class="toggle-url" onclick="toggleUrl('deepseek')">⚙️ 修改 Base URL</span>
+                        <span class="toggle-url" onclick="toggleUrl('deepseek')">⚙️ Base URL'yi Değiştir</span>
                         <div class="url-group" id="url-group-deepseek">
                             <div class="form-group">
                                 <label class="form-label">Base URL</label>
@@ -435,64 +435,64 @@
                         </div>
                     </div>
                     <div class="provider-card-footer">
-                        <div class="key-status"><div class="key-dot unset" id="dot-deepseek"></div><span id="status-deepseek">未配置</span></div>
+                        <div class="key-status"><div class="key-dot unset" id="dot-deepseek"></div><span id="status-deepseek">Yapılandırılmadı</span></div>
                         <div class="btn-group">
-                            <button class="btn-sm btn-sm-test" id="btn-test-deepseek" onclick="testProvider('deepseek')">测试</button>
-                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('deepseek')">重置</button>
-                            <button class="btn-sm btn-sm-save" onclick="saveProvider('deepseek')">保存</button>
+                            <button class="btn-sm btn-sm-test" id="btn-test-deepseek" onclick="testProvider('deepseek')">Test</button>
+                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('deepseek')">Sıfırla</button>
+                            <button class="btn-sm btn-sm-save" onclick="saveProvider('deepseek')">Kaydet</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 智谱 GLM -->
+                <!-- Zhipu GLM -->
                 <div class="provider-card" id="card-glm" data-provider="glm">
                     <div class="provider-card-header">
                         <div class="provider-info">
                             <span class="provider-emoji">🟢</span>
                             <div>
-                                <div class="provider-name">智谱 GLM</div>
-                                <div class="provider-models">GLM-4.7-Flash（免费额度）</div>
+                                <div class="provider-name">Zhipu GLM</div>
+                                <div class="provider-models">GLM-4.7-Flash (Ücretsiz kota)</div>
                             </div>
                         </div>
-                        <span class="badge badge-free">免费</span>
+                        <span class="badge badge-free">Ücretsiz</span>
                     </div>
                     <div class="provider-card-body">
-                        <span class="toggle-url" onclick="toggleUrl('glm')">⚙️ 修改 Base URL</span>
+                        <span class="toggle-url" onclick="toggleUrl('glm')">⚙️ Base URL'yi Değiştir</span>
                         <div class="url-group" id="url-group-glm">
                             <div class="form-group">
-                                <label class="form-label">Base URL <span style="font-size:11px;color:var(--text-muted)">（API 接口地址，非网页地址）</span></label>
+                                <label class="form-label">Base URL <span style="font-size:11px;color:var(--text-muted)">(API uç noktası, web sayfası değil)</span></label>
                                 <input type="text" class="form-input" id="url-glm" value="https://open.bigmodel.cn/api/paas/v4">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">API Key <span style="font-size:12px;color:var(--text-muted)">（填写 free 使用免费版）</span></label>
-                            <input type="password" autocomplete="new-password" name="key-glm" class="form-input" id="key-glm" placeholder="free 或 your-api-key">
+                            <label class="form-label">API Key <span style="font-size:12px;color:var(--text-muted)">(Ücretsiz sürüm için 'free' yazın)</span></label>
+                            <input type="password" autocomplete="new-password" name="key-glm" class="form-input" id="key-glm" placeholder="free veya your-api-key">
                         </div>
                     </div>
                     <div class="provider-card-footer">
-                        <div class="key-status"><div class="key-dot unset" id="dot-glm"></div><span id="status-glm">未配置</span></div>
+                        <div class="key-status"><div class="key-dot unset" id="dot-glm"></div><span id="status-glm">Yapılandırılmadı</span></div>
                         <div class="btn-group">
-                            <button class="btn-sm btn-sm-test" id="btn-test-glm" onclick="testProvider('glm')">测试</button>
-                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('glm')">重置</button>
-                            <button class="btn-sm btn-sm-save" onclick="saveProvider('glm')">保存</button>
+                            <button class="btn-sm btn-sm-test" id="btn-test-glm" onclick="testProvider('glm')">Test</button>
+                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('glm')">Sıfırla</button>
+                            <button class="btn-sm btn-sm-save" onclick="saveProvider('glm')">Kaydet</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 小米 MiMo -->
+                <!-- Xiaomi MiMo -->
                 <div class="provider-card" id="card-mimo" data-provider="mimo">
                     <div class="provider-card-header">
                         <div class="provider-info">
                             <span class="provider-emoji">📱</span>
                             <div>
-                                <div class="provider-name">小米 MiMo</div>
-                                <div class="provider-models">MiMo Flash（100万 token 超长上下文）</div>
+                                <div class="provider-name">Xiaomi MiMo</div>
+                                <div class="provider-models">MiMo Flash (1M token çok uzun bağlam)</div>
                             </div>
                         </div>
-                        <span class="badge badge-free">免费</span>
+                        <span class="badge badge-free">Ücretsiz</span>
                     </div>
                     <div class="provider-card-body">
-                        <span class="toggle-url" onclick="toggleUrl('mimo')">⚙️ 修改 Base URL</span>
+                        <span class="toggle-url" onclick="toggleUrl('mimo')">⚙️ Base URL'yi Değiştir</span>
                         <div class="url-group" id="url-group-mimo">
                             <div class="form-group">
                                 <label class="form-label">Base URL</label>
@@ -505,11 +505,11 @@
                         </div>
                     </div>
                     <div class="provider-card-footer">
-                        <div class="key-status"><div class="key-dot unset" id="dot-mimo"></div><span id="status-mimo">未配置</span></div>
+                        <div class="key-status"><div class="key-dot unset" id="dot-mimo"></div><span id="status-mimo">Yapılandırılmadı</span></div>
                         <div class="btn-group">
-                            <button class="btn-sm btn-sm-test" id="btn-test-mimo" onclick="testProvider('mimo')">测试</button>
-                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('mimo')">重置</button>
-                            <button class="btn-sm btn-sm-save" onclick="saveProvider('mimo')">保存</button>
+                            <button class="btn-sm btn-sm-test" id="btn-test-mimo" onclick="testProvider('mimo')">Test</button>
+                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('mimo')">Sıfırla</button>
+                            <button class="btn-sm btn-sm-save" onclick="saveProvider('mimo')">Kaydet</button>
                         </div>
                     </div>
                 </div>
@@ -521,13 +521,13 @@
                             <span class="provider-emoji">🌙</span>
                             <div>
                                 <div class="provider-name">Kimi</div>
-                                <div class="provider-models">Kimi 128K（超长上下文）</div>
+                                <div class="provider-models">Kimi 128K (çok uzun bağlam)</div>
                             </div>
                         </div>
-                        <span class="badge badge-medium">中等</span>
+                        <span class="badge badge-medium">Orta</span>
                     </div>
                     <div class="provider-card-body">
-                        <span class="toggle-url" onclick="toggleUrl('kimi')">⚙️ 修改 Base URL</span>
+                        <span class="toggle-url" onclick="toggleUrl('kimi')">⚙️ Base URL'yi Değiştir</span>
                         <div class="url-group" id="url-group-kimi">
                             <div class="form-group">
                                 <label class="form-label">Base URL</label>
@@ -540,29 +540,29 @@
                         </div>
                     </div>
                     <div class="provider-card-footer">
-                        <div class="key-status"><div class="key-dot unset" id="dot-kimi"></div><span id="status-kimi">未配置</span></div>
+                        <div class="key-status"><div class="key-dot unset" id="dot-kimi"></div><span id="status-kimi">Yapılandırılmadı</span></div>
                         <div class="btn-group">
-                            <button class="btn-sm btn-sm-test" id="btn-test-kimi" onclick="testProvider('kimi')">测试</button>
-                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('kimi')">重置</button>
-                            <button class="btn-sm btn-sm-save" onclick="saveProvider('kimi')">保存</button>
+                            <button class="btn-sm btn-sm-test" id="btn-test-kimi" onclick="testProvider('kimi')">Test</button>
+                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('kimi')">Sıfırla</button>
+                            <button class="btn-sm btn-sm-save" onclick="saveProvider('kimi')">Kaydet</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 豆包 -->
+                <!-- Doubao -->
                 <div class="provider-card" id="card-doubao" data-provider="doubao">
                     <div class="provider-card-header">
                         <div class="provider-info">
                             <span class="provider-emoji">🫘</span>
                             <div>
-                                <div class="provider-name">豆包</div>
+                                <div class="provider-name">Doubao</div>
                                 <div class="provider-models">Doubao-Pro-32K</div>
                             </div>
                         </div>
-                        <span class="badge badge-medium">中等</span>
+                        <span class="badge badge-medium">Orta</span>
                     </div>
                     <div class="provider-card-body">
-                        <span class="toggle-url" onclick="toggleUrl('doubao')">⚙️ 修改 Base URL</span>
+                        <span class="toggle-url" onclick="toggleUrl('doubao')">⚙️ Base URL'yi Değiştir</span>
                         <div class="url-group" id="url-group-doubao">
                             <div class="form-group">
                                 <label class="form-label">Base URL</label>
@@ -575,29 +575,29 @@
                         </div>
                     </div>
                     <div class="provider-card-footer">
-                        <div class="key-status"><div class="key-dot unset" id="dot-doubao"></div><span id="status-doubao">未配置</span></div>
+                        <div class="key-status"><div class="key-dot unset" id="dot-doubao"></div><span id="status-doubao">Yapılandırılmadı</span></div>
                         <div class="btn-group">
-                            <button class="btn-sm btn-sm-test" id="btn-test-doubao" onclick="testProvider('doubao')">测试</button>
-                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('doubao')">重置</button>
-                            <button class="btn-sm btn-sm-save" onclick="saveProvider('doubao')">保存</button>
+                            <button class="btn-sm btn-sm-test" id="btn-test-doubao" onclick="testProvider('doubao')">Test</button>
+                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('doubao')">Sıfırla</button>
+                            <button class="btn-sm btn-sm-save" onclick="saveProvider('doubao')">Kaydet</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 天工 -->
+                <!-- Tiangong -->
                 <div class="provider-card" id="card-tiangong" data-provider="tiangong">
                     <div class="provider-card-header">
                         <div class="provider-info">
                             <span class="provider-emoji">🏗️</span>
                             <div>
-                                <div class="provider-name">天工</div>
-                                <div class="provider-models">天工 3.0</div>
+                                <div class="provider-name">Tiangong</div>
+                                <div class="provider-models">Tiangong 3.0</div>
                             </div>
                         </div>
-                        <span class="badge badge-medium">中等</span>
+                        <span class="badge badge-medium">Orta</span>
                     </div>
                     <div class="provider-card-body">
-                        <span class="toggle-url" onclick="toggleUrl('tiangong')">⚙️ 修改 Base URL</span>
+                        <span class="toggle-url" onclick="toggleUrl('tiangong')">⚙️ Base URL'yi Değiştir</span>
                         <div class="url-group" id="url-group-tiangong">
                             <div class="form-group">
                                 <label class="form-label">Base URL</label>
@@ -610,29 +610,29 @@
                         </div>
                     </div>
                     <div class="provider-card-footer">
-                        <div class="key-status"><div class="key-dot unset" id="dot-tiangong"></div><span id="status-tiangong">未配置</span></div>
+                        <div class="key-status"><div class="key-dot unset" id="dot-tiangong"></div><span id="status-tiangong">Yapılandırılmadı</span></div>
                         <div class="btn-group">
-                            <button class="btn-sm btn-sm-test" id="btn-test-tiangong" onclick="testProvider('tiangong')">测试</button>
-                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('tiangong')">重置</button>
-                            <button class="btn-sm btn-sm-save" onclick="saveProvider('tiangong')">保存</button>
+                            <button class="btn-sm btn-sm-test" id="btn-test-tiangong" onclick="testProvider('tiangong')">Test</button>
+                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('tiangong')">Sıfırla</button>
+                            <button class="btn-sm btn-sm-save" onclick="saveProvider('tiangong')">Kaydet</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 百川 -->
+                <!-- Baichuan -->
                 <div class="provider-card" id="card-baichuan" data-provider="baichuan">
                     <div class="provider-card-header">
                         <div class="provider-info">
                             <span class="provider-emoji">🌊</span>
                             <div>
-                                <div class="provider-name">百川</div>
-                                <div class="provider-models">百川 4</div>
+                                <div class="provider-name">Baichuan</div>
+                                <div class="provider-models">Baichuan 4</div>
                             </div>
                         </div>
-                        <span class="badge badge-medium">中等</span>
+                        <span class="badge badge-medium">Orta</span>
                     </div>
                     <div class="provider-card-body">
-                        <span class="toggle-url" onclick="toggleUrl('baichuan')">⚙️ 修改 Base URL</span>
+                        <span class="toggle-url" onclick="toggleUrl('baichuan')">⚙️ Base URL'yi Değiştir</span>
                         <div class="url-group" id="url-group-baichuan">
                             <div class="form-group">
                                 <label class="form-label">Base URL</label>
@@ -645,11 +645,11 @@
                         </div>
                     </div>
                     <div class="provider-card-footer">
-                        <div class="key-status"><div class="key-dot unset" id="dot-baichuan"></div><span id="status-baichuan">未配置</span></div>
+                        <div class="key-status"><div class="key-dot unset" id="dot-baichuan"></div><span id="status-baichuan">Yapılandırılmadı</span></div>
                         <div class="btn-group">
-                            <button class="btn-sm btn-sm-test" id="btn-test-baichuan" onclick="testProvider('baichuan')">测试</button>
-                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('baichuan')">重置</button>
-                            <button class="btn-sm btn-sm-save" onclick="saveProvider('baichuan')">保存</button>
+                            <button class="btn-sm btn-sm-test" id="btn-test-baichuan" onclick="testProvider('baichuan')">Test</button>
+                            <button class="btn-sm btn-sm-reset" onclick="resetProvider('baichuan')">Sıfırla</button>
+                            <button class="btn-sm btn-sm-save" onclick="saveProvider('baichuan')">Kaydet</button>
                         </div>
                     </div>
                 </div>
@@ -660,21 +660,21 @@
                 <!-- Add custom provider -->
                 <div class="add-provider-card" onclick="openAddProviderModal()">
                     <div class="add-icon">+</div>
-                    <div class="add-text">添加其他 OpenAI 兼容供应商</div>
-                    <div style="font-size:12px;color:var(--text-muted);margin-top:4px">支持任何 OpenAI API 兼容的模型</div>
+                    <div class="add-text">Diğer OpenAI uyumlu sağlayıcı ekle</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:4px">OpenAI API uyumlu herhangi bir modeli destekler</div>
                 </div>
 
                 <!-- Add Provider Modal -->
                 <div id="addProviderModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:none;justify-content:center;align-items:center" onclick="closeAddProviderModal()">
                     <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;padding:32px;width:500px;max-width:90vw" onclick="event.stopPropagation()">
-                        <h3 style="margin:0 0 24px;font-size:18px">添加自定义供应商</h3>
+                        <h3 style="margin:0 0 24px;font-size:18px">Özel Sağlayıcı Ekle</h3>
                         <div class="form-group">
-                            <label class="form-label">供应商名称 <span style="color:var(--danger)">*</span></label>
-                            <input type="text" class="form-input" id="new-provider-name" placeholder="例如：OpenAI、Claude、本地 Ollama">
+                            <label class="form-label">Sağlayıcı Adı <span style="color:var(--danger)">*</span></label>
+                            <input type="text" class="form-input" id="new-provider-name" placeholder="Örneğin: OpenAI, Claude, Yerel Ollama">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">模型 ID <span style="color:var(--danger)">*</span></label>
-                            <input type="text" class="form-input" id="new-provider-model" placeholder="例如：gpt-4o、claude-3.5-sonnet、qwen2.5">
+                            <label class="form-label">Model ID <span style="color:var(--danger)">*</span></label>
+                            <input type="text" class="form-input" id="new-provider-model" placeholder="Örneğin: gpt-4o, claude-3.5-sonnet, qwen2.5">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Base URL <span style="color:var(--danger)">*</span></label>
@@ -682,11 +682,11 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">API Key</label>
-                            <input type="password" class="form-input" id="new-provider-key" placeholder="sk-xxxxxxxx（本地模型可留空）">
+                            <input type="password" class="form-input" id="new-provider-key" placeholder="sk-xxxxxxxx (Yerel modeller için boş bırakılabilir)">
                         </div>
                         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px">
-                            <button class="btn btn-secondary" onclick="closeAddProviderModal()">取消</button>
-                            <button class="btn btn-primary" onclick="addCustomProvider()">添加</button>
+                            <button class="btn btn-secondary" onclick="closeAddProviderModal()">İptal</button>
+                            <button class="btn btn-primary" onclick="addCustomProvider()">Ekle</button>
                         </div>
                     </div>
                 </div>
@@ -694,8 +694,8 @@
 
             <!-- Workflows Panel -->
             <div class="settings-panel" id="panel-workflows">
-                <h1 class="page-title">工作流管理</h1>
-                <p class="page-desc">查看内置工作流，或创建、编辑自定义工作流。</p>
+                <h1 class="page-title">İş Akışı Yönetimi</h1>
+                <p class="page-desc">Yerleşik iş akışlarını görüntüleyin veya özel iş akışları oluşturup düzenleyin.</p>
 
                 <style>
                     .wf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -725,56 +725,56 @@
 
                 <div class="wf-header">
                     <div></div>
-                    <button class="btn btn-primary" onclick="openCreateModal()">➕ 新建工作流</button>
+                    <button class="btn btn-primary" onclick="openCreateModal()">➕ Yeni İş Akışı</button>
                 </div>
 
-                <div id="wfList"><div class="wf-loading">加载中...</div></div>
+                <div id="wfList"><div class="wf-loading">Yükleniyor...</div></div>
             </div>
 
 
 
             <!-- Preferences Panel -->
             <div class="settings-panel" id="panel-preferences">
-                <h1 class="page-title">偏好设置</h1>
-                <p class="page-desc">自定义运行时的默认行为。</p>
+                <h1 class="page-title">Tercihler</h1>
+                <p class="page-desc">Çalışma zamanı varsayılan davranışlarını özelleştirin.</p>
 
                 <div class="card">
                     <div class="form-group">
-                        <label class="form-label">默认模型</label>
+                        <label class="form-label">Varsayılan Model</label>
                         <select class="form-select" id="default-model">
-                            <option value="deepseek">DeepSeek V4 (推荐·低成本)</option>
+                            <option value="deepseek">DeepSeek V4 (Önerilen·Düşük maliyet)</option>
 
-                            <option value="glm">GLM-4.7-Flash (免费)</option>
-                            <option value="mimo">MiMo Flash (免费)</option>
-                            <option value="kimi">Kimi 128K (低成本)</option>
-                            <option value="doubao">Doubao-Pro (低成本)</option>
-                            <option value="tiangong">天工 3.0 (低成本)</option>
-                            <option value="baichuan">百川 4 (低成本)</option>
+                            <option value="glm">GLM-4.7-Flash (Ücretsiz)</option>
+                            <option value="mimo">MiMo Flash (Ücretsiz)</option>
+                            <option value="kimi">Kimi 128K (Düşük maliyet)</option>
+                            <option value="doubao">Doubao-Pro (Düşük maliyet)</option>
+                            <option value="tiangong">Tiangong 3.0 (Düşük maliyet)</option>
+                            <option value="baichuan">Baichuan 4 (Düşük maliyet)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">默认工作流</label>
+                        <label class="form-label">Varsayılan İş Akışı</label>
                         <select class="form-select" id="default-workflow">
-                            <option value="build">build - 开发构建</option>
-                            <option value="review">review - 代码审查</option>
-                            <option value="debug">debug - 调试修复</option>
-                            <option value="test">test - 测试生成</option>
-                            <option value="doc">doc - 文档生成</option>
+                            <option value="build">build - Geliştirme/Derleme</option>
+                            <option value="review">review - Kod İncelemesi</option>
+                            <option value="debug">debug - Hata Ayıklama</option>
+                            <option value="test">test - Test Üretimi</option>
+                            <option value="doc">doc - Belge Üretimi</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">任务超时时间（秒）</label>
+                        <label class="form-label">Görev Zaman Aşımı (saniye)</label>
                         <input type="number" class="form-input" id="timeout" value="300">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">优先使用本地模型</label>
+                        <label class="form-label">Yerel Modelleri Tercih Et</label>
                         <select class="form-select" id="prefer-local">
-                            <option value="true">是（零成本，隐私保护）</option>
-                            <option value="false">否（优先云端模型）</option>
+                            <option value="true">Evet (Sıfır maliyet, gizlilik koruması)</option>
+                            <option value="false">Hayır (Bulut modeller öncelikli)</option>
                         </select>
                     </div>
                     <div style="margin-top:24px;">
-                        <button class="btn btn-primary" onclick="savePreferences()">保存偏好</button>
+                        <button class="btn btn-primary" onclick="savePreferences()">Tercihleri Kaydet</button>
                     </div>
                 </div>
             </div>
@@ -789,7 +789,7 @@
             <div id="wfViewBadge"></div>
             <pre class="wf-code-block" id="wfViewCode"></pre>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeWfModals()">关闭</button>
+                <button class="btn btn-secondary" onclick="closeWfModals()">Kapat</button>
             </div>
         </div>
     </div>
@@ -799,17 +799,17 @@
         <div class="modal wf-modal" onclick="event.stopPropagation()">
             <h2 id="wfEditTitle"></h2>
             <div class="wf-modal-hint">
-                💡 直接编辑 YAML 即可保存你的自定义配置。<code>name</code> 字段不可修改。
+                💡 Özel yapılandırmanızı kaydetmek için YAML'ı doğrudan düzenleyin. <code>name</code> alanı değiştirilemez.
             </div>
             <div class="wf-form-group">
-                <input type="text" class="form-input wf-name-input" id="wfEditName" readonly style="opacity:0.6;cursor:not-allowed" title="工作流名称不可修改">
+                <input type="text" class="form-input wf-name-input" id="wfEditName" readonly style="opacity:0.6;cursor:not-allowed" title="İş akışı adı değiştirilemez">
             </div>
             <div class="wf-form-group">
                 <textarea class="wf-textarea" id="wfEditYaml" rows="22" spellcheck="false"></textarea>
             </div>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeWfModals()">取消</button>
-                <button class="btn btn-primary" onclick="confirmSaveWorkflow()">保存</button>
+                <button class="btn btn-secondary" onclick="closeWfModals()">İptal</button>
+                <button class="btn btn-primary" onclick="confirmSaveWorkflow()">Kaydet</button>
             </div>
         </div>
     </div>
@@ -817,20 +817,20 @@
     <!-- Create Modal -->
     <div class="modal-overlay" id="wfCreateModal" onclick="closeWfModals(event)">
         <div class="modal wf-modal wf-modal-sm" onclick="event.stopPropagation()">
-            <h2>+ 新建工作流</h2>
+            <h2>+ Yeni İş Akışı</h2>
             <div class="wf-modal-hint">
-                📝 工作流名称只能包含小写字母、数字、中划线（<code>autopilot</code>、<code>my-workflow</code>）。
-                保存后可在下方编辑器中填写完整的 YAML 配置。
+                📝 İş akışı adı yalnızca küçük harfler, rakamlar ve kısa çizgi içerebilir (<code>autopilot</code>, <code>my-workflow</code>).
+                Kaydettikten sonra aşağıdaki editörde tam YAML yapılandırmasını yazabilirsiniz.
             </div>
             <div class="wf-form-group">
-                <label class="form-label">工作流名称 <span style="color:var(--danger)">*</span></label>
+                <label class="form-label">İş Akışı Adı <span style="color:var(--danger)">*</span></label>
                 <input type="text" class="form-input wf-name-input" id="wfCreateName" placeholder="my-workflow" maxlength="64">
             </div>
             <div class="wf-form-group">
-                <label class="form-label">初始 YAML（可选，从内置工作流复制，或留空后手动编写）</label>
+                <label class="form-label">Başlangıç YAML (İsteğe bağlı, yerleşik iş akışından kopyalanabilir veya manuel yazılabilir)</label>
                 <div style="margin-bottom:8px;">
                     <select class="form-select" id="wfTemplateSelect" onchange="applyWorkflowTemplate()" style="font-size:13px;">
-                        <option value="">— 空模板 —</option>
+                        <option value="">— Boş Şablon —</option>
                     </select>
                 </div>
                 <textarea class="wf-textarea" id="wfCreateYaml" rows="18" spellcheck="false" placeholder="name: my-workflow
@@ -839,8 +839,8 @@ steps:
   - ..."></textarea>
             </div>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeWfModals()">取消</button>
-                <button class="btn btn-primary" onclick="confirmCreateWorkflow()">创建并保存</button>
+                <button class="btn btn-secondary" onclick="closeWfModals()">İptal</button>
+                <button class="btn btn-primary" onclick="confirmCreateWorkflow()">Oluştur ve Kaydet</button>
             </div>
         </div>
     </div>
@@ -848,13 +848,13 @@ steps:
     <!-- Confirm Delete Modal -->
     <div class="modal-overlay" id="wfDeleteModal" onclick="closeWfModals(event)">
         <div class="modal" style="width:400px" onclick="event.stopPropagation()">
-            <h2>⚠️ 确认删除</h2>
-            <p style="color:var(--text-muted);margin-bottom:8px;">确定要删除工作流</p>
+            <h2>⚠️ Silmeyi Onayla</h2>
+            <p style="color:var(--text-muted);margin-bottom:8px;">Bu iş akışını silmek istediğinizden emin misiniz</p>
             <p style="font-weight:600;font-size:16px;margin-bottom:20px" id="wfDeleteName"></p>
-            <p style="color:var(--danger);font-size:13px;margin-bottom:20px">⚠️ 此操作不可撤销</p>
+            <p style="color:var(--danger);font-size:13px;margin-bottom:20px">⚠️ Bu işlem geri alınamaz</p>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeWfModals()">取消</button>
-                <button class="btn" style="background:var(--danger);color:#fff;border-color:var(--danger)" onclick="confirmDeleteWorkflow()">确认删除</button>
+                <button class="btn btn-secondary" onclick="closeWfModals()">İptal</button>
+                <button class="btn" style="background:var(--danger);color:#fff;border-color:var(--danger)" onclick="confirmDeleteWorkflow()">Silmeyi Onayla</button>
             </div>
         </div>
     </div>
@@ -925,26 +925,26 @@ steps:
                 const text = statusDiv.querySelector('span');
                 if (data.available) {
                     dot.className = 'status-dot online';
-                    text.textContent = `Ollama 运行中 (${data.models.length} 个模型)`;
+                    text.textContent = `Ollama çalışıyor (${data.models.length} model)`;
                     grid.innerHTML = '';
                     data.models.forEach(m => {
                         const card = document.createElement('div');
                         card.className = 'model-card';
                         card.dataset.model = 'ollama:' + m.name;
                         card.innerHTML = `
-                            <div class="model-card-header"><span class="model-card-name">${m.name}</span><span class="badge badge-primary">本地</span></div>
-                            <div class="model-card-desc">${m.description || '本地模型'}</div>
-                            <div class="model-card-meta"><span>📦 ${m.size || '未知'}</span></div>`;
+                            <div class="model-card-header"><span class="model-card-name">${m.name}</span><span class="badge badge-primary">Yerel</span></div>
+                            <div class="model-card-desc">${m.description || 'Yerel model'}</div>
+                            <div class="model-card-meta"><span>📦 ${m.size || 'Bilinmiyor'}</span></div>`;
                         grid.appendChild(card);
                     });
-                    if (!data.models.length) grid.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">暂无本地模型，运行 <code style="background:var(--primary-light);padding:2px 6px;border-radius:4px;">ollama pull qwen2:7b</code> 拉取</div>';
+                    if (!data.models.length) grid.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">Henüz yerel model yok, çekmek için: <code style="background:var(--primary-light);padding:2px 6px;border-radius:4px;">ollama pull qwen2:7b</code></div>';
                 } else {
                     dot.className = 'status-dot offline';
-                    text.textContent = data.error || 'Ollama 未运行';
-                    grid.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">安装 Ollama: <a href="https://ollama.ai" target="_blank">ollama.ai</a></div>';
+                    text.textContent = data.error || 'Ollama çalışmıyor';
+                    grid.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">Ollama kurulumu: <a href="https://ollama.ai" target="_blank">ollama.ai</a></div>';
                 }
             } catch (e) {
-                grid.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">无法连接 Ollama</div>';
+                grid.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">Ollama bağlantısı kurulamadı</div>';
             }
         }
         checkOllama();
@@ -975,10 +975,10 @@ steps:
                     const urlInput = document.getElementById('url-' + k);
                     if (m && m.has_key) {
                         if (dot) { dot.className = 'key-dot set'; }
-                        if (status) { status.textContent = '已配置 (' + (m.api_key_masked || '****') + ')'; }
-                        // 回填实际值（后端返回完整 key）
+                        if (status) { status.textContent = 'Yapılandırıldı (' + (m.api_key_masked || '****') + ')'; }
+                        // Gerçek değeri geri doldur (arka uç tam anahtarı döndürür)
                         if (input && m.api_key) { input.value = m.api_key; }
-                        else if (input) { input.placeholder = m.api_key_masked || '已配置'; }
+                        else if (input) { input.placeholder = m.api_key_masked || 'Yapılandırıldı'; }
                     }
                     if (m && m.base_url && urlInput) {
                         // Validate URL before overwriting HTML default
@@ -1038,11 +1038,11 @@ steps:
             const lower = url.toLowerCase();
             for (const p of badPatterns) {
                 if (lower.includes(p)) {
-                    return { ok: false, msg: `这看起来是网页地址，不是 API 端点。API 地址通常包含 /v1、/v4、/api/ 等路径。` };
+                    return { ok: false, msg: `Bu bir web sayfası adresi gibi görünüyor, API uç noktası değil. API adresleri genellikle /v1, /v4, /api/ gibi yollar içerir.` };
                 }
             }
             if (!lower.startsWith('http://') && !lower.startsWith('https://')) {
-                return { ok: false, msg: 'URL 必须以 http:// 或 https:// 开头' };
+                return { ok: false, msg: 'URL http:// veya https:// ile başlamalıdır' };
             }
             return { ok: true };
         }
@@ -1065,7 +1065,7 @@ steps:
             if (keyVal) conf.api_key = keyVal;
             if (urlVal) conf.base_url = urlVal;
             if (Object.keys(conf).length === 0) {
-                showToastSmall('请填写 API Key', 'error');
+                showToastSmall('Lütfen API Anahtarını girin', 'error');
                 return;
             }
             try {
@@ -1076,14 +1076,14 @@ steps:
                 });
                 if (res.ok) {
                     card.classList.add('saved');
-                    showToastSmall('✅ ' + id + ' 已保存');
+                    showToastSmall('✅ ' + id + ' kaydedildi');
                     setTimeout(() => card.classList.remove('saved'), 2000);
                     loadSettings();
                 } else {
-                    showToastSmall('保存失败', 'error');
+                    showToastSmall('Kaydetme başarısız', 'error');
                 }
             } catch (e) {
-                showToastSmall('保存失败: ' + e.message, 'error');
+                showToastSmall('Kaydetme başarısız: ' + e.message, 'error');
             }
         }
 
@@ -1099,14 +1099,14 @@ steps:
             const dot = document.getElementById('dot-' + id);
             const status = document.getElementById('status-' + id);
             if (dot) dot.className = 'key-dot unset';
-            if (status) status.textContent = '未配置';
+            if (status) status.textContent = 'Yapılandırılmadı';
             // Also delete from backend
             fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ models: { [id]: { api_key: '', base_url: '' } } })
             });
-            showToastSmall('已重置 ' + id);
+            showToastSmall(id + ' sıfırlandı');
         }
 
         // Test connection for a provider
@@ -1115,13 +1115,13 @@ steps:
             const keyVal = document.getElementById('key-' + id)?.value?.trim();
             const urlVal = document.getElementById('url-' + id)?.value?.trim();
             if (!keyVal) {
-                showToastSmall('请先填写 API Key', 'error');
+                showToastSmall('Lütfen önce API Anahtarını girin', 'error');
                 return;
             }
-            // Reset button state immediately (prevents stuck '失败' from previous test)
+            // Reset button state immediately (prevents stuck 'failure' from previous test)
             btn.disabled = true;
             btn.classList.remove('ok', 'err', 'testing');
-            btn.textContent = '测试中...';
+            btn.textContent = 'Test ediliyor...';
             // Remove any old test-msg
             const oldMsg = btn.parentElement.querySelector('.test-msg');
             if (oldMsg) oldMsg.remove();
@@ -1134,36 +1134,36 @@ steps:
                 const data = await res.json();
                 if (data.ok) {
                     btn.classList.add('ok');
-                    btn.textContent = '✓ 成功';
+                    btn.textContent = '✓ Başarılı';
                     showToastSmall('✅ ' + data.msg);
                     // Auto-reset after 3 seconds
                     setTimeout(() => {
                         if (btn.classList.contains('ok')) {
                             btn.classList.remove('ok', 'testing');
-                            btn.textContent = '测试';
+                            btn.textContent = 'Test';
                         }
                     }, 3000);
                 } else {
                     btn.classList.add('err');
-                    btn.textContent = '✗ 失败';
+                    btn.textContent = '✗ Başarısız';
                     showToastSmall('❌ ' + data.msg, 'error');
                     // Auto-reset after 3 seconds
                     setTimeout(() => {
                         if (btn.classList.contains('err')) {
                             btn.classList.remove('err', 'testing');
-                            btn.textContent = '测试';
+                            btn.textContent = 'Test';
                         }
                     }, 3000);
                 }
             } catch (e) {
                 btn.classList.add('err');
-                btn.textContent = '✗ 失败';
-                showToastSmall('测试失败: ' + e.message, 'error');
+                btn.textContent = '✗ Başarısız';
+                showToastSmall('Test başarısız: ' + e.message, 'error');
                 // Auto-reset after 3 seconds
                 setTimeout(() => {
                     if (btn.classList.contains('err')) {
                         btn.classList.remove('err', 'testing');
-                        btn.textContent = '测试';
+                        btn.textContent = 'Test';
                     }
                 }, 3000);
             } finally {
@@ -1197,9 +1197,9 @@ steps:
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ models: keys })
                 });
-                if (res.ok) { showToastSmall('✅ 所有 API Keys 已保存'); loadSettings(); }
-                else showToastSmall('保存失败', 'error');
-            } catch (e) { showToastSmall('保存失败: ' + e.message, 'error'); }
+                if (res.ok) { showToastSmall('✅ Tüm API Anahtarları kaydedildi'); loadSettings(); }
+                else showToastSmall('Kaydetme başarısız', 'error');
+            } catch (e) { showToastSmall('Kaydetme başarısız: ' + e.message, 'error'); }
         }
 
         // Custom Providers
@@ -1229,7 +1229,7 @@ steps:
             const url = document.getElementById('new-provider-url').value.trim();
             const key = document.getElementById('new-provider-key').value.trim();
             if (!name || !model || !url) {
-                showToastSmall('请填写必填项', 'error');
+                showToastSmall('Lütfen zorunlu alanları doldurun', 'error');
                 return;
             }
             const id = 'cp-' + Date.now();
@@ -1238,14 +1238,14 @@ steps:
             saveCustomProviders(providers);
             renderCustomProviders();
             closeAddProviderModal();
-            showToastSmall('✅ 已添加 ' + name);
+            showToastSmall('✅ ' + name + ' eklendi');
         }
 
         function deleteCustomProvider(id) {
             const providers = getCustomProviders().filter(p => p.id !== id);
             saveCustomProviders(providers);
             renderCustomProviders();
-            showToastSmall('已删除');
+            showToastSmall('Silindi');
         }
 
         function saveCustomProvider(id) {
@@ -1255,7 +1255,7 @@ steps:
             if (keyVal) conf.api_key = keyVal;
             if (urlVal) conf.base_url = urlVal;
             if (Object.keys(conf).length === 0) {
-                showToastSmall('请填写 API Key', 'error');
+                showToastSmall('Lütfen API Anahtarını girin', 'error');
                 return;
             }
             fetch('/api/settings', {
@@ -1266,7 +1266,7 @@ steps:
                 if (r.ok) {
                     const card = document.getElementById('card-custom-' + id);
                     if (card) card.classList.add('saved');
-                    showToastSmall('✅ 已保存');
+                    showToastSmall('✅ Kaydedildi');
                     setTimeout(() => card?.classList.remove('saved'), 2000);
                 }
             });
@@ -1279,7 +1279,7 @@ steps:
             const providers = getCustomProviders();
             const p = providers.find(x => x.id === id);
             if (p && urlInput) urlInput.value = p.url;
-            showToastSmall('已重置');
+            showToastSmall('Sıfırlandı');
         }
 
         async function testCustomProvider(id) {
@@ -1287,11 +1287,11 @@ steps:
             const keyVal = document.getElementById('key-custom-' + id)?.value?.trim();
             const urlVal = document.getElementById('url-custom-' + id)?.value?.trim();
             const modelVal = getCustomProviders().find(p => p.id === id)?.model || '';
-            if (!keyVal) { showToastSmall('请先填写 API Key', 'error'); return; }
-            if (!urlVal) { showToastSmall('请填写 Base URL', 'error'); return; }
+            if (!keyVal) { showToastSmall('Lütfen önce API Anahtarını girin', 'error'); return; }
+            if (!urlVal) { showToastSmall('Lütfen Base URL girin', 'error'); return; }
             btn.disabled = true;
             btn.classList.remove('ok', 'err', 'testing');
-            btn.textContent = '测试中...';
+            btn.textContent = 'Test ediliyor...';
             try {
                 const res = await fetch('/api/test-connection', {
                     method: 'POST',
@@ -1300,15 +1300,15 @@ steps:
                 });
                 const data = await res.json();
                 if (data.ok) {
-                    btn.classList.add('ok'); btn.textContent = '✓ 成功';
+                    btn.classList.add('ok'); btn.textContent = '✓ Başarılı';
                     showToastSmall('✅ ' + data.msg);
                 } else {
-                    btn.classList.add('err'); btn.textContent = '✗ 失败';
+                    btn.classList.add('err'); btn.textContent = '✗ Başarısız';
                     showToastSmall('❌ ' + data.msg, 'error');
                 }
             } catch (e) {
-                btn.classList.add('err'); btn.textContent = '✗ 失败';
-                showToastSmall('测试失败: ' + e.message, 'error');
+                btn.classList.add('err'); btn.textContent = '✗ Başarısız';
+                showToastSmall('Test başarısız: ' + e.message, 'error');
             } finally {
                 btn.disabled = false; btn.classList.remove('testing');
             }
@@ -1327,7 +1327,7 @@ steps:
                                 <div class="provider-models">${esc(p.model)}</div>
                             </div>
                         </div>
-                        <span class="badge badge-info">自定义</span>
+                        <span class="badge badge-info">Özel</span>
                     </div>
                     <div class="provider-card-body">
                         <div class="form-group">
@@ -1340,12 +1340,12 @@ steps:
                         </div>
                     </div>
                     <div class="provider-card-footer">
-                        <div class="key-status"><div class="key-dot ${p.key ? 'set' : 'unset'}" id="dot-custom-${p.id}"></div><span id="status-custom-${p.id}">${p.key ? '已配置' : '未配置'}</span></div>
+                        <div class="key-status"><div class="key-dot ${p.key ? 'set' : 'unset'}" id="dot-custom-${p.id}"></div><span id="status-custom-${p.id}">${p.key ? 'Yapılandırıldı' : 'Yapılandırılmadı'}</span></div>
                         <div class="btn-group">
-                            <button class="btn-sm btn-sm-delete" onclick="deleteCustomProvider('${p.id}')">删除</button>
-                            <button class="btn-sm btn-sm-test" id="btn-test-custom-${p.id}" onclick="testCustomProvider('${p.id}')">测试</button>
-                            <button class="btn-sm btn-sm-reset" onclick="resetCustomProvider('${p.id}')">重置</button>
-                            <button class="btn-sm btn-sm-save" onclick="saveCustomProvider('${p.id}')">保存</button>
+                            <button class="btn-sm btn-sm-delete" onclick="deleteCustomProvider('${p.id}')">Sil</button>
+                            <button class="btn-sm btn-sm-test" id="btn-test-custom-${p.id}" onclick="testCustomProvider('${p.id}')">Test</button>
+                            <button class="btn-sm btn-sm-reset" onclick="resetCustomProvider('${p.id}')">Sıfırla</button>
+                            <button class="btn-sm btn-sm-save" onclick="saveCustomProvider('${p.id}')">Kaydet</button>
                         </div>
                     </div>
                 </div>
@@ -1371,8 +1371,8 @@ steps:
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ defaults: prefs })
                 });
-                if (res.ok) showToast('偏好设置已保存');
-            } catch (e) { showToast('保存失败', 'error'); }
+                if (res.ok) showToast('Tercihler kaydedildi');
+            } catch (e) { showToast('Kaydetme başarısız', 'error'); }
         }
 
         // Restore selected model
@@ -1396,14 +1396,14 @@ steps:
         async function loadWorkflows() {
             const container = document.getElementById('wfList');
             if (!container) return;
-            container.innerHTML = '<div class="wf-loading">加载中...</div>';
+            container.innerHTML = '<div class="wf-loading">Yükleniyor...</div>';
             try {
                 const res = await fetch('/api/workflows');
-                if (!res.ok) throw new Error(`API错误: ${res.status} ${await res.text()}`);
+                if (!res.ok) throw new Error(`API hatası: ${res.status} ${await res.text()}`);
                 const data = await res.json();
                 const names = data.workflows || [];
                 if (names.length === 0) {
-                    container.innerHTML = '<div class="wf-empty">暂无工作流 <button class="btn btn-primary btn-sm" onclick="openCreateModal()">创建第一个</button></div>';
+                    container.innerHTML = '<div class="wf-empty">Henüz iş akışı yok <button class="btn btn-primary btn-sm" onclick="openCreateModal()">İlkini oluştur</button></div>';
                     return;
                 }
                 _workflowsCache = [];
@@ -1422,33 +1422,33 @@ steps:
                         _workflowsCache.push(wf);
                         loadedCount++;
                         const badge = wf.source === 'builtin'
-                            ? '<span class="badge" style="background:var(--border);color:var(--text-muted)">内置</span>'
-                            : '<span class="badge" style="background:var(--primary-light);color:var(--primary)">用户</span>';
+                            ? '<span class="badge" style="background:var(--border);color:var(--text-muted)">Yerleşik</span>'
+                            : '<span class="badge" style="background:var(--primary-light);color:var(--primary)">Kullanıcı</span>';
                         const actions = wf.source === 'builtin'
-                            ? `<button class="btn btn-ghost btn-sm" onclick="openViewModal('${escHtml(name)}')">🔍 查看详情</button>`
-                            : `<button class="btn btn-ghost btn-sm" onclick="openViewModal('${escHtml(name)}')">🔍 查看</button>
-                               <button class="btn btn-ghost btn-sm" onclick="openEditModal('${escHtml(name)}')">✏️ 编辑</button>
-                               <button class="btn btn-ghost btn-sm" style="color:var(--danger)" onclick="deleteWorkflow('${escHtml(name)}')">🗑️ 删除</button>`;
+                            ? `<button class="btn btn-ghost btn-sm" onclick="openViewModal('${escHtml(name)}')">🔍 Detayları Gör</button>`
+                            : `<button class="btn btn-ghost btn-sm" onclick="openViewModal('${escHtml(name)}')">🔍 Görüntüle</button>
+                               <button class="btn btn-ghost btn-sm" onclick="openEditModal('${escHtml(name)}')">✏️ Düzenle</button>
+                               <button class="btn btn-ghost btn-sm" style="color:var(--danger)" onclick="deleteWorkflow('${escHtml(name)}')">🗑️ Sil</button>`;
                         html += `<div class="wf-card">
   <div class="wf-card-header">
     <span class="wf-card-name">${escHtml(name)}</span>
     ${badge}
   </div>
   <div class="wf-card-desc">${escHtml(wf.description || '')}</div>
-  <div class="wf-card-meta">${wf.steps ? wf.steps.length : 0} 个步骤</div>
+  <div class="wf-card-meta">${wf.steps ? wf.steps.length : 0} adım</div>
   <div class="wf-card-actions">${actions}</div>
 </div>`;
                     } catch (e) { /* skip bad entry */ }
                 }
                 html += '</div>';
                 if (loadedCount === 0) {
-                    container.innerHTML = `<div class="wf-empty">加载失败: 无法获取工作流详情 (错误: ${errorCount})<br><button class="btn btn-primary btn-sm" onclick="loadWorkflows()" style="margin-top:12px">重试</button></div>`;
+                    container.innerHTML = `<div class="wf-empty">Yükleme başarısız: iş akışı detayları alınamadı (hata: ${errorCount})<br><button class="btn btn-primary btn-sm" onclick="loadWorkflows()" style="margin-top:12px">Yeniden Dene</button></div>`;
                 } else {
                     container.innerHTML = html;
                 }
             } catch (e) {
                 console.error('loadWorkflows error:', e);
-                container.innerHTML = `<div class="wf-empty">加载失败: ${escHtml(String(e))}<br><button class="btn btn-primary btn-sm" onclick="loadWorkflows()" style="margin-top:12px">重试</button></div>`;
+                container.innerHTML = `<div class="wf-empty">Yükleme başarısız: ${escHtml(String(e))}<br><button class="btn btn-primary btn-sm" onclick="loadWorkflows()" style="margin-top:12px">Yeniden Dene</button></div>`;
             }
         }
 
@@ -1490,7 +1490,7 @@ steps:
             if (wf) yaml = yamlToString({ name: wf.name, description: wf.description, steps: wf.steps });
             const modal = document.getElementById('wfViewModal');
             modal.querySelector('#wfViewTitle').textContent = name;
-            modal.querySelector('#wfViewBadge').textContent = wf?.source === 'builtin' ? '内置' : '用户';
+            modal.querySelector('#wfViewBadge').textContent = wf?.source === 'builtin' ? 'Yerleşik' : 'Kullanıcı';
             modal.querySelector('#wfViewCode').textContent = yaml;
             modal.classList.add('active');
         }
@@ -1512,7 +1512,7 @@ steps:
             // Populate template select with builtin workflows
             const sel = modal.querySelector('#wfTemplateSelect');
             if (sel) {
-                sel.innerHTML = '<option value="">— 空模板 —</option>';
+                sel.innerHTML = '<option value="">— Boş Şablon —</option>';
                 _workflowsCache.filter(w => w.source === 'builtin').forEach(w => {
                     sel.innerHTML += `<option value="${escHtml(w.name)}">${escHtml(w.name)}</option>`;
                 });
@@ -1534,7 +1534,7 @@ steps:
         async function confirmSaveWorkflow() {
             const name = document.getElementById('wfEditName')?.value?.trim();
             const yaml = document.getElementById('wfEditYaml')?.value || '';
-            if (!name) { showToast('请填写工作流名称', 'error'); return; }
+            if (!name) { showToast('Lütfen iş akışı adını girin', 'error'); return; }
             try {
                 const res = await fetch(`/api/workflows/${encodeURIComponent(name)}`, {
                     method: 'PUT',
@@ -1544,16 +1544,16 @@ steps:
                 if (!res.ok) throw new Error(await res.text());
                 closeAllModals();
                 await loadWorkflows();
-                showToast('✅ 工作流已保存');
+                showToast('✅ İş akışı kaydedildi');
             } catch (e) {
-                showToast('❌ 保存失败: ' + e, 'error');
+                showToast('❌ Kaydetme başarısız: ' + e, 'error');
             }
         }
 
         async function confirmCreateWorkflow() {
             const name = document.getElementById('wfCreateName')?.value?.trim();
             const yaml = document.getElementById('wfCreateYaml')?.value || '';
-            if (!name) { showToast('请填写工作流名称', 'error'); return; }
+            if (!name) { showToast('Lütfen iş akışı adını girin', 'error'); return; }
             try {
                 const res = await fetch(`/api/workflows/${encodeURIComponent(name)}`, {
                     method: 'PUT',
@@ -1563,9 +1563,9 @@ steps:
                 if (!res.ok) throw new Error(await res.text());
                 closeAllModals();
                 await loadWorkflows();
-                showToast('✅ 工作流已创建');
+                showToast('✅ İş akışı oluşturuldu');
             } catch (e) {
-                showToast('❌ 创建失败: ' + e, 'error');
+                showToast('❌ Oluşturma başarısız: ' + e, 'error');
             }
         }
 
@@ -1575,10 +1575,10 @@ steps:
             try {
                 const res = await fetch(`/api/workflows/${encodeURIComponent(name)}`, { method: 'DELETE' });
                 const data = await res.json();
-                if (!res.ok || !data.success) throw new Error(data.error || '删除失败');
+                if (!res.ok || !data.success) throw new Error(data.error || 'Silme başarısız');
                 closeAllModals();
                 await loadWorkflows();
-                showToast('✅ 已删除');
+                showToast('✅ Silindi');
             } catch (e) {
                 showToast('❌ ' + e, 'error');
             }
@@ -1610,8 +1610,8 @@ steps:
                 container.innerHTML = `
                     <div class="custom-model-empty">
                         <div class="custom-model-empty-icon">📦</div>
-                        <div class="custom-model-empty-text">还没有自定义模型</div>
-                        <button class="btn btn-primary" onclick="openAddCustomModelModal()">添加第一个模型</button>
+                        <div class="custom-model-empty-text">Henüz özel model yok</div>
+                        <button class="btn btn-primary" onclick="openAddCustomModelModal()">İlk Modeli Ekle</button>
                     </div>
                 `;
                 return;
@@ -1623,13 +1623,13 @@ steps:
                         <div class="custom-model-name">${escapeHtml(m.name)}</div>
                         <div class="custom-model-meta">
                             ${m.provider ? `<span style="color:var(--primary);">${escapeHtml(m.provider)}</span> · ` : ''}
-                            模型ID: ${escapeHtml(m.modelId || m.model_id || m.id)} ·
+                            Model ID: ${escapeHtml(m.modelId || m.model_id || m.id)} ·
                             API: ${escapeHtml(m.url).substring(0, 40)}${m.url.length > 40 ? '...' : ''}
                         </div>
                     </div>
                     <div class="custom-model-actions">
-                        <button class="btn-edit" onclick="editCustomModel('${m.id}')">编辑</button>
-                        <button class="btn-delete" onclick="deleteCustomModel('${m.id}')">删除</button>
+                        <button class="btn-edit" onclick="editCustomModel('${m.id}')">Düzenle</button>
+                        <button class="btn-delete" onclick="deleteCustomModel('${m.id}')">Sil</button>
                     </div>
                 </div>
             `).join('');
@@ -1641,7 +1641,7 @@ steps:
         }
 
         function openAddCustomModelModal() {
-            document.getElementById('cmModalTitle').textContent = '➕ 添加自定义模型';
+            document.getElementById('cmModalTitle').textContent = '➕ Özel Model Ekle';
             document.getElementById('cmName').value = '';
             document.getElementById('cmModelId').value = '';
             document.getElementById('cmUrl').value = '';
@@ -1661,7 +1661,7 @@ steps:
             const m = models.find(x => x.id === id);
             if (!m) return;
 
-            document.getElementById('cmModalTitle').textContent = '✏️ 编辑自定义模型';
+            document.getElementById('cmModalTitle').textContent = '✏️ Özel Modeli Düzenle';
             document.getElementById('cmName').value = m.name || '';
             document.getElementById('cmModelId').value = m.modelId || m.model_id || '';
             document.getElementById('cmUrl').value = m.url || '';
@@ -1681,7 +1681,7 @@ steps:
             const editId = document.getElementById('cmEditId').value;
 
             if (!name || !modelId || !url) {
-                showToast('请填写必填项：模型名称、模型 ID、API 地址', 'error');
+                showToast('Lütfen zorunlu alanları girin: Model adı, Model ID, API adresi', 'error');
                 return;
             }
 
@@ -1702,7 +1702,7 @@ steps:
                     model_id: modelId,
                     url,
                     key,
-                    provider: provider || '自定义'
+                    provider: provider || 'Özel'
                 };
                 models.push(newModel);
             }
@@ -1710,7 +1710,7 @@ steps:
             saveCustomModels(models);
             renderCustomModels();
             closeCustomModelModal();
-            showToast(editId ? '✅ 已更新' : '✅ 已添加');
+            showToast(editId ? '✅ Güncellendi' : '✅ Eklendi');
         }
 
         let _deleteCmId = null;
@@ -1737,7 +1737,7 @@ steps:
             saveCustomModels(models);
             renderCustomModels();
             closeDeleteCustomModelModal();
-            showToast('已删除');
+            showToast('Silindi');
         }
 
         async function testCustomModelConnection() {
@@ -1747,7 +1747,7 @@ steps:
             const resultDiv = document.getElementById('cmTestResult');
 
             if (!url || !modelId) {
-                resultDiv.textContent = '⚠️ 请先填写 API 地址和模型 ID';
+                resultDiv.textContent = '⚠️ Lütfen önce API adresini ve Model ID\'yi girin';
                 resultDiv.style.color = 'var(--danger)';
                 resultDiv.style.display = 'block';
                 return;
@@ -1755,7 +1755,7 @@ steps:
 
             const btn = document.getElementById('cmTestBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ 测试中...';
+            btn.textContent = '⏳ Test ediliyor...';
             resultDiv.style.display = 'none';
 
             try {
@@ -1774,13 +1774,13 @@ steps:
                     resultDiv.style.color = 'var(--danger)';
                 }
             } catch (e) {
-                resultDiv.textContent = '❌ 测试失败: ' + e.message;
+                resultDiv.textContent = '❌ Test başarısız: ' + e.message;
                 resultDiv.style.color = 'var(--danger)';
             }
 
             resultDiv.style.display = 'block';
             btn.disabled = false;
-            btn.textContent = '🔗 测试连接';
+            btn.textContent = '🔗 Bağlantıyı Test Et';
         }
 
         // Auto-load workflows when the workflows tab is opened (via MutationObserver)

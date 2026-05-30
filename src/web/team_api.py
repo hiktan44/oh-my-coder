@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 """
-团队 API 路由
+Takım API rotaları
 
-提供团队创建、加入、任务同步和统计等 API。
+Takım oluşturma, katılma, görev senkronizasyonu ve istatistik gibi API'ler sağlar.
 """
 
 from typing import Any, Optional
@@ -23,12 +23,12 @@ router = APIRouter(prefix="/api/team", tags=["team"])
 
 
 # ========================================
-# 请求模型
+# İstek modelleri
 # ========================================
 
 
 class CreateTeamRequest(BaseModel):
-    """创建团队请求"""
+    """Takım oluşturma isteği"""
 
     name: str
     owner_id: str
@@ -36,7 +36,7 @@ class CreateTeamRequest(BaseModel):
 
 
 class JoinTeamRequest(BaseModel):
-    """加入团队请求"""
+    """Takıma katılma isteği"""
 
     invite_code: str
     user_id: str
@@ -45,7 +45,7 @@ class JoinTeamRequest(BaseModel):
 
 
 class CreateTaskRequest(BaseModel):
-    """创建任务请求"""
+    """Görev oluşturma isteği"""
 
     team_id: str
     creator_id: str
@@ -56,7 +56,7 @@ class CreateTaskRequest(BaseModel):
 
 
 class UpdateTaskRequest(BaseModel):
-    """更新任务请求"""
+    """Görev güncelleme isteği"""
 
     status: str
     result: Optional[dict[str, Any]] = None
@@ -66,7 +66,7 @@ class UpdateTaskRequest(BaseModel):
 
 
 class RecordUsageRequest(BaseModel):
-    """记录使用请求"""
+    """Kullanım kaydı isteği"""
 
     team_id: str
     user_id: str
@@ -80,7 +80,7 @@ class RecordUsageRequest(BaseModel):
 
 
 class BroadcastRequest(BaseModel):
-    """广播消息请求"""
+    """Yayın mesajı isteği"""
 
     team_id: str
     title: str
@@ -89,20 +89,20 @@ class BroadcastRequest(BaseModel):
 
 
 # ========================================
-# 团队管理 API
+# Takım yönetim API
 # ========================================
 
 
 @router.post("/create")
 async def create_team(request: CreateTeamRequest) -> dict[str, Any]:
     """
-    创建团队
+    Takım oluştur
 
     Args:
-        request: 创建团队请求
+        request: Takım oluşturma isteği
 
     Returns:
-        团队信息
+        Takım bilgisi
     """
     team = await team_auth.create_team(
         name=request.name,
@@ -115,13 +115,13 @@ async def create_team(request: CreateTeamRequest) -> dict[str, Any]:
 @router.post("/join")
 async def join_team(request: JoinTeamRequest) -> dict[str, Any]:
     """
-    加入团队
+    Takıma katıl
 
     Args:
-        request: 加入团队请求
+        request: Takıma katılma isteği
 
     Returns:
-        团队信息
+        Takım bilgisi
     """
     team = await team_auth.join_team(
         invite_code=request.invite_code,
@@ -130,113 +130,113 @@ async def join_team(request: JoinTeamRequest) -> dict[str, Any]:
         email=request.email,
     )
     if not team:
-        raise HTTPException(status_code=404, detail="无效的邀请码")
+        raise HTTPException(status_code=404, detail="Geçersiz davet kodu")
     return team.to_dict()
 
 
 @router.post("/leave")
 async def leave_team(user_id: str, team_id: str) -> dict[str, bool]:
     """
-    离开团队
+    Takımdan ayrıl
 
     Args:
-        user_id: 用户 ID
-        team_id: 团队 ID
+        user_id: Kullanıcı ID
+        team_id: Takım ID
 
     Returns:
-        操作结果
+        İşlem sonucu
     """
     success = await team_auth.leave_team(user_id, team_id)
     if not success:
-        raise HTTPException(status_code=400, detail="无法离开团队")
+        raise HTTPException(status_code=400, detail="Takımdan ayrılamadı")
     return {"success": True}
 
 
 @router.post("/delete")
 async def delete_team(team_id: str, requester_id: str) -> dict[str, bool]:
     """
-    删除团队
+    Takımı sil
 
     Args:
-        team_id: 团队 ID
-        requester_id: 请求者 ID
+        team_id: Takım ID
+        requester_id: İsteyen kişi ID
 
     Returns:
-        操作结果
+        İşlem sonucu
     """
     success = await team_auth.delete_team(team_id, requester_id)
     if not success:
-        raise HTTPException(status_code=403, detail="无权删除团队")
+        raise HTTPException(status_code=403, detail="Takımı silme yetkisi yok")
     return {"success": True}
 
 
 @router.get("/{team_id}")
 async def get_team(team_id: str) -> dict[str, Any]:
     """
-    获取团队信息
+    Takım bilgisini al
 
     Args:
-        team_id: 团队 ID
+        team_id: Takım ID
 
     Returns:
-        团队信息
+        Takım bilgisi
     """
     team = await team_auth.get_team(team_id)
     if not team:
-        raise HTTPException(status_code=404, detail="团队不存在")
+        raise HTTPException(status_code=404, detail="Takım bulunamadı")
     return team.to_dict()
 
 
 @router.get("/user/{user_id}")
 async def get_user_team(user_id: str) -> dict[str, Any]:
     """
-    获取用户所在团队
+    Kullanıcının dahil olduğu takımı al
 
     Args:
-        user_id: 用户 ID
+        user_id: Kullanıcı ID
 
     Returns:
-        团队信息
+        Takım bilgisi
     """
     team = await team_auth.get_user_team(user_id)
     if not team:
-        raise HTTPException(status_code=404, detail="用户未加入任何团队")
+        raise HTTPException(status_code=404, detail="Kullanıcı hiçbir takıma katılmamış")
     return team.to_dict()
 
 
 @router.post("/{team_id}/regenerate-invite")
 async def regenerate_invite(team_id: str, requester_id: str) -> dict[str, str]:
     """
-    重新生成邀请码
+    Davet kodunu yeniden oluştur
 
     Args:
-        team_id: 团队 ID
-        requester_id: 请求者 ID
+        team_id: Takım ID
+        requester_id: İsteyen kişi ID
 
     Returns:
-        新邀请码
+        Yeni davet kodu
     """
     code = await team_auth.regenerate_invite_code(team_id, requester_id)
     if not code:
-        raise HTTPException(status_code=403, detail="无权生成邀请码")
+        raise HTTPException(status_code=403, detail="Davet kodu oluşturma yetkisi yok")
     return {"invite_code": code}
 
 
 # ========================================
-# 任务同步 API
+# Görev senkronizasyon API
 # ========================================
 
 
 @router.post("/task/create")
 async def create_task(request: CreateTaskRequest) -> dict[str, Any]:
     """
-    创建团队任务
+    Takım görevi oluştur
 
     Args:
-        request: 创建任务请求
+        request: Görev oluşturma isteği
 
     Returns:
-        任务信息
+        Görev bilgisi
     """
     import uuid
 
@@ -252,7 +252,7 @@ async def create_task(request: CreateTaskRequest) -> dict[str, Any]:
         model=request.model,
     )
 
-    # 发送通知
+    # Bildirim gönder
     await team_notifier.notify_task_created(
         task_id=task.task_id,
         team_id=task.team_id,
@@ -268,14 +268,14 @@ async def update_task_status(
     task_id: str, request: UpdateTaskRequest
 ) -> dict[str, Any]:
     """
-    更新任务状态
+    Görev durumunu güncelle
 
     Args:
-        task_id: 任务 ID
-        request: 更新请求
+        task_id: Görev ID
+        request: Güncelleme isteği
 
     Returns:
-        更新后的任务信息
+        Güncellenmiş görev bilgisi
     """
     status = TaskStatus(request.status)
     task = await task_sync.update_status(
@@ -287,9 +287,9 @@ async def update_task_status(
         cost=request.cost,
     )
     if not task:
-        raise HTTPException(status_code=404, detail="任务不存在")
+        raise HTTPException(status_code=404, detail="Görev bulunamadı")
 
-    # 发送通知
+    # Bildirim gönder
     if status == TaskStatus.COMPLETED:
         await team_notifier.notify_task_completed(
             task_id=task.task_id,
@@ -302,7 +302,7 @@ async def update_task_status(
             task_id=task.task_id,
             team_id=task.team_id,
             title=task.title,
-            error=request.error or "未知错误",
+            error=request.error or "Bilinmeyen hata",
         )
 
     return task.to_dict()
@@ -311,30 +311,30 @@ async def update_task_status(
 @router.get("/task/{task_id}")
 async def get_task(task_id: str) -> dict[str, Any]:
     """
-    获取任务详情
+    Görev detayını al
 
     Args:
-        task_id: 任务 ID
+        task_id: Görev ID
 
     Returns:
-        任务信息
+        Görev bilgisi
     """
     task = await task_sync.get_task(task_id)
     if not task:
-        raise HTTPException(status_code=404, detail="任务不存在")
+        raise HTTPException(status_code=404, detail="Görev bulunamadı")
     return task.to_dict()
 
 
 @router.get("/{team_id}/tasks")
 async def get_team_tasks(team_id: str) -> list[dict[str, Any]]:
     """
-    获取团队任务列表
+    Takım görev listesini al
 
     Args:
-        team_id: 团队 ID
+        team_id: Takım ID
 
     Returns:
-        任务列表
+        Görev listesi
     """
     tasks = await task_sync.get_team_tasks(team_id)
     return [t.to_dict() for t in tasks]
@@ -343,53 +343,53 @@ async def get_team_tasks(team_id: str) -> list[dict[str, Any]]:
 @router.post("/task/{task_id}/subscribe")
 async def subscribe_task(task_id: str, user_id: str) -> dict[str, bool]:
     """
-    订阅任务更新
+    Görev güncellemelerine abone ol
 
     Args:
-        task_id: 任务 ID
-        user_id: 用户 ID
+        task_id: Görev ID
+        user_id: Kullanıcı ID
 
     Returns:
-        操作结果
+        İşlem sonucu
     """
     success = await task_sync.subscribe_task(task_id, user_id)
     if not success:
-        raise HTTPException(status_code=404, detail="任务不存在")
+        raise HTTPException(status_code=404, detail="Görev bulunamadı")
     return {"success": True}
 
 
 @router.delete("/task/{task_id}")
 async def delete_task(task_id: str) -> dict[str, bool]:
     """
-    删除任务
+    Görevi sil
 
     Args:
-        task_id: 任务 ID
+        task_id: Görev ID
 
     Returns:
-        操作结果
+        İşlem sonucu
     """
     success = await task_sync.delete_task(task_id)
     if not success:
-        raise HTTPException(status_code=404, detail="任务不存在")
+        raise HTTPException(status_code=404, detail="Görev bulunamadı")
     return {"success": True}
 
 
 # ========================================
-# 统计 API
+# İstatistik API
 # ========================================
 
 
 @router.post("/usage/record")
 async def record_usage(request: RecordUsageRequest) -> dict[str, Any]:
     """
-    记录使用数据
+    Kullanım verilerini kaydet
 
     Args:
-        request: 记录请求
+        request: Kayıt isteği
 
     Returns:
-        记录信息
+        Kayıt bilgisi
     """
     import uuid
 
@@ -416,14 +416,14 @@ async def get_team_stats(
     team_id: str, period: str = Query("week", pattern="^(day|week|month)$")
 ) -> dict[str, Any]:
     """
-    获取团队统计
+    Takım istatistiklerini al
 
     Args:
-        team_id: 团队 ID
-        period: 统计周期
+        team_id: Takım ID
+        period: İstatistik dönemi
 
     Returns:
-        统计数据
+        İstatistik verileri
     """
     stats = team_statistics.get_team_stats(team_id, period)
     return stats.to_dict()
@@ -436,35 +436,35 @@ async def get_user_stats(
     period: str = Query("week", pattern="^(day|week|month)$"),
 ) -> dict[str, Any]:
     """
-    获取用户统计
+    Kullanıcı istatistiklerini al
 
     Args:
-        team_id: 团队 ID
-        user_id: 用户 ID
-        period: 统计周期
+        team_id: Takım ID
+        user_id: Kullanıcı ID
+        period: İstatistik dönemi
 
     Returns:
-        统计数据
+        İstatistik verileri
     """
     stats = team_statistics.get_user_stats(user_id, team_id, period)
     return stats.to_dict()
 
 
 # ========================================
-# 通知 API
+# Bildirim API
 # ========================================
 
 
 @router.post("/broadcast")
 async def broadcast_message(request: BroadcastRequest) -> dict[str, Any]:
     """
-    广播消息给团队
+    Takıma yayın mesajı gönder
 
     Args:
-        request: 广播请求
+        request: Yayın isteği
 
     Returns:
-        通知信息
+        Bildirim bilgisi
     """
     from src.team.notification import NotificationPriority
 
@@ -485,14 +485,14 @@ async def get_team_notifications(
     team_id: str, unread_only: bool = False
 ) -> list[dict[str, Any]]:
     """
-    获取团队通知
+    Takım bildirimlerini al
 
     Args:
-        team_id: 团队 ID
-        unread_only: 是否只返回未读
+        team_id: Takım ID
+        unread_only: Yalnızca okunmamışları döndür
 
     Returns:
-        通知列表
+        Bildirim listesi
     """
     notifications = team_notifier.get_team_notifications(team_id, unread_only)
     return [n.to_dict() for n in notifications]
@@ -503,15 +503,15 @@ async def get_user_notifications(
     team_id: str, user_id: str, unread_only: bool = False
 ) -> list[dict[str, Any]]:
     """
-    获取用户通知
+    Kullanıcı bildirimlerini al
 
     Args:
-        team_id: 团队 ID
-        user_id: 用户 ID
-        unread_only: 是否只返回未读
+        team_id: Takım ID
+        user_id: Kullanıcı ID
+        unread_only: Yalnızca okunmamışları döndür
 
     Returns:
-        通知列表
+        Bildirim listesi
     """
     notifications = team_notifier.get_user_notifications(user_id, team_id, unread_only)
     return [n.to_dict() for n in notifications]
@@ -520,13 +520,13 @@ async def get_user_notifications(
 @router.post("/notification/{notification_id}/read")
 async def mark_notification_read(notification_id: str) -> dict[str, bool]:
     """
-    标记通知为已读
+    Bildirimi okundu olarak işaretle
 
     Args:
-        notification_id: 通知 ID
+        notification_id: Bildirim ID
 
     Returns:
-        操作结果
+        İşlem sonucu
     """
     success = team_notifier.mark_as_read(notification_id)
     return {"success": success}

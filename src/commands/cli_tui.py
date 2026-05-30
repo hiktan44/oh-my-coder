@@ -4,18 +4,18 @@ from __future__ import annotations
 from typing import Optional
 
 """
-TUI 交互界面 - 简易交互界面
+TUIEtkileşimli arayüz-Basit etkileşimli arayüz
 
-基于 Bubble Tea 设计理念，提供键盘驱动的 TUI 体验。
+dayalıBubble TeaKlavye odaklı tasarım konseptiTUIdeneyim.
 
-快捷键：
-- ↑/↓: 导航
-- Enter: 确认
-- Esc: 返回/退出
-- 1-7: 快速选择工作流
-- m: 切换模型
-- a: 查看所有 Agent
-- q: 退出
+Analiz ediliyor
+- ↑/↓:navigasyon
+- Enter:onaylamak
+- Esc:geri dönmek/çıkış yapmak
+- 1-7:Hızla bir iş akışı seçin
+- m:Modeli değiştir
+- a:Tümünü görüntüleAgent
+- q:çıkış yapmak
 """
 
 
@@ -43,12 +43,12 @@ class Keys:
     CtrlC = "\x03"
 
 
-app = typer.Typer(help="TUI 交互界面 - 键盘驱动的终端交互")
+app = typer.Typer(help="TUIEtkileşimli arayüz-Klavye odaklı terminal etkileşimi")
 console = Console()
 
 
 class State(Enum):
-    """TUI 状态机"""
+    """TUIdurum makinesi"""
 
     MAIN = "main"
     WORKFLOW = "workflow"
@@ -58,29 +58,29 @@ class State(Enum):
     CONFIRM = "confirm"
 
 
-# 工作流选项
+#İş akışı seçenekleri
 WORKFLOWS = [
-    ("explore", "探索代码库", "了解项目结构和代码组织"),
-    ("build", "构建/开发", "实现新功能或重构代码"),
-    ("debug", "调试修复", "定位和修复 Bug"),
-    ("review", "代码审查", "审查代码质量和安全性"),
-    ("test", "测试生成", "生成单元测试和集成测试"),
-    ("pair", "结对编程", "与 AI 一起协作开发"),
-    ("autopilot", "自动驾驶", "全自动完成复杂任务"),
+    ("explore", "Kod tabanını keşfedin", "Proje yapısını ve kod organizasyonunu anlayın"),
+    ("build", "inşa etmek/geliştirmek", "Yeni özellikleri veya yeniden düzenleme kodunu uygulayın"),
+    ("debug", "Hata ayıklama düzeltmesi", "Bulun ve onarınBug"),
+    ("review", "kod incelemesi", "Kod kalitesini ve güvenliğini inceleyin"),
+    ("test", "test üretimi", "Birim testleri ve entegrasyon testleri oluşturun"),
+    ("pair", "çift ​​programlama", "VeAIBirlikte çalışın ve birlikte geliştirin"),
+    ("autopilot", "Otonom sürüş", "Karmaşık görevleri tamamen otomatik olarak tamamlayın"),
 ]
 
-# 支持的模型
+#Desteklenen modeller
 MODELS = [
-    ("deepseek", "DeepSeek", "60元免费额度，速度快"),
-    ("glm", "智谱 GLM", "200万 Tokens免费"),
-    ("mimo", "MiMo", "1M上下文，完全免费"),
-    ("qwen", "通义千问", "阿里云，免费额度"),
-    ("wenxin", "文心一言", "百度，免费额度"),
+    ("deepseek", "DeepSeek", "60 yuan ücretsiz kota, hızlı hız"),
+    ("glm", "Bilgelik spektrumuGLM", "2 milyonTokensözgür"),
+    ("mimo", "MiMo", "1MTarayıcı reddedildi"),
+    ("qwen", "Tongyi", "Alibaba Bulut, ücretsiz kota"),
+    ("wenxin", "Wenxinyiyan", "Baidu, ücretsiz kota"),
 ]
 
-# Agent 分类
+# Agentsınıflandırma
 AGENT_CATEGORIES = {
-    "构建/分析": [
+    "inşa etmek/analiz etmek": [
         "ExploreAgent",
         "AnalystAgent",
         "PlannerAgent",
@@ -91,11 +91,11 @@ AGENT_CATEGORIES = {
         "TracerAgent",
         "PerformanceAgent",
     ],
-    "审查": [
+    "gözden geçirmek": [
         "CodeReviewerAgent",
         "SecurityReviewerAgent",
     ],
-    "领域": [
+    "alan": [
         "TestEngineerAgent",
         "DesignerAgent",
         "VisionAgent",
@@ -113,7 +113,7 @@ AGENT_CATEGORIES = {
         "AuthAgent",
         "DataAgent",
     ],
-    "协调": [
+    "koordinasyon": [
         "PromptAgent",
         "SelfImprovingAgent",
         "SkillManageAgent",
@@ -123,7 +123,7 @@ AGENT_CATEGORIES = {
 
 
 class TUISession:
-    """TUI 会话状态"""
+    """TUIoturum durumu"""
 
     def __init__(self):
         self.state = State.MAIN
@@ -134,7 +134,7 @@ class TUISession:
         self.confirm_choice: bool = False
 
     def render(self) -> Panel:
-        """渲染当前状态"""
+        """Mevcut durumu oluştur"""
         if self.state == State.MAIN:
             return self._render_main()
         if self.state == State.WORKFLOW:
@@ -150,10 +150,10 @@ class TUISession:
         return Panel("Unknown state")
 
     def _render_main(self) -> Panel:
-        """主菜单"""
+        """Güncelleme başarılı"""
         content = Text()
         content.append("🤖 Oh My Coder TUI\n\n", style="bold cyan")
-        content.append("请选择操作:\n\n", style="white")
+        content.append("Lütfen bir eylem seçin:\n\n", style="white")
 
         for i, (key, desc, _) in enumerate(WORKFLOWS):
             marker = "▶ " if i == self.cursor else "  "
@@ -161,13 +161,13 @@ class TUISession:
             content.append(f"{marker}[{i + 1}] {key:<12}", style=style)
             content.append(f" {desc}\n", style="dim")
 
-        content.append("\n[快捷键] ", style="dim")
+        content.append("\n[kısayol tuşu] ", style="dim")
         content.append("m", style="cyan")
-        content.append(" 模型  ", style="dim")
+        content.append("Modeli", style="dim")
         content.append("a", style="cyan")
         content.append(" Agent  ", style="dim")
         content.append("q", style="cyan")
-        content.append(" 退出\n", style="dim")
+        content.append("çıkış yapmak\n", style="dim")
 
         return Panel(
             content,
@@ -176,9 +176,9 @@ class TUISession:
         )
 
     def _render_workflow(self) -> Panel:
-        """工作流选择"""
+        """Yenilemeye zorla"""
         content = Text()
-        content.append("📋 选择工作流\n\n", style="bold cyan")
+        content.append("📋İş akışını seçin\n\n", style="bold cyan")
 
         for i, (key, desc, detail) in enumerate(WORKFLOWS):
             marker = "▶ " if i == self.cursor else "  "
@@ -186,102 +186,102 @@ class TUISession:
             content.append(f"{marker}{key:<12}", style=style)
             content.append(f"{desc} - {detail}\n", style="dim")
 
-        content.append("\n[快捷键] ", style="dim")
+        content.append("\n[kısayol tuşu] ", style="dim")
         content.append("↑↓", style="cyan")
-        content.append(" 导航  ", style="dim")
+        content.append("navigasyon", style="dim")
         content.append("Enter", style="cyan")
-        content.append(" 确认  ", style="dim")
+        content.append("onaylamak", style="dim")
         content.append("Esc", style="cyan")
-        content.append(" 返回", style="dim")
+        content.append("geri dönmek", style="dim")
 
-        return Panel(content, title="[bold]工作流选择[/bold]", border_style="cyan")
+        return Panel(content, title="[bold]Yenilemeye zorla[/bold]", border_style="cyan")
 
     def _render_model(self) -> Panel:
-        """模型选择"""
+        """Model seçimi"""
         content = Text()
-        content.append("🔧 选择模型\n\n", style="bold cyan")
+        content.append("🔧Modeli seçin\n\n", style="bold cyan")
 
         for i, (key, name, desc) in enumerate(MODELS):
             marker = "▶ " if i == self.cursor else "  "
             style = "cyan bold" if i == self.cursor else "white"
-            current = " ◀ 当前" if key == self.selected_model else ""
+            current = " ◀akım" if key == self.selected_model else ""
             content.append(f"{marker}{name:<12}", style=style)
             content.append(f"{desc}{current}\n", style="dim")
 
-        content.append("\n[快捷键] ", style="dim")
+        content.append("\n[kısayol tuşu] ", style="dim")
         content.append("↑↓", style="cyan")
-        content.append(" 导航  ", style="dim")
+        content.append("navigasyon", style="dim")
         content.append("Enter", style="cyan")
-        content.append(" 确认  ", style="dim")
+        content.append("onaylamak", style="dim")
         content.append("Esc", style="cyan")
-        content.append(" 返回", style="dim")
+        content.append("geri dönmek", style="dim")
 
-        return Panel(content, title="[bold]模型选择[/bold]", border_style="cyan")
+        return Panel(content, title="[bold]Model seçimi[/bold]", border_style="cyan")
 
     def _render_agents(self) -> Panel:
-        """Agent 列表"""
+        """Agentliste"""
         content = Text()
-        content.append("🤖 Agent 清单（共31个）\n\n", style="bold cyan")
+        content.append("🤖 AgentListe (toplam 31)\n\n", style="bold cyan")
 
-        for category, agents in list(AGENT_CATEGORIES.items())[:3]:  # 只显示前3类
+        for category, agents in list(AGENT_CATEGORIES.items())[:3]:  #Yalnızca ilk 3 kategoriyi göster
             content.append(f"[bold]{category}:[/bold]\n", style="white")
-            for agent in agents[:5]:  # 每类只显示5个
+            for agent in agents[:5]:  #Kategori başına yalnızca 5 adet gösteriliyor
                 content.append(f"  • {agent}\n", style="dim")
             if len(agents) > 5:
-                content.append(f"  ... 共{len(agents)}个\n", style="dim")
+                content.append(f"  ...yaygın{len(agents)}bireysel\n", style="dim")
 
-        content.append("\n[快捷键] ", style="dim")
+        content.append("\n[kısayol tuşu] ", style="dim")
         content.append("Esc", style="cyan")
-        content.append(" 返回主菜单", style="dim")
+        content.append("evrim", style="dim")
 
         return Panel(
             content,
-            title="[bold]Agent 列表[/bold]",
+            title="[bold]Agentliste[/bold]",
             border_style="cyan",
             width=60,
         )
 
     def _render_task(self) -> Panel:
-        """任务输入"""
+        """Görev girişi"""
         content = Text()
-        content.append("📝 输入任务\n\n", style="bold cyan")
+        content.append("📝Görevi girin\n\n", style="bold cyan")
         content.append(
-            f"工作流: [cyan]{self.selected_workflow}[/cyan]\n", style="white"
+            f"İş akışı: [cyan]{self.selected_workflow}[/cyan]\n", style="white"
         )
-        content.append(f"模型: [cyan]{self.selected_model}[/cyan]\n\n", style="white")
-        content.append("请描述你的任务:\n", style="dim")
-        content.append("[dim]输入任务后按 Enter 确认[/dim]\n\n", style="dim")
-        content.append("[快捷键] ", style="dim")
+        content.append(f"Modeli: [cyan]{self.selected_model}[/cyan]\n\n", style="white")
+        content.append("Lütfen görevinizi açıklayın:\n", style="dim")
+        content.append("[dim]Görevi girdikten sonra tuşuna basın.Enteronaylamak[/dim]\n\n", style="dim")
+        content.append("[kısayol tuşu] ", style="dim")
         content.append("Esc", style="cyan")
-        content.append(" 返回  ", style="dim")
+        content.append("geri dönmek", style="dim")
         content.append("Enter", style="cyan")
-        content.append(" 确认任务", style="dim")
+        content.append("Görevi onayla", style="dim")
 
-        return Panel(content, title="[bold]任务输入[/bold]", border_style="cyan")
+        return Panel(content, title="[bold]Görev girişi[/bold]", border_style="cyan")
 
     def _render_confirm(self) -> Panel:
-        """确认执行"""
+        """Yürütmeyi onayla"""
         content = Text()
-        content.append("✅ 确认执行\n\n", style="bold cyan")
-        content.append("命令: [cyan]omc run[/cyan] ", style="white")
+        content.append("✅Yürütmeyi onayla\n\n", style="bold cyan")
+        content.append("Emir: [cyan]omc run[/cyan] ", style="white")
         content.append(f'"[yellow]{self.task_input}[/yellow]"', style="white")
         content.append(
             f" [cyan]--workflow {self.selected_workflow}[/cyan]\n", style="white"
         )
-        content.append(f"模型: [cyan]{self.selected_model}[/cyan]\n\n", style="white")
+        content.append(f"Modeli: [cyan]{self.selected_model}[/cyan]\n\n", style="white")
 
-        content.append("[快捷键] ", style="dim")
+        content.append("[kısayol tuşu] ", style="dim")
         content.append("y", style="cyan")
-        content.append(" 执行  ", style="dim")
+        content.append("uygulamak", style="dim")
         content.append("n", style="cyan")
-        content.append(" 返回  ", style="dim")
+        content.append("geri dönmek", style="dim")
         content.append("Esc", style="cyan")
-        content.append(" 取消", style="dim")
+        content.append("İptal etmek", style="dim")
 
-        return Panel(content, title="[bold]确认[/bold]", border_style="cyan")
+        return Panel(content, title="[bold]onaylamak[/bold]", border_style="cyan")
 
     def handle_key(self, key: str) -> bool:
-        """处理键盘事件，返回是否需要继续"""
+        """Klavye olaylarını yönetin ve devam etmeniz gerekip gerekmediğini geri dönün"""
         if key == "q":
             return False
 
@@ -301,16 +301,16 @@ class TUISession:
         return True
 
     def _handle_slash_command(self, raw_input: str) -> bool:
-        """检测并执行 /skill 命令，返回是否保持 TUI（False=退出）"""
-        # 解析 /skill-name [file-path]
+        """tespit et ve çalıştır/skillkomut, tutulup tutulmayacağını döndürürTUIModel önerisiFalse=çıkış yapmak)"""
+        #ayrıştırmak/skill-name [file-path]
         parts = raw_input.strip().split(maxsplit=2)
         if not parts or not parts[0].startswith("/"):
             return False
 
-        skill_name = parts[0][1:]  # 去掉 /
+        skill_name = parts[0][1:]  #kaldırmak/
         file_path = parts[1] if len(parts) > 1 else None
 
-        # 读取代码
+        #kodu oku
         code_content = ""
         if file_path:
             p = Path(file_path)
@@ -320,11 +320,11 @@ class TUISession:
                 console.print(f"[red]File not found: {file_path}[/red]")
                 return True
         else:
-            # 尝试从当前工作区读取
+            #Mevcut çalışma alanından okumayı deneyin
             ws_code = self._collect_workspace_code()
             code_content = ws_code if ws_code else "# No code provided"
 
-        # 执行 skill（通过 omc skill run）
+        #uygulamakskill(geçmekomc skill run)
         cmd = ["omc", "skill", "run", skill_name]
         try:
             result = subprocess.run(
@@ -357,7 +357,7 @@ class TUISession:
         return True
 
     def _collect_workspace_code(self) -> str:
-        """收集当前工作区中的代码文件"""
+        """Geçerli çalışma alanındaki kod dosyalarını toplayın"""
         code_files = list(Path.cwd().rglob("*.py"))[:10]
         snippets = []
         for f in code_files[:3]:
@@ -371,11 +371,11 @@ class TUISession:
         return "\n\n".join(snippets)
 
     def _wait_key(self) -> None:
-        """等待任意键输入"""
+        """Herhangi bir tuş girişini bekleyin"""
         console.input("")
 
     def _handle_main(self, key: str) -> bool:
-        """主菜单键盘处理"""
+        """Ana menü klavyesinin kullanımı"""
         if key == Keys.Up:
             self.cursor = max(0, self.cursor - 1)
         elif key == Keys.Down:
@@ -397,7 +397,7 @@ class TUISession:
         return True
 
     def _handle_workflow(self, key: str) -> bool:
-        """工作流选择键盘处理"""
+        """İş akışı seçimi klavyesinin kullanımı"""
         if key == Keys.Up:
             self.cursor = max(0, self.cursor - 1)
         elif key == Keys.Down:
@@ -411,7 +411,7 @@ class TUISession:
         return True
 
     def _handle_model(self, key: str) -> bool:
-        """模型选择键盘处理"""
+        """Model seçimi klavye kullanımı"""
         if key == Keys.Up:
             self.cursor = max(0, self.cursor - 1)
         elif key == Keys.Down:
@@ -424,18 +424,18 @@ class TUISession:
         return True
 
     def _handle_agents(self, key: str) -> bool:
-        """Agent 列表键盘处理"""
+        """AgentKlavye kullanımını listeleme"""
         if key in ["escape", "ctrl+c", "q"]:
             self.state = State.MAIN
         return True
 
     def _handle_task(self, key: str) -> bool:
-        """任务输入键盘处理"""
+        """Görev girişi klavyesi kullanımı"""
         if key in ["escape", "ctrl+c"]:
             self.state = State.MAIN
         elif key in ["\n", "enter"]:
             if self.task_input.strip():
-                # 检测 /skill 命令
+                #Algılama/skillEmir
                 if self.task_input.strip().startswith("/"):
                     self._handle_slash_command(self.task_input)
                     self.task_input = ""
@@ -449,7 +449,7 @@ class TUISession:
         return True
 
     def _handle_confirm(self, key: str) -> bool:
-        """确认执行键盘处理"""
+        """Klavye işleminin yürütülmesini onaylayın"""
         if key.lower() == "y":
             self._execute_task()
             return False
@@ -461,24 +461,24 @@ class TUISession:
         return True
 
     def _execute_task(self):
-        """执行任务"""
-        console.print("\n[yellow]正在启动:[/yellow]")
+        """görevleri gerçekleştirmek"""
+        console.print("\n[yellow]Başlangıç:[/yellow]")
         console.print(
             f'  omc run "{self.task_input}" --workflow {self.selected_workflow} --model {self.selected_model}'
         )
-        console.print("\n[dim]（实际执行功能开发中）[/dim]")
+        console.print("\n[dim](Gerçek yürütme işlevi geliştirme aşamasındadır)[/dim]")
 
 
 @app.command()
 def start(
-    task: Optional[str] = typer.Argument(None, help="任务描述（可选）"),
-    workflow: Optional[str] = typer.Option(None, "--workflow", "-w", help="指定工作流"),
-    model: Optional[str] = typer.Option(None, "--model", "-m", help="指定模型"),
+    task: Optional[str] = typer.Argument(None, help="Görev açıklaması (isteğe bağlı)"),
+    workflow: Optional[str] = typer.Option(None, "--workflow", "-w", help="İş akışını belirtin"),
+    model: Optional[str] = typer.Option(None, "--model", "-m", help="Modeli belirtin"),
 ):
-    """启动 TUI 交互界面"""
+    """başlatmakTUIEtkileşimli arayüz"""
     session = TUISession()
 
-    # 如果直接提供了参数，跳过 TUI
+    #Parametreler doğrudan sağlandıysa atlayınTUI
     if task or workflow:
         if task:
             session.task_input = task
@@ -492,10 +492,10 @@ def start(
             session.handle_key("\n")
         return
 
-    # 交互式 TUI
+    #etkileşimliTUI
     console.print(
         Panel.fit(
-            "[bold cyan]🤖 Oh My Coder TUI[/bold cyan]\n[dim]键盘驱动的交互界面[/dim]",
+            "[bold cyan]🤖 Oh My Coder TUI[/bold cyan]\n[dim]dosya yaz[/dim]",
             border_style="cyan",
         )
     )
@@ -504,7 +504,7 @@ def start(
         while True:
             key = console.input("")
 
-            # 处理任务输入模式
+            #Görev giriş modunu yönet
             if session.state == State.TASK and key not in [
                 "\n",
                 "enter",
@@ -526,9 +526,9 @@ def start(
 
 @app.command("agents")
 def list_agents():
-    """列出所有 Agent"""
-    table = Table(title="[bold cyan]🤖 Agent 清单[/bold cyan]")
-    table.add_column("分类", style="cyan")
+    """hepsini listeleAgent"""
+    table = Table(title="[bold cyan]🤖 AgentKontrol listesi[/bold cyan]")
+    table.add_column("sınıflandırma", style="cyan")
     table.add_column("Agent", style="white")
 
     for category, agents in AGENT_CATEGORIES.items():
@@ -536,17 +536,17 @@ def list_agents():
 
     console.print(table)
     console.print(
-        f"\n[dim]共 {sum(len(a) for a in AGENT_CATEGORIES.values())} 个 Agent[/dim]"
+        f"\n[dim]yaygın{sum(len(a) for a in AGENT_CATEGORIES.values())}bireyselAgent[/dim]"
     )
 
 
 @app.command("workflows")
 def list_workflows():
-    """列出所有工作流"""
-    table = Table(title="[bold cyan]📋 工作流清单[/bold cyan]")
-    table.add_column("编号", style="cyan", width=4)
-    table.add_column("工作流", style="white")
-    table.add_column("说明", style="dim")
+    """Tüm iş akışlarını listele"""
+    table = Table(title="[bold cyan]📋İş akışı kontrol listesi[/bold cyan]")
+    table.add_column("seri numarası", style="cyan", width=4)
+    table.add_column("İş akışı", style="white")
+    table.add_column("göstermek", style="dim")
 
     for i, (key, desc, _) in enumerate(WORKFLOWS, 1):
         table.add_row(str(i), f"[bold]{key}[/bold]", desc)
@@ -556,10 +556,10 @@ def list_workflows():
 
 @app.command("models")
 def list_models():
-    """列出所有可用模型"""
-    table = Table(title="[bold cyan]🔧 模型清单[/bold cyan]")
-    table.add_column("模型", style="cyan")
-    table.add_column("说明", style="dim")
+    """Mevcut tüm modelleri listele"""
+    table = Table(title="[bold cyan]🔧Model listesi[/bold cyan]")
+    table.add_column("Modeli", style="cyan")
+    table.add_column("göstermek", style="dim")
 
     for _key, name, desc in MODELS:
         table.add_row(name, desc)

@@ -4,12 +4,12 @@ from __future__ import annotations
 from typing import Optional
 
 """
-记忆迁移 CLI - 从其他工具导入配置
+hafıza aktarımıCLI -Yapılandırmayı diğer araçlardan içe aktarın
 
-命令：
-- omc migrate claude <path>     # 从 Claude Code 导入 CLAUDE.md 配置
-- omc migrate gemini <path>     # 从 Gemini CLI 导入配置
-- omc migrate list              # 列出支持的迁移来源
+Emir:
+- omc migrate claude <path>     #itibarenClaude Codeiçe aktarmakCLAUDE.mdYapılandırma
+- omc migrate gemini <path>     #itibarenGemini CLIçalışma alanı
+- omc migrate list              #Desteklenen taşıma kaynaklarını listeleyin
 """
 
 
@@ -19,22 +19,22 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-app = typer.Typer(help="记忆迁移 - 从其他工具导入配置")
+app = typer.Typer(help="hafıza aktarımı-Yapılandırmayı diğer araçlardan içe aktarın")
 console = Console()
 
 
-# 支持的迁移来源
+#Desteklenen taşıma kaynakları
 MIGRATION_SOURCES = {
     "claude": {
         "name": "Claude Code",
         "config_file": "CLAUDE.md",
-        "description": "从 Claude Code 的项目配置导入",
+        "description": "itibarenClaude CodeProje yapılandırmasını içe aktarma",
         "fields": ["working_directory", "agent", "commands"],
     },
     "gemini": {
         "name": "Gemini CLI",
         "config_file": ".clinerules",
-        "description": "从 Gemini CLI 的规则配置导入",
+        "description": "itibarenGemini CLIKural yapılandırmasını içe aktarma",
         "fields": ["rules", "model", "project"],
     },
 }
@@ -42,11 +42,11 @@ MIGRATION_SOURCES = {
 
 @app.command("list")
 def list_sources():
-    """列出支持的迁移来源"""
-    table = Table(title="支持的迁移来源")
-    table.add_column("来源", style="cyan")
-    table.add_column("配置文件", style="yellow")
-    table.add_column("描述", style="white")
+    """Desteklenen taşıma kaynaklarını listeleyin"""
+    table = Table(title="Desteklenen taşıma kaynakları")
+    table.add_column("kaynak", style="cyan")
+    table.add_column("Yenilemeye zorla", style="yellow")
+    table.add_column("betimlemek", style="white")
 
     for info in MIGRATION_SOURCES.values():
         table.add_row(
@@ -57,7 +57,7 @@ def list_sources():
 
     console.print(table)
     console.print(
-        "\n[dim]使用 'omc migrate claude <path>' 或 'omc migrate gemini <path>' 导入配置[/dim]"
+        "\n[dim]kullanmak'omc migrate claude <path>'veya'omc migrate gemini <path>'çalışma alanı[/dim]"
     )
 
 
@@ -65,72 +65,72 @@ def list_sources():
 def migrate_claude(
     path: Optional[Path] = typer.Argument(
         None,
-        help="项目路径（默认当前目录）",
+        help="Proje yolu (varsayılan geçerli dizin)",
     ),
     dry_run: bool = typer.Option(
         False,
         "--dry-run",
         "-n",
-        help="只显示导入内容，不实际执行",
+        help="Gerçek yürütme olmadan yalnızca içe aktarılan içerik görüntülenir.",
     ),
 ):
-    """从 Claude Code 导入配置"""
+    """itibarenClaude Codeçalışma alanı"""
     project_path = path or Path.cwd()
     claude_md = project_path / "CLAUDE.md"
 
     if not claude_md.exists():
-        console.print("[red]错误：未找到 CLAUDE.md 文件[/red]")
-        console.print(f"[dim]请在项目目录: {project_path} 中创建 CLAUDE.md[/dim]")
+        console.print("[red]Hata: bulunamadıCLAUDE.mdbelge[/red]")
+        console.print(f"[dim]Lütfen proje dizinine gidin: {project_path}Oluşturulma tarihiCLAUDE.md[/dim]")
         raise typer.Exit(1)
 
-    console.print(f"[cyan]读取 CLAUDE.md from {project_path}...[/cyan]")
+    console.print(f"[cyan]OkumakCLAUDE.md from {project_path}...[/cyan]")
 
     content = claude_md.read_text(encoding="utf-8")
 
     if dry_run:
-        console.print("[yellow]=== 导入内容预览 ===[/yellow]")
+        console.print("[yellow]===İçerik önizlemesini içe aktar===[/yellow]")
         console.print(content[:500] + "..." if len(content) > 500 else content)
-        console.print(f"\n[dim]共 {len(content)} 字符[/dim]")
+        console.print(f"\n[dim]yaygın{len(content)}karakter[/dim]")
         return
 
-    # 解析 CLAUDE.md 内容并转换
+    #ayrıştırmakCLAUDE.mdiçerik ve dönüştürme
     _parse_claude_config(content)
 
-    # 保存到 OMC 记忆目录
+    #kaydetOMChafıza dizini
     memory_dir = Path.home() / ".omc" / "memory" / "imported"
     memory_dir.mkdir(parents=True, exist_ok=True)
 
     output_file = memory_dir / f"claude_import_{project_path.name}.md"
     output_file.write_text(
-        f"# 从 Claude Code 导入\n\n"
-        f"来源: {project_path}\n"
-        f"导入时间: {__import__('datetime').datetime.now().isoformat()}\n\n"
+        f"#itibarenClaude Codeiçe aktarmak\n\n"
+        f"kaynak: {project_path}\n"
+        f"İçe aktarma zamanı: {__import__('datetime').datetime.now().isoformat()}\n\n"
         f"---\n\n"
         f"{content}",
         encoding="utf-8",
     )
 
-    console.print(f"[green]✓[/green] 配置已导入到: {output_file}")
-    console.print("[dim]可使用 'omc memory view' 查看导入的记忆[/dim]")
+    console.print(f"[green]✓[/green]Yapılandırma içe aktarıldı: {output_file}")
+    console.print("[dim]mevcut'omc memory view'İçe aktarılan anıları görüntüle[/dim]")
 
 
 @app.command("gemini")
 def migrate_gemini(
     path: Optional[Path] = typer.Argument(
         None,
-        help="项目路径（默认当前目录）",
+        help="Proje yolu (varsayılan geçerli dizin)",
     ),
     dry_run: bool = typer.Option(
         False,
         "--dry-run",
         "-n",
-        help="只显示导入内容，不实际执行",
+        help="Gerçek yürütme olmadan yalnızca içe aktarılan içerik görüntülenir.",
     ),
 ):
-    """从 Gemini CLI 导入配置"""
+    """itibarenGemini CLIçalışma alanı"""
     project_path = path or Path.cwd()
 
-    # Gemini CLI 使用 .clinerules 或 .clinerules.json
+    # Gemini CLIkullanmak.clinerulesveya.clinerules.json
     clinerules = project_path / ".clinerules"
     clinerules_json = project_path / ".clinerules.json"
 
@@ -141,41 +141,41 @@ def migrate_gemini(
         config_file = clinerules_json
 
     if not config_file:
-        console.print("[red]错误：未找到 .clinerules 文件[/red]")
-        console.print(f"[dim]请在项目目录: {project_path} 中创建 .clinerules[/dim]")
+        console.print("[red]Hata: bulunamadı.clinerulesbelge[/red]")
+        console.print(f"[dim]Lütfen proje dizinine gidin: {project_path}Oluşturulma tarihi.clinerules[/dim]")
         raise typer.Exit(1)
 
-    console.print(f"[cyan]读取 {config_file.name} from {project_path}...[/cyan]")
+    console.print(f"[cyan]Okumak{config_file.name} from {project_path}...[/cyan]")
 
     content = config_file.read_text(encoding="utf-8")
 
     if dry_run:
-        console.print("[yellow]=== 导入内容预览 ===[/yellow]")
+        console.print("[yellow]===İçerik önizlemesini içe aktar===[/yellow]")
         console.print(content[:500] + "..." if len(content) > 500 else content)
-        console.print(f"\n[dim]共 {len(content)} 字符[/dim]")
+        console.print(f"\n[dim]yaygın{len(content)}karakter[/dim]")
         return
 
-    # 保存到 OMC 记忆目录
+    #kaydetOMChafıza dizini
     memory_dir = Path.home() / ".omc" / "memory" / "imported"
     memory_dir.mkdir(parents=True, exist_ok=True)
 
     output_file = memory_dir / f"gemini_import_{project_path.name}.md"
     output_file.write_text(
-        f"# 从 Gemini CLI 导入\n\n"
-        f"来源: {project_path}\n"
-        f"配置文件: {config_file.name}\n"
-        f"导入时间: {__import__('datetime').datetime.now().isoformat()}\n\n"
+        f"#itibarenGemini CLIiçe aktarmak\n\n"
+        f"kaynak: {project_path}\n"
+        f"Yenilemeye zorla: {config_file.name}\n"
+        f"İçe aktarma zamanı: {__import__('datetime').datetime.now().isoformat()}\n\n"
         f"---\n\n"
         f"{content}",
         encoding="utf-8",
     )
 
-    console.print(f"[green]✓[/green] 配置已导入到: {output_file}")
-    console.print("[dim]可使用 'omc memory view' 查看导入的记忆[/dim]")
+    console.print(f"[green]✓[/green]Yapılandırma içe aktarıldı: {output_file}")
+    console.print("[dim]mevcut'omc memory view'İçe aktarılan anıları görüntüle[/dim]")
 
 
 def _parse_claude_config(content: str) -> dict:
-    """解析 CLAUDE.md 内容"""
+    """ayrıştırmakCLAUDE.mdiçerik"""
     config = {
         "working_directory": None,
         "agent": None,

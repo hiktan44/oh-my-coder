@@ -4,15 +4,15 @@ from __future__ import annotations
 from typing import Optional
 
 """
-MiniMax 模型适配器
+MiniMax modeladaptor
 
 API: https://api.minimax.chat
-文档: https://www.minimaxi.com/document
+dokumantasyon: https://www.minimaxi.com/document
 
-特点：
-- 长上下文支持（最高 1M tokens）
-- 中文理解能力强
-- 价格适中
+Ozellikler:
+- uzun bağlamdestek (enyuksek 1M tokens) 
+- icindemetinanlayetenekguclu
+- degeruygunicinde
 """
 
 import time
@@ -29,7 +29,7 @@ from .base import (
     Usage,
 )
 
-# MiniMax 模型配置
+# MiniMax modelyapilandirma
 MINIMAX_MODELS = {
     "low": {
         "name": "abab6-chat",
@@ -51,9 +51,9 @@ MINIMAX_MODELS = {
 
 class MiniMaxModel(BaseModel):
     """
-    MiniMax 模型适配器
+    MiniMax modeladaptor
 
-    API 格式为 MiniMax 私有格式，base URL: https://api.minimax.chat/v1
+    API formaticin MiniMax ozelvarformat, base URL: https://api.minimax.chat/v1
     """
 
     def __init__(
@@ -103,9 +103,9 @@ class MiniMaxModel(BaseModel):
             item: dict[str, str] = {"role": msg.role, "content": msg.content}
             if msg.name:
                 item["name"] = msg.name
-            if msg.tool_calls:  # assistant 消息的工具调用
+            if msg.tool_calls:  # assistant mesaj aracligicagri
                 item["tool_calls"] = msg.tool_calls  # type: ignore
-            if msg.tool_call_id:  # tool 消息的工具调用 ID
+            if msg.tool_call_id:  # tool mesaj aracligicagri ID
                 item["tool_call_id"] = msg.tool_call_id
             formatted.append(item)
         return formatted
@@ -158,10 +158,10 @@ class MiniMaxModel(BaseModel):
             )
 
         except httpx.HTTPStatusError as e:
-            raise MiniMaxAPIError(f"MiniMax API 错误 ({e.response.status_code}): {e}")
+            raise MiniMaxAPIError(f"MiniMax API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise MiniMaxAPIError(f"网络请求失败: {e}")
+            raise MiniMaxAPIError(f"ag istegibasarisiz: {e}")
 
 
 class MiniMaxAPIError(Exception):
-    """MiniMax API 错误"""
+    """MiniMax API hata"""

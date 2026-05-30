@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent 状态 - Oh My Coder</title>
+    <title>Agent Durumu - Oh My Coder</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/style.css?v=20260506">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -63,88 +63,88 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/" class="nav-link">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link">历史</a>
-                <a href="/coverage" class="nav-link">覆盖率</a>
-                <a href="/docs" class="nav-link">文档</a>
-                <a href="/settings" class="nav-link">设置</a>
+                <a href="/" class="nav-link">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link">Gösterge Paneli</a>
+                <a href="/history" class="nav-link">Geçmiş</a>
+                <a href="/coverage" class="nav-link">Kapsama</a>
+                <a href="/docs" class="nav-link">Belgeler</a>
+                <a href="/settings" class="nav-link">Ayarlar</a>
             </div>
             <div class="nav-actions">
-                <div class="nav-toggle" id="themeToggle" title="切换主题">☀️</div>
+                <div class="nav-toggle" id="themeToggle" title="Temayı değiştir">☀️</div>
                 <button class="nav-hamburger" id="navHamburger">☰</button>
             </div>
         </div>
     </nav>
 
     <main class="container">
-        <h1 class="page-title">🤖 Agent 状态</h1>
-        <p class="page-desc">查看所有 Agent 的当前状态和详细信息。</p>
+        <h1 class="page-title">🤖 Agent Durumu</h1>
+        <p class="page-desc">Tüm Agent'ların mevcut durumlarını ve detaylı bilgilerini görüntüleyin.</p>
 
         <div class="agents-grid" id="agentsGrid">
             <div class="agent-card">
                 <div class="agent-card-top">
                     <div class="agent-avatar">🔍</div>
-                    <div><div class="agent-card-name">Explorer</div><div class="agent-card-role">探索者</div></div>
+                    <div><div class="agent-card-name">Explorer</div><div class="agent-card-role">Kâşif</div></div>
                 </div>
-                <div class="agent-card-desc">探索项目结构，理解代码库，收集上下文信息。</div>
-                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>空闲</div><span class="badge badge-muted">LOW</span></div>
+                <div class="agent-card-desc">Proje yapısını keşfeder, kod tabanını anlar ve bağlam bilgilerini toplar.</div>
+                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>Boşta</div><span class="badge badge-muted">LOW</span></div>
             </div>
             <div class="agent-card">
                 <div class="agent-card-top">
                     <div class="agent-avatar">🧠</div>
-                    <div><div class="agent-card-name">Analyst</div><div class="agent-card-role">分析师</div></div>
+                    <div><div class="agent-card-name">Analyst</div><div class="agent-card-role">Analist</div></div>
                 </div>
-                <div class="agent-card-desc">分析需求，拆解任务，制定执行计划。</div>
-                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>空闲</div><span class="badge badge-primary">MEDIUM</span></div>
+                <div class="agent-card-desc">Gereksinimleri analiz eder, görevleri ayrıştırır ve yürütme planı hazırlar.</div>
+                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>Boşta</div><span class="badge badge-primary">MEDIUM</span></div>
             </div>
             <div class="agent-card">
                 <div class="agent-card-top">
                     <div class="agent-avatar">🏗️</div>
-                    <div><div class="agent-card-name">Architect</div><div class="agent-card-role">架构师</div></div>
+                    <div><div class="agent-card-name">Architect</div><div class="agent-card-role">Mimar</div></div>
                 </div>
-                <div class="agent-card-desc">设计架构方案，确定技术选型和代码结构。</div>
-                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>空闲</div><span class="badge badge-danger">HIGH</span></div>
+                <div class="agent-card-desc">Mimari çözüm tasarlar, teknoloji seçimi ve kod yapısını belirler.</div>
+                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>Boşta</div><span class="badge badge-danger">HIGH</span></div>
             </div>
             <div class="agent-card">
                 <div class="agent-card-top">
                     <div class="agent-avatar">💻</div>
-                    <div><div class="agent-card-name">Executor</div><div class="agent-card-role">执行者</div></div>
+                    <div><div class="agent-card-name">Executor</div><div class="agent-card-role">Uygulayıcı</div></div>
                 </div>
-                <div class="agent-card-desc">编写代码，实现功能，修改文件。</div>
-                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>空闲</div><span class="badge badge-primary">MEDIUM</span></div>
+                <div class="agent-card-desc">Kod yazar, işlevleri uygular ve dosyaları düzenler.</div>
+                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>Boşta</div><span class="badge badge-primary">MEDIUM</span></div>
             </div>
             <div class="agent-card">
                 <div class="agent-card-top">
                     <div class="agent-avatar">✅</div>
-                    <div><div class="agent-card-name">Verifier</div><div class="agent-card-role">验证者</div></div>
+                    <div><div class="agent-card-name">Verifier</div><div class="agent-card-role">Doğrulayıcı</div></div>
                 </div>
-                <div class="agent-card-desc">验证结果，运行测试，确认代码质量。</div>
-                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>空闲</div><span class="badge badge-primary">MEDIUM</span></div>
+                <div class="agent-card-desc">Sonuçları doğrular, testleri çalıştırır ve kod kalitesini onaylar.</div>
+                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>Boşta</div><span class="badge badge-primary">MEDIUM</span></div>
             </div>
             <div class="agent-card">
                 <div class="agent-card-top">
                     <div class="agent-avatar">🐛</div>
-                    <div><div class="agent-card-name">Debugger</div><div class="agent-card-role">调试者</div></div>
+                    <div><div class="agent-card-name">Debugger</div><div class="agent-card-role">Hata Ayıklayıcı</div></div>
                 </div>
-                <div class="agent-card-desc">定位 Bug，分析错误，修复问题。</div>
-                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>空闲</div><span class="badge badge-primary">MEDIUM</span></div>
+                <div class="agent-card-desc">Bug'ları bulur, hataları analiz eder ve sorunları düzeltir.</div>
+                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>Boşta</div><span class="badge badge-primary">MEDIUM</span></div>
             </div>
             <div class="agent-card">
                 <div class="agent-card-top">
                     <div class="agent-avatar">🔎</div>
-                    <div><div class="agent-card-name">CodeReviewer</div><div class="agent-card-role">代码审查</div></div>
+                    <div><div class="agent-card-name">CodeReviewer</div><div class="agent-card-role">Kod İnceleyici</div></div>
                 </div>
-                <div class="agent-card-desc">代码审查，发现潜在问题，提出改进建议。</div>
-                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>空闲</div><span class="badge badge-warning">MEDIUM</span></div>
+                <div class="agent-card-desc">Kod incelemesi yapar, potansiyel sorunları bulur ve iyileştirme önerileri sunar.</div>
+                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>Boşta</div><span class="badge badge-warning">MEDIUM</span></div>
             </div>
             <div class="agent-card">
                 <div class="agent-card-top">
                     <div class="agent-avatar">🛡️</div>
-                    <div><div class="agent-card-name">Security</div><div class="agent-card-role">安全审计</div></div>
+                    <div><div class="agent-card-name">Security</div><div class="agent-card-role">Güvenlik Denetimi</div></div>
                 </div>
-                <div class="agent-card-desc">安全扫描，检测漏洞，验证合规性。</div>
-                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>空闲</div><span class="badge badge-danger">HIGH</span></div>
+                <div class="agent-card-desc">Güvenlik taraması yapar, zafiyetleri tespit eder ve uyumluluğu doğrular.</div>
+                <div class="agent-card-footer"><div class="agent-status-text"><div class="agent-status-dot idle"></div>Boşta</div><span class="badge badge-danger">HIGH</span></div>
             </div>
         </div>
     </main>
@@ -181,7 +181,7 @@
                     const grid = document.getElementById('agentsGrid');
                     grid.innerHTML = data.agents.map(a => {
                         const statusClass = a.status === 'running' ? 'running' : a.status === 'error' ? 'error' : 'idle';
-                        const statusText = a.status === 'running' ? '运行中' : a.status === 'error' ? '错误' : '空闲';
+                        const statusText = a.status === 'running' ? 'Çalışıyor' : a.status === 'error' ? 'Hata' : 'Boşta';
                         const tierBadge = a.tier === 'HIGH' ? 'badge-danger' : a.tier === 'MEDIUM' ? 'badge-primary' : 'badge-muted';
                         return `
                         <div class="agent-card">

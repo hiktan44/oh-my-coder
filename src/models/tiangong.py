@@ -4,16 +4,16 @@ from __future__ import annotations
 
 
 """
-天工AI (Tiangong) 模型适配器
+TiangongAI (Tiangong) modeladaptor
 
-API 地址：https://model-platform.tiangong.cn
-文档：https://model-platform.tiangong.cn/document
+API adres: https://model-platform.tiangong.cn
+Dokumantasyon:https://model-platform.tiangong.cn/document
 
-特点：
-- 昆仑万维出品
-- 中文理解能力强
-- 支持超长上下文
-- 兼容 OpenAI 格式
+Ozellikler:
+- Kunlun10 binboyuturun
+- icindemetinanlayetenekguclu
+- destekasiriuzun bağlam
+- uyumlu OpenAI format
 """
 
 import json
@@ -33,7 +33,7 @@ from .base import (
     Usage,
 )
 
-# 天工AI 模型配置
+# TiangongAI modelyapilandirma
 TIANGONG_MODELS = {
     ModelTier.LOW: {
         "name": "skywork-v1.0",
@@ -54,7 +54,7 @@ TIANGONG_MODELS = {
 
 
 class TiangongModel(BaseModel):
-    """天工AI 模型适配器，兼容 OpenAI 格式"""
+    """TiangongAI modeladaptor, uyumlu OpenAI format"""
 
     def __init__(self, config: ModelConfig, tier: ModelTier = ModelTier.MEDIUM):
         if config.base_url is None:
@@ -147,9 +147,9 @@ class TiangongModel(BaseModel):
             tool_calls=tool_calls if "tool_calls" in dir() else [],
             )
         except httpx.HTTPStatusError as e:
-            raise TiangongAPIError(f"天工AI API 错误 ({e.response.status_code}): {e}")
+            raise TiangongAPIError(f"TiangongAI API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise TiangongAPIError(f"网络请求失败: {e}")
+            raise TiangongAPIError(f"ag istegibasarisiz: {e}")
 
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
         client = await self._get_client()
@@ -180,10 +180,10 @@ class TiangongModel(BaseModel):
                     except json.JSONDecodeError:
                         continue
         except httpx.HTTPStatusError as e:
-            raise TiangongAPIError(f"天工AI API 错误 ({e.response.status_code}): {e}")
+            raise TiangongAPIError(f"TiangongAI API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise TiangongAPIError(f"网络请求失败: {e}")
+            raise TiangongAPIError(f"ag istegibasarisiz: {e}")
 
 
 class TiangongAPIError(Exception):
-    """天工AI API 错误"""
+    """TiangongAI API hata"""

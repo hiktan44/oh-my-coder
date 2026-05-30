@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 """
-团队认证模块
+takimkimlik dogrulamamodul
 
-管理团队创建、成员管理和权限控制。
+yonettakimolustur, oluyeyonetveizinkontrol. 
 """
 
 import hashlib
@@ -20,7 +20,7 @@ from .task_sync import MemberRole
 
 @dataclass
 class TeamMember:
-    """团队成员"""
+    """takimoluye"""
 
     user_id: str
     team_id: str
@@ -48,7 +48,7 @@ class TeamMember:
 
 @dataclass
 class Team:
-    """团队"""
+    """takim"""
 
     team_id: str
     name: str
@@ -75,7 +75,7 @@ class Team:
 
 @dataclass
 class UserSession:
-    """用户会话"""
+    """kullaniciyapacakkonusma"""
 
     session_id: str
     user_id: str
@@ -100,13 +100,13 @@ class UserSession:
 
 class TeamAuth:
     """
-    团队认证管理器
+    takimkimlik dogrulamayonet
 
-    功能：
-    - 创建/删除团队
-    - 加入/退出团队
-    - 成员管理
-    - 权限验证
+    Islev:
+    - olustur/siltakim
+    - eklegiris/geritakim
+    - oluyeyonet
+    - izindogrulama
     """
 
     def __init__(self):
@@ -116,15 +116,15 @@ class TeamAuth:
         self._invite_codes: dict[str, str] = {}  # invite_code -> team_id
 
     def _generate_id(self) -> str:
-        """生成唯一 ID"""
+        """olusturtekbir ID"""
         return secrets.token_hex(8)
 
     def _generate_invite_code(self) -> str:
-        """生成邀请码"""
+        """olusturdavet kodu"""
         return secrets.token_urlsafe(6).upper()
 
     def _hash_password(self, password: str, salt: str) -> str:
-        """哈希密码（PBKDF2-SHA256，100k 迭代）"""
+        """hashgizlikod (PBKDF2-SHA256, 100k iterasyon) """
         return hashlib.pbkdf2_hmac(
             "sha256",
             password.encode(),
@@ -139,15 +139,15 @@ class TeamAuth:
         description: str = "",
     ) -> Team:
         """
-        创建团队
+        olusturtakim
 
         Args:
-            name: 团队名称
-            owner_id: 所有者 ID
-            description: 团队描述
+            name: takimad
+            owner_id: var ID
+            description: takimaciklama
 
         Returns:
-            Team: 创建的团队
+            Team: olusturtakim
         """
         team_id = f"team_{self._generate_id()}"
         invite_code = self._generate_invite_code()
@@ -182,16 +182,16 @@ class TeamAuth:
         email: str = "",
     ) -> Optional[Team]:
         """
-        加入团队
+        eklegiristakim
 
         Args:
-            invite_code: 邀请码
-            user_id: 用户 ID
-            display_name: 显示名称
-            email: 邮箱
+            invite_code: davet kodu
+            user_id: kullanici ID
+            display_name: gosterad
+            email: eposta
 
         Returns:
-            Team: 加入的团队
+            Team: eklegiristakim
         """
         team_id = self._invite_codes.get(invite_code)
         if not team_id:
@@ -201,7 +201,7 @@ class TeamAuth:
         if not team:
             return None
 
-        # 检查是否已加入
+        # kontrololup olmadigieklegiris
         if any(m.user_id == user_id for m in team.members):
             return team
 
@@ -221,20 +221,20 @@ class TeamAuth:
 
     async def leave_team(self, user_id: str, team_id: str) -> bool:
         """
-        离开团队
+        ayrilactakim
 
         Args:
-            user_id: 用户 ID
-            team_id: 团队 ID
+            user_id: kullanici ID
+            team_id: takim ID
 
         Returns:
-            bool: 是否成功
+            bool: basarili mi
         """
         team = self._teams.get(team_id)
         if not team:
             return False
 
-        # 所有者不能离开
+        # varhayiredebilirayrilac
         if team.owner_id == user_id:
             return False
 
@@ -245,28 +245,28 @@ class TeamAuth:
 
     async def delete_team(self, team_id: str, requester_id: str) -> bool:
         """
-        删除团队
+        siltakim
 
         Args:
-            team_id: 团队 ID
-            requester_id: 请求者 ID
+            team_id: takim ID
+            requester_id: istek ID
 
         Returns:
-            bool: 是否成功
+            bool: basarili mi
         """
         team = self._teams.get(team_id)
         if not team:
             return False
 
-        # 只有所有者可以删除
+        # sadecevarvarolabilirilesil
         if team.owner_id != requester_id:
             return False
 
-        # 清理用户关联
+        # temizlekullaniciiliskili
         for member in team.members:
             self._user_teams.pop(member.user_id, None)
 
-        # 清理邀请码
+        # temizledavet kodu
         self._invite_codes.pop(team.invite_code, None)
 
         del self._teams[team_id]
@@ -274,11 +274,11 @@ class TeamAuth:
         return True
 
     async def get_team(self, team_id: str) -> Optional[Team]:
-        """获取团队"""
+        """altakim"""
         return self._teams.get(team_id)
 
     async def get_user_team(self, user_id: str) -> Optional[Team]:
-        """获取用户所在团队"""
+        """alkullaniciicindetakim"""
         team_id = self._user_teams.get(user_id)
         if team_id:
             return self._teams.get(team_id)
@@ -292,22 +292,22 @@ class TeamAuth:
         requester_id: str,
     ) -> bool:
         """
-        更新成员角色
+        guncelleoluyerol
 
         Args:
-            team_id: 团队 ID
-            user_id: 目标用户 ID
-            new_role: 新角色
-            requester_id: 请求者 ID
+            team_id: takim ID
+            user_id: hedefisaretkullanici ID
+            new_role: yenirol
+            requester_id: istek ID
 
         Returns:
-            bool: 是否成功
+            bool: basarili mi
         """
         team = self._teams.get(team_id)
         if not team:
             return False
 
-        # 只有所有者可以更改角色
+        # sadecevarvarolabiliriledahadegistirrol
         if team.owner_id != requester_id:
             return False
 
@@ -325,15 +325,15 @@ class TeamAuth:
         required_role: MemberRole,
     ) -> bool:
         """
-        检查权限
+        kontrolizin
 
         Args:
-            user_id: 用户 ID
-            team_id: 团队 ID
-            required_role: 需要的角色
+            user_id: kullanici ID
+            team_id: takim ID
+            required_role: gerekisterrol
 
         Returns:
-            bool: 是否有权限
+            bool: olup olmadigivarizin
         """
         team = self._teams.get(team_id)
         if not team:
@@ -359,15 +359,15 @@ class TeamAuth:
         expires_in_hours: int = 24,
     ) -> UserSession:
         """
-        创建会话
+        olusturyapacakkonusma
 
         Args:
-            user_id: 用户 ID
-            team_id: 团队 ID
-            expires_in_hours: 过期时间（小时）
+            user_id: kullanici ID
+            team_id: takim ID
+            expires_in_hours: donemzamanarasinda (kucukzaman) 
 
         Returns:
-            UserSession: 创建的会话
+            UserSession: olusturyapacakkonusma
         """
         session_id = f"session_{self._generate_id()}"
 
@@ -382,14 +382,14 @@ class TeamAuth:
         return session
 
     async def validate_session(self, session_id: str) -> Optional[UserSession]:
-        """验证会话"""
+        """dogrulamayapacakkonusma"""
         session = self._sessions.get(session_id)
         if session and session.is_valid():
             return session
         return None
 
     async def invalidate_session(self, session_id: str) -> bool:
-        """使会话失效"""
+        """izinyapacakkonusmakayipetki"""
         if session_id in self._sessions:
             self._sessions[session_id].is_active = False
             return True
@@ -399,28 +399,28 @@ class TeamAuth:
         self, team_id: str, requester_id: str
     ) -> Optional[str]:
         """
-        重新生成邀请码
+        tekraryeniolusturdavet kodu
 
         Args:
-            team_id: 团队 ID
-            requester_id: 请求者 ID
+            team_id: takim ID
+            requester_id: istek ID
 
         Returns:
-            str: 新邀请码
+            str: yenidavet kodu
         """
         team = self._teams.get(team_id)
         if not team or team.owner_id != requester_id:
             return None
 
-        # 删除旧邀请码
+        # sileskidavet kodu
         self._invite_codes.pop(team.invite_code, None)
 
-        # 生成新邀请码
+        # olusturyenidavet kodu
         team.invite_code = self._generate_invite_code()
         self._invite_codes[team.invite_code] = team_id
 
         return team.invite_code
 
 
-# 全局实例
+# globalornek
 team_auth = TeamAuth()

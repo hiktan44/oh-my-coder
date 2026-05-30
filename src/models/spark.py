@@ -4,16 +4,16 @@ from __future__ import annotations
 
 
 """
-讯飞星火 (Spark) 模型适配器
+iFlytek Spark (Spark) modeladaptor
 
-API 地址：https://spark-api.xf-yun.com
-文档：https://www.xfyun.cn/doc/spark/
+API adres: https://spark-api.xf-yun.com
+Dokumantasyon:https://www.xfyun.cn/doc/spark/
 
-特点：
-- 科大讯飞出品
-- 语音交互能力强
-- 中文语义理解优秀
-- 需三个凭证：API Key / App ID / Secret Key
+Ozellikler:
+- bilimbuyukiFlytek Spark
+- dilsesetkilesimyetenekguclu
+- icindemetinanlamsalanlaiyiiyi
+- gerekuckimlik bilgisi: API Key / App ID / Secret Key
 """
 
 import time
@@ -32,7 +32,7 @@ from .base import (
     Usage,
 )
 
-# 讯飞星火模型配置
+# iFlytek Sparkmodelyapilandirma
 SPARK_MODELS = {
     ModelTier.LOW: {
         "name": "generalv3",
@@ -55,7 +55,7 @@ SPARK_API_BASE = "https://spark-api.xf-yun.com"
 
 
 class SparkModel(BaseModel):
-    """讯飞星火模型适配器"""
+    """iFlytek Sparkmodeladaptor"""
 
     def __init__(
         self,
@@ -153,9 +153,9 @@ class SparkModel(BaseModel):
             tool_calls=tool_calls,
             )
         except httpx.HTTPStatusError as e:
-            raise SparkAPIError(f"讯飞星火 API 错误 ({e.response.status_code}): {e}")
+            raise SparkAPIError(f"iFlytek Spark API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise SparkAPIError(f"网络请求失败: {e}")
+            raise SparkAPIError(f"ag istegibasarisiz: {e}")
 
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
         result = await self.generate(messages, **kwargs)
@@ -164,4 +164,4 @@ class SparkModel(BaseModel):
 
 
 class SparkAPIError(Exception):
-    """讯飞星火 API 错误"""
+    """iFlytek Spark API hata"""

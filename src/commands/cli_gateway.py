@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 """
-Gateway CLI - 多平台网关命令
+Gateway CLI -Çoklu platform ağ geçidi komutları
 
 omc gateway start --telegram <token>
 omc gateway start --discord <token>
@@ -20,13 +20,13 @@ console = Console()
 
 app = typer.Typer(
     name="gateway",
-    help="多平台消息网关（Telegram / Discord）",
+    help="Çoklu platform mesaj ağ geçidi (Telegram / Discord)",
     add_completion=False,
 )
 
 
 def _load_gateway():
-    """懒加载 Gateway（避免未安装依赖时 import 报错）"""
+    """Tembel yüklemeGateway(Bağımlılıklar kurulu olmadığında kaçınınimporthata)"""
     from src.gateway.gateway import Gateway
 
     telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -41,16 +41,16 @@ def _load_gateway():
 
 @app.command()
 def status():
-    """查看网关状态"""
+    """Ağ geçidi durumunu görüntüle"""
     try:
         gateway = _load_gateway()
         status_data = gateway.status()
 
         table = Table(title="Gateway Status")
-        table.add_column("平台", style="cyan")
-        table.add_column("类型", style="yellow")
-        table.add_column("已配置", style="green")
-        table.add_column("运行中", style="green")
+        table.add_column("platformu", style="cyan")
+        table.add_column("tip", style="yellow")
+        table.add_column("yapılandırılmış", style="green")
+        table.add_column("Koşma", style="green")
 
         for platform, info in status_data["handlers"].items():
             table.add_row(
@@ -62,55 +62,55 @@ def status():
 
         console.print(table)
         console.print(
-            f"\n运行平台: {', '.join(status_data['started_platforms']) or '(none)'}"
+            f"\nKomut listesi:: {', '.join(status_data['started_platforms']) or '(none)'}"
         )
 
     except Exception as e:
-        console.print(f"[red]错误: {e}[/red]")
+        console.print(f"[red]hata: {e}[/red]")
         raise typer.Exit(code=1)
 
 
 @app.command()
 def start(
     telegram: str = typer.Option(
-        None, "--telegram", help="Telegram Bot Token（也可设 env TELEGRAM_BOT_TOKEN）"
+        None, "--telegram", help="Telegram Bot Token(ayrıca ayarlanabilirenv TELEGRAM_BOT_TOKEN)"
     ),
     discord: str = typer.Option(
-        None, "--discord", help="Discord Bot Token（也可设 env DISCORD_BOT_TOKEN）"
+        None, "--discord", help="Discord Bot Token(ayrıca ayarlanabilirenv DISCORD_BOT_TOKEN)"
     ),
 ):
-    """启动网关（会阻塞当前进程，按 Ctrl+C 停止）"""
+    """Ağ geçidini başlatın (mevcut işlemi engelleyecektir, tuşuna basın)Ctrl+Cdurmak)"""
     telegram_token = telegram or os.getenv("TELEGRAM_BOT_TOKEN")
     discord_token = discord or os.getenv("DISCORD_BOT_TOKEN")
 
     if not telegram_token and not discord_token:
         console.print(
-            "[yellow]⚠️ 未指定任何平台 Token。\n"
-            "设置以下环境变量之一：\n"
+            "[yellow]⚠️Platform belirtilmediToken.\n"
+            "Aşağıdaki ortam değişkenlerinden birini ayarlayın:\n"
             "  TELEGRAM_BOT_TOKEN=<token>  omc gateway start --telegram <token>\n"
             "  DISCORD_BOT_TOKEN=<token>   omc gateway start --discord <token>[/yellow]"
         )
         raise typer.Exit(code=1)
 
-    console.print("[green]启动网关...[/green]")
+    console.print("[green]Düşünce zinciri başladı...[/green]")
     if telegram_token:
-        console.print("  ✅ Telegram: 已配置")
+        console.print("  ✅ Telegram:yapılandırılmış")
     if discord_token:
-        console.print("  ✅ Discord: 已配置")
+        console.print("  ✅ Discord:yapılandırılmış")
 
     try:
         from src.gateway.gateway import Gateway
 
         gateway = Gateway(
-            orchestrator=None,  # TODO: 接入真实 Orchestrator（需先实现 WorkflowLoader）
+            orchestrator=None,  # TODO:Gerçekliğe erişimOrchestrator(öncelikle uygulanması gerekir)WorkflowLoader)
             telegram_token=telegram_token,
             discord_token=discord_token,
         )
 
         async def run():
             await gateway.start_all()
-            console.print("\n[green]✅ 网关已启动，按 Ctrl+C 停止[/green]")
-            # 保持运行直到收到信号
+            console.print("\n[green]✅Ağ geçidi başlatıldı, tuşuna basınCtrl+Cdurmak[/green]")
+            #Sinyal alınana kadar çalışmaya devam edin
             try:
                 while True:
                     await asyncio.sleep(3600)
@@ -122,15 +122,15 @@ def start(
         asyncio.run(run())
 
     except ImportError as e:
-        console.print(f"[red]❌ 依赖缺失: {e}[/red]")
-        console.print("安装命令：pip install python-telegram-bot discord.py")
+        console.print(f"[red]❌Eksik bağımlılıklar: {e}[/red]")
+        console.print("Kurulum komutu:pip install python-telegram-bot discord.py")
         raise typer.Exit(code=1)
     except Exception as e:
-        console.print(f"[red]❌ 启动失败: {e}[/red]")
+        console.print(f"[red]❌Başlatma başarısız oldu: {e}[/red]")
         raise typer.Exit(code=1)
 
 
 @app.command()
 def stop():
-    """停止网关（仅在使用后台进程时有意义）"""
-    console.print("[yellow]停止网关...（当前版本需要 Ctrl+C）[/yellow]")
+    """Ağ geçidini durdurun (yalnızca arka plan işlemi kullanıldığında anlamlıdır)"""
+    console.print("[yellow]Ağ geçidini durdur...(Geçerli sürüm gerektirirCtrl+C)[/yellow]")

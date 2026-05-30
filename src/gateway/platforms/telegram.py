@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 """
-Telegram Bot 平台处理器
+Telegram Bot platform isleyicisi
 
-使用 python-telegram-bot 库实现。
-支持：消息接收、消息发送、命令处理、回复。
+kullan python-telegram-bot kutuphaneuygula. 
+destek: mesajbaglanal, mesajgondergonder, komutisle, geritekrar. 
 """
 
 
@@ -15,7 +15,7 @@ from ..base import IncomingMessage, OutgoingMessage, Platform, PlatformHandler
 
 logger = logging.getLogger(__name__)
 
-# 尝试导入 telegram 库
+# deneiceri aktar telegram kutuphane
 try:
     from telegram import Update
     from telegram.ext import (
@@ -33,9 +33,9 @@ except ImportError:
 
 class TelegramHandler(PlatformHandler):
     """
-    Telegram Bot 处理器
+    Telegram Bot isleyici
 
-    接收用户消息 → 转为 IncomingMessage → 传给 on_message
+    baglanalkullanicimesaj → donusturicin IncomingMessage → iletver on_message
     """
 
     name = Platform.TELEGRAM
@@ -48,8 +48,8 @@ class TelegramHandler(PlatformHandler):
     ):
         """
         Args:
-            bot_token: Telegram Bot Token（从 @BotFather 获取）
-            allowed_user_ids: 白名单用户 ID（None = 不限制）
+            bot_token: Telegram Bot Token ( @BotFather al) 
+            allowed_user_ids: beyazisimtekilkullanici ID (None = hayirsinir) 
         """
         super().__init__(**kwargs)
         self.bot_token = bot_token
@@ -57,19 +57,19 @@ class TelegramHandler(PlatformHandler):
         self._app: Any = None
         self._dispatcher: Any = None
 
-    # ---- PlatformHandler 实现 ----
+    # ---- PlatformHandler uygula ----
 
     async def start(self) -> None:
         if not _HAS_TELEGRAM:
             raise RuntimeError(
-                "python-telegram-bot 未安装。运行: pip install python-telegram-bot"
+                "python-telegram-bot kurulu degil. Calistirin: pip install python-telegram-bot"
             )
 
         from telegram.ext import Application
 
         self._app = Application.builder().token(self.bot_token).build()
 
-        # 注册处理器
+        # kayitisleyici
         self._app.add_handler(CommandHandler("start", self._handle_start))
         self._app.add_handler(
             MessageHandler(filters.TEXT & ~filters.COMMAND, self._handle_text)
@@ -104,35 +104,35 @@ class TelegramHandler(PlatformHandler):
             self.on_error(e)
             return False
 
-    # ---- 内部处理器 ----
+    # ---- icindekisimisleyici ----
 
     async def _handle_start(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        """处理 /start 命令"""
+        """isle /start komut"""
         await update.message.reply_text(
-            "👋 欢迎使用 Oh My Coder！\n\n"
-            "发送消息即可开始对话。\n"
-            "输入 /help 查看可用命令。"
+            "👋 neselikarsilakullan Oh My Coder! \n\n"
+            "mesaj gonderyaniolabilirbaslaticinkonusma. \n"
+            "girdi /help goruntuleolabilirkullankomut. "
         )
 
     async def _handle_text(
         self, update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-        """处理文本消息"""
+        """islemetinmesaj"""
         user_id = str(update.effective_user.id)
         chat_id = str(update.effective_chat.id)
         text = update.message.text or ""
 
-        # 白名单检查
+        # beyazisimtekilkontrol
         if self.allowed_user_ids and user_id not in self.allowed_user_ids:
             logger.warning(
                 f"[telegram] Rejected message from unauthorized user: {user_id}"
             )
-            await update.message.reply_text("⚠️ 未授权的用户")
+            await update.message.reply_text("⚠️ henuzveryetkikullanici")
             return
 
-        # 转为统一格式
+        # donusturicinbirformat
         incoming = IncomingMessage(
             platform=Platform.TELEGRAM,
             user_id=user_id,
@@ -151,15 +151,15 @@ class TelegramHandler(PlatformHandler):
         except Exception as e:
             logger.exception(f"[telegram] on_message error: {e}")
             self.on_error(e)
-            await update.message.reply_text("⚠️ 处理消息时出错，请稍后重试。")
+            await update.message.reply_text("⚠️ islemesajzamanyanlis, lutfenbirazsonrayeniden dene. ")
 
 
-# ---- 依赖检查 ----
+# ---- bagimlilikkontrol ----
 
 
 def check_telegram_dependencies() -> bool:
-    """检查 Telegram 依赖是否满足"""
+    """kontrol Telegram bagimlilikolup olmadigidoluyeterli"""
     if not _HAS_TELEGRAM:
-        logger.error("python-telegram-bot 未安装")
+        logger.error("python-telegram-bot kurulu degil")
         return False
     return True

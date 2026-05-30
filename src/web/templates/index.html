@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oh My Coder - 多智能体 AI 编程助手</title>
+    <title>Oh My Coder - Çoklu Ajan AI Programlama Asistanı</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="stylesheet" href="/static/style.css?v=20260506">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -256,15 +256,15 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/" class="nav-link active">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link">历史</a>
-                <a href="/coverage" class="nav-link">覆盖率</a>
-                <a href="/docs" class="nav-link">文档</a>
-                <a href="/settings" class="nav-link">设置</a>
+                <a href="/" class="nav-link active">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link">Gösterge Paneli</a>
+                <a href="/history" class="nav-link">Geçmiş</a>
+                <a href="/coverage" class="nav-link">Kapsama</a>
+                <a href="/docs" class="nav-link">Belgeler</a>
+                <a href="/settings" class="nav-link">Ayarlar</a>
             </div>
             <div class="nav-actions">
-                <div class="nav-toggle" id="themeToggle" title="切换主题">☀️</div>
+                <div class="nav-toggle" id="themeToggle" title="Temayı değiştir">☀️</div>
                 <button class="nav-hamburger" id="navHamburger">☰</button>
             </div>
         </div>
@@ -275,17 +275,17 @@
         <section class="hero">
             <div class="hero-badge">
                 <span class="badge-dot"></span>
-                <span>Powered by GLM-4.7-Flash · 零成本智能编程</span>
+                <span>Powered by GLM-4.7-Flash · Sıfır maliyetli akıllı programlama</span>
             </div>
-            <h1 class="hero-title">让 AI 团队帮你写代码</h1>
-            <p class="hero-desc">多智能体协作，自动完成从需求分析到代码实现的完整流程。像指挥一个专业的工程团队一样，指挥多个 AI 智能体协作开发。</p>
+            <h1 class="hero-title">AI ekibi sizin için kod yazsın</h1>
+            <p class="hero-desc">Çoklu ajan işbirliği, gereksinim analizinden kod uygulamasına kadar olan süreci otomatik olarak tamamlar. Profesyonel bir mühendislik ekibini yönetir gibi, birden çok AI ajanını işbirliği halinde yönlendirin.</p>
         </section>
 
         <!-- Model List -->
         <section class="models-section">
-            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">🖥️ 可用模型</h3>
+            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">🖥️ Kullanılabilir Modeller</h3>
             <div class="models-grid" id="modelsGrid">
-                <!-- 动态加载 -->
+                <!-- Dinamik yükleme -->
             </div>
         </section>
 
@@ -295,109 +295,109 @@
                 <div class="pipeline-icon waiting" id="step-explore" data-step="explore">
                     <span class="step-emoji">🔍</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">探索</span>
+                <span class="pipeline-label">Keşfet</span>
             </div>
             <div class="pipeline-arrow" id="arrow-1">→</div>
             <div class="pipeline-step">
                 <div class="pipeline-icon waiting" id="step-analyst" data-step="analyst">
                     <span class="step-emoji">🧠</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">分析</span>
+                <span class="pipeline-label">Analiz</span>
             </div>
             <div class="pipeline-arrow" id="arrow-2">→</div>
             <div class="pipeline-step">
                 <div class="pipeline-icon waiting" id="step-architect" data-step="architect">
                     <span class="step-emoji">🏗️</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">设计</span>
+                <span class="pipeline-label">Tasarım</span>
             </div>
             <div class="pipeline-arrow" id="arrow-3">→</div>
             <div class="pipeline-step">
                 <div class="pipeline-icon waiting" id="step-executor" data-step="executor">
                     <span class="step-emoji">💻</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">实现</span>
+                <span class="pipeline-label">Uygulama</span>
             </div>
             <div class="pipeline-arrow" id="arrow-4">→</div>
             <div class="pipeline-step">
                 <div class="pipeline-icon waiting" id="step-verifier" data-step="verifier">
                     <span class="step-emoji">✅</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">验证</span>
+                <span class="pipeline-label">Doğrulama</span>
             </div>
         </div>
 
         <!-- Task Form -->
         <div class="task-card">
             <div class="task-header">
-                <h2>🚀 开始新任务</h2>
-                <p class="task-subtitle">描述你的需求，AI 团队将自动协作完成</p>
+                <h2>🚀 Yeni Görev Başlat</h2>
+                <p class="task-subtitle">İhtiyacınızı tanımlayın, AI ekibi otomatik olarak işbirliği ile tamamlayacak</p>
             </div>
             <form id="taskForm">
                 <div class="form-group">
-                    <label for="taskInput" class="form-label">任务描述</label>
-                    <textarea id="taskInput" class="form-textarea" placeholder="例如：实现一个用户认证系统，包括注册、登录、JWT 令牌、密码重置等功能" rows="4" required></textarea>
-                    <div class="form-hint">💡 越详细的需求描述，AI 团队的理解和实现效果越好</div>
+                    <label for="taskInput" class="form-label">Görev Açıklaması</label>
+                    <textarea id="taskInput" class="form-textarea" placeholder="Örneğin: Kayıt, giriş, JWT token, parola sıfırlama gibi özellikleri içeren bir kullanıcı kimlik doğrulama sistemi uygula" rows="4" required></textarea>
+                    <div class="form-hint">💡 İhtiyacı ne kadar detaylı açıklarsanız, AI ekibinin anlama ve uygulama kalitesi o kadar iyi olur</div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">分析目标</label>
+                        <label class="form-label">Analiz Hedefi</label>
                         <div class="target-tabs-row">
-                            <button type="button" id="tab-local" class="target-tab active" onclick="switchTargetTab('local')">📂 本地路径</button>
+                            <button type="button" id="tab-local" class="target-tab active" onclick="switchTargetTab('local')">📂 Yerel Yol</button>
                             <button type="button" id="tab-github" class="target-tab" onclick="switchTargetTab('github')">🔗 GitHub</button>
-                            <button type="button" id="tab-url" class="target-tab" onclick="switchTargetTab('url')">🌐 网页</button>
+                            <button type="button" id="tab-url" class="target-tab" onclick="switchTargetTab('url')">🌐 Web</button>
                         </div>
                         <div id="target-local" class="target-panel">
-                            <input type="text" id="projectPath" class="form-input" placeholder="输入本地文件夹路径，或点击下方快捷按钮">
+                            <input type="text" id="projectPath" class="form-input" placeholder="Yerel klasör yolunu girin veya aşağıdaki kısayol düğmelerine tıklayın">
                             <div class="quick-buttons-row">
-                                <button type="button" onclick="setPath('~/Desktop')" class="quick-btn">📁 桌面</button>
-                                <button type="button" onclick="setPath('~/Documents')" class="quick-btn">📄 文稿</button>
-                                <button type="button" onclick="setPath('~')" class="quick-btn">🏠 用户目录</button>
-                                <button type="button" onclick="setPath('.')" class="quick-btn">📂 当前目录</button>
+                                <button type="button" onclick="setPath('~/Desktop')" class="quick-btn">📁 Masaüstü</button>
+                                <button type="button" onclick="setPath('~/Documents')" class="quick-btn">📄 Belgeler</button>
+                                <button type="button" onclick="setPath('~')" class="quick-btn">🏠 Kullanıcı Dizini</button>
+                                <button type="button" onclick="setPath('.')" class="quick-btn">📂 Geçerli Dizin</button>
                             </div>
-                            <div class="form-hint">你想让 AI 分析哪个代码文件夹？留空则分析当前目录</div>
+                            <div class="form-hint">AI'ın hangi kod klasörünü analiz etmesini istiyorsunuz? Boş bırakırsanız geçerli dizin analiz edilir</div>
                         </div>
                         <div id="target-github" class="target-panel" style="display:none;">
-                            <input type="text" id="githubUrl" class="form-input" placeholder="https://github.com/用户名/仓库名">
-                            <div class="form-hint">粘贴 GitHub 仓库链接，AI 会自动克隆并分析代码</div>
+                            <input type="text" id="githubUrl" class="form-input" placeholder="https://github.com/kullanici/depo">
+                            <div class="form-hint">GitHub depo bağlantısını yapıştırın, AI otomatik olarak klonlayıp kodu analiz eder</div>
                         </div>
                         <div id="target-url" class="target-panel" style="display:none;">
                             <input type="text" id="webUrl" class="form-input" placeholder="https://example.com/page">
-                            <div class="form-hint">粘贴网页链接，AI 会抓取内容作为分析上下文</div>
+                            <div class="form-hint">Web bağlantısını yapıştırın, AI içeriği bağlam olarak alır</div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="modelSelect" class="form-label">模型选择</label>
+                        <label for="modelSelect" class="form-label">Model Seçimi</label>
                         <select id="modelSelect" class="form-select">
-                            <option value="deepseek" selected>DeepSeek V4 (推荐·低成本)</option>
+                            <option value="deepseek" selected>DeepSeek V4 (Önerilen·Düşük maliyet)</option>
 
-                            <option value="glm-4-flash">GLM-4.7-Flash (免费)</option>
-                            <option value="MiniMax-Text-01">MiMo Flash (免费)</option>
-                            <option value="moonshot-v1-128k">Kimi 128K (低成本)</option>
-                            <option value="doubao-pro-32k">Doubao-Pro (低成本)</option>
-                            <option value="tiangong-3">天工 3.0 (低成本)</option>
-                            <option value="Baichuan4">百川 4 (低成本)</option>
+                            <option value="glm-4-flash">GLM-4.7-Flash (Ücretsiz)</option>
+                            <option value="MiniMax-Text-01">MiMo Flash (Ücretsiz)</option>
+                            <option value="moonshot-v1-128k">Kimi 128K (Düşük maliyet)</option>
+                            <option value="doubao-pro-32k">Doubao-Pro (Düşük maliyet)</option>
+                            <option value="tiangong-3">Tiangong 3.0 (Düşük maliyet)</option>
+                            <option value="Baichuan4">Baichuan 4 (Düşük maliyet)</option>
                             <!-- Custom models injected by JS -->
                         </select>
-                        <a href="/settings#apikeys" class="form-link" style="margin-top:6px;font-size:12px;">⚙️ 管理供应商/添加自定义模型</a>
+                        <a href="/settings#apikeys" class="form-link" style="margin-top:6px;font-size:12px;">⚙️ Sağlayıcıları yönet/özel model ekle</a>
                     </div>
                     <div class="form-group">
-                        <label for="workflowSelect" class="form-label">工作流</label>
+                        <label for="workflowSelect" class="form-label">İş Akışı</label>
                         <select id="workflowSelect" class="form-select">
-                            <option value="build" selected>🚀 完整开发 (build)</option>
-                            <option value="review">🔍 代码审查</option>
-                            <option value="debug">🐛 调试修复</option>
-                            <option value="test">🧪 测试用例</option>
-                            <option value="refactor">♻️ 重构优化</option>
-                            <option value="doc">📖 文档生成</option>
-                            <option value="pair">👥 结对编程</option>
-                            <option value="autopilot">🤖 自动驾驶</option>
-                            <option value="sequential">📋 顺序执行</option>
+                            <option value="build" selected>🚀 Tam Geliştirme (build)</option>
+                            <option value="review">🔍 Kod İncelemesi</option>
+                            <option value="debug">🐛 Hata Ayıklama</option>
+                            <option value="test">🧪 Test Senaryoları</option>
+                            <option value="refactor">♻️ Yeniden Düzenleme</option>
+                            <option value="doc">📖 Belge Üretimi</option>
+                            <option value="pair">👥 Eşli Programlama</option>
+                            <option value="autopilot">🤖 Otomatik Pilot</option>
+                            <option value="sequential">📋 Sıralı Yürütme</option>
                         </select>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
-                    <span class="btn-text">▶ 启动 AI 团队</span>
+                    <span class="btn-text">▶ AI Ekibini Başlat</span>
                     <div class="btn-spinner"></div>
                 </button>
             </form>
@@ -411,12 +411,12 @@
         <!-- Response (hidden) -->
         <div id="responseSection" class="response-container" style="display:none;">
             <div class="response-tabs">
-                <button class="response-tab active" data-tab="result">📋 执行结果</button>
+                <button class="response-tab active" data-tab="result">📋 Yürütme Sonucu</button>
                 <button class="response-tab" data-tab="explore">🔍 Explore</button>
                 <button class="response-tab" data-tab="analyst">🧠 Analyst</button>
                 <button class="response-tab" data-tab="architect">🏗️ Architect</button>
                 <button class="response-tab" data-tab="executor">💻 Executor</button>
-                <button class="response-tab" data-tab="stats">📊 统计</button>
+                <button class="response-tab" data-tab="stats">📊 İstatistikler</button>
             </div>
             <div class="response-panel active" data-panel="result" id="panel-result"></div>
             <div class="response-panel" data-panel="explore" id="panel-explore"></div>
@@ -428,39 +428,39 @@
 
         <!-- Examples -->
         <section style="margin-bottom:40px;">
-            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">💡 试试这些任务</h3>
+            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">💡 Bu görevleri deneyin</h3>
             <div class="examples-grid">
-                <button class="example-card" data-task="实现一个 REST API 用户管理接口，包含 CRUD 操作，使用 FastAPI 框架" data-workflow="build">
+                <button class="example-card" data-task="FastAPI çerçevesini kullanarak, CRUD işlemleri içeren bir REST API kullanıcı yönetim arayüzü uygula" data-workflow="build">
                     <span class="example-icon">🌐</span>
-                    <span class="example-title">REST API 开发</span>
-                    <span class="example-desc">FastAPI 用户管理 CRUD</span>
+                    <span class="example-title">REST API Geliştirme</span>
+                    <span class="example-desc">FastAPI kullanıcı yönetimi CRUD</span>
                 </button>
-                <button class="example-card" data-task="审查当前项目的代码质量和安全漏洞" data-workflow="review">
+                <button class="example-card" data-task="Mevcut projenin kod kalitesini ve güvenlik açıklarını inceleyin" data-workflow="review">
                     <span class="example-icon">🔍</span>
-                    <span class="example-title">代码审查</span>
-                    <span class="example-desc">质量 + 安全检查</span>
+                    <span class="example-title">Kod İncelemesi</span>
+                    <span class="example-desc">Kalite + güvenlik denetimi</span>
                 </button>
-                <button class="example-card" data-task="修复登录页面无法正确跳转的问题" data-workflow="debug">
+                <button class="example-card" data-task="Giriş sayfasının doğru yönlendirilememesi sorununu düzelt" data-workflow="debug">
                     <span class="example-icon">🐛</span>
-                    <span class="example-title">Bug 调试</span>
-                    <span class="example-desc">定位并修复问题</span>
+                    <span class="example-title">Hata Ayıklama</span>
+                    <span class="example-desc">Sorunu tespit et ve düzelt</span>
                 </button>
-                <button class="example-card" data-task="为项目编写单元测试，覆盖核心业务逻辑" data-workflow="test">
+                <button class="example-card" data-task="Proje için temel iş mantığını kapsayan birim testler yaz" data-workflow="test">
                     <span class="example-icon">🧪</span>
-                    <span class="example-title">测试用例</span>
-                    <span class="example-desc">核心逻辑全覆盖</span>
+                    <span class="example-title">Test Senaryoları</span>
+                    <span class="example-desc">Temel mantığı tam kapsama</span>
                 </button>
             </div>
         </section>
 
         <!-- Features -->
         <section style="margin-bottom:40px;">
-            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">⚡ 核心能力</h3>
+            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">⚡ Temel Yetenekler</h3>
             <div class="grid-4">
-                <div class="feature-card"><span class="feature-icon">🧠</span><h4>智能路由</h4><p>按任务复杂度自动选模型，节省 30-50% Token</p></div>
-                <div class="feature-card"><span class="feature-icon">🤝</span><h4>多 Agent 协作</h4><p>多个专业 Agent 分工协作</p></div>
-                <div class="feature-card"><span class="feature-icon">💰</span><h4>零成本运行</h4><p>优先使用 GLM-4.7-Flash 免费额度</p></div>
-                <div class="feature-card"><span class="feature-icon">🔄</span><h4>全流程覆盖</h4><p>从探索分析到代码实现、测试验证</p></div>
+                <div class="feature-card"><span class="feature-icon">🧠</span><h4>Akıllı Yönlendirme</h4><p>Görev karmaşıklığına göre otomatik model seçimi, %30-50 Token tasarrufu</p></div>
+                <div class="feature-card"><span class="feature-icon">🤝</span><h4>Çoklu Agent İşbirliği</h4><p>Birden fazla uzman Agent görev bölümü ile işbirliği</p></div>
+                <div class="feature-card"><span class="feature-icon">💰</span><h4>Sıfır Maliyetli Çalışma</h4><p>Öncelikli olarak GLM-4.7-Flash ücretsiz kotası kullanılır</p></div>
+                <div class="feature-card"><span class="feature-icon">🔄</span><h4>Uçtan Uca Kapsama</h4><p>Keşif analizinden kod uygulamasına, test doğrulamaya kadar</p></div>
             </div>
         </section>
     </main>
@@ -514,24 +514,24 @@
         async function loadModels() {
             const grid = document.getElementById('modelsGrid');
             const cloudModels = [
-                { name: 'DeepSeek V4', provider: 'DeepSeek', icon: '🟢', badge: '低成本', online: true },
+                { name: 'DeepSeek V4', provider: 'DeepSeek', icon: '🟢', badge: 'Düşük maliyet', online: true },
 
-                { name: 'GLM-4.7-Flash', provider: '智谱', icon: '🔵', badge: '免费', online: true },
-                { name: 'MiMo Flash', provider: '小米 Xiaomi', icon: '⚡', badge: '免费', online: true },
-                { name: 'Kimi 128K', provider: '月之暗面', icon: '🟣', badge: '低成本', online: true },
-                { name: 'Doubao-Pro', provider: '字节跳动', icon: '🟡', badge: '低成本', online: true },
-                { name: '天工 3.0', provider: '天工', icon: '⚪', badge: '低成本', online: true },
-                { name: '百川 4', provider: '百川智能', icon: '🟤', badge: '低成本', online: true },
+                { name: 'GLM-4.7-Flash', provider: 'Zhipu', icon: '🔵', badge: 'Ücretsiz', online: true },
+                { name: 'MiMo Flash', provider: 'Xiaomi', icon: '⚡', badge: 'Ücretsiz', online: true },
+                { name: 'Kimi 128K', provider: 'Moonshot', icon: '🟣', badge: 'Düşük maliyet', online: true },
+                { name: 'Doubao-Pro', provider: 'ByteDance', icon: '🟡', badge: 'Düşük maliyet', online: true },
+                { name: 'Tiangong 3.0', provider: 'Tiangong', icon: '⚪', badge: 'Düşük maliyet', online: true },
+                { name: 'Baichuan 4', provider: 'Baichuan AI', icon: '🟤', badge: 'Düşük maliyet', online: true },
             ];
 
-            // 尝试加载本地模型
+            // Yerel modelleri yüklemeyi dene
             let localModels = [];
             try {
                 const res = await fetch('/api/local-models/status');
                 const data = await res.json();
                 if (data.available && data.models) {
                     localModels = data.models.map(m => ({
-                        name: m.name, provider: 'Ollama (本地)', icon: '🖥️', badge: '本地', online: true
+                        name: m.name, provider: 'Ollama (Yerel)', icon: '🖥️', badge: 'Yerel', online: true
                     }));
                 }
             } catch (e) {}
@@ -542,7 +542,7 @@
             try {
                 const custom = JSON.parse(localStorage.getItem('omc-custom-models') || '[]');
                 custom.forEach(m => {
-                    all.push({ name: m.name, provider: m.provider || '自定义', icon: '🔧', badge: '自定义', online: true });
+                    all.push({ name: m.name, provider: m.provider || 'Özel', icon: '🔧', badge: 'Özel', online: true });
                 });
             } catch {}
 
@@ -551,7 +551,7 @@
                     <div class="model-item-icon">${m.icon}</div>
                     <div class="model-item-info">
                         <div class="model-item-name">${escapeHtml(m.name)}</div>
-                        <div class="model-item-provider">${escapeHtml(m.provider)} · <span class="badge badge-${m.badge === '免费' ? 'success' : m.badge === '本地' ? 'primary' : 'warning'}" style="font-size:11px;">${escapeHtml(m.badge)}</span></div>
+                        <div class="model-item-provider">${escapeHtml(m.provider)} · <span class="badge badge-${m.badge === 'Ücretsiz' ? 'success' : m.badge === 'Yerel' ? 'primary' : 'warning'}" style="font-size:11px;">${escapeHtml(m.badge)}</span></div>
                     </div>
                     <div class="model-item-status ${m.online ? 'online' : 'offline'}"></div>
                 </div>
@@ -566,7 +566,7 @@
                     custom.forEach(m => {
                         const opt = document.createElement('option');
                         opt.value = 'custom:' + m.id;
-                        opt.textContent = m.name + ' (自定义)';
+                        opt.textContent = m.name + ' (Özel)';
                         opt.setAttribute('data-custom', '1');
                         sel.appendChild(opt);
                     });
@@ -590,7 +590,7 @@
             ['explore','analyst','architect','executor','verifier'].forEach(s => {
                 state.stepStatus[s] = 'waiting'; state.stepOutputs[s] = ''; setStepStatus(s, 'waiting');
             });
-            // 清空动态步骤进度
+            // Dinamik adım ilerlemesini temizle
             const dsi = document.getElementById('stepProgressInner');
             if (dsi) dsi.innerHTML = '';
         }
@@ -622,7 +622,7 @@
         // ===== Markdown =====
         marked.setOptions({ breaks: true, gfm: true });
         function md(t) {
-            if (!t) return '<p style="color:var(--text-muted)">暂无输出</p>';
+            if (!t) return '<p style="color:var(--text-muted)">Henüz çıktı yok</p>';
             try {
                 const html = marked.parse(t);
                 if (typeof DOMPurify !== 'undefined') {
@@ -640,21 +640,21 @@
             es.onmessage = e => { try { handleSSE(JSON.parse(e.data)); } catch(err) {} };
             es.onerror = () => { es.close(); };
         }
-        // 动态步骤名称映射
+        // Dinamik adım adı eşlemesi
         const STEP_LABELS = {
-            'explore': '🔍 探索', 'analyst': '🧠 分析', 'architect': '🏗️ 设计',
-            'executor': '💻 实现', 'verifier': '✅ 验证',
-            'code-reviewer': '🔍 代码审查', 'security-reviewer': '🛡️ 安全审查',
-            'code-simplifier': '✂️ 代码简化', 'planner': '📋 规划',
-            'critic': '🔎 批判分析', 'writer': '📝 文档',
-            'performance': '⚡ 性能分析', 'database': '🗄️ 数据库审查',
+            'explore': '🔍 Keşfet', 'analyst': '🧠 Analiz', 'architect': '🏗️ Tasarım',
+            'executor': '💻 Uygulama', 'verifier': '✅ Doğrulama',
+            'code-reviewer': '🔍 Kod İncelemesi', 'security-reviewer': '🛡️ Güvenlik İncelemesi',
+            'code-simplifier': '✂️ Kod Sadeleştirme', 'planner': '📋 Planlama',
+            'critic': '🔎 Eleştirel Analiz', 'writer': '📝 Belge',
+            'performance': '⚡ Performans Analizi', 'database': '🗄️ Veritabanı İncelemesi',
         };
         function getStepLabel(step) { return STEP_LABELS[step] || `🤖 ${step}`; }
 
         function updateDynamicStep(step, status) {
             const el = document.getElementById('stepProgressInner');
             if (!el) return;
-            // 找到或创建这个步骤的标签
+            // Bu adımın etiketini bul veya oluştur
             let tag = el.querySelector(`[data-step="${step}"]`);
             if (!tag) {
                 tag = document.createElement('span');
@@ -680,17 +680,17 @@
             if (type === 'step_active') {
                 setStepStatus(step, 'active');
                 updateDynamicStep(step, 'active');
-                // 确保响应区域可见
+                // Yanıt alanının görünür olduğundan emin ol
                 if (document.getElementById('responseSection').style.display === 'none') {
                     document.getElementById('responseSection').style.display = 'block';
                     document.getElementById('stepProgress').style.display = 'block';
                 }
-                // 自动切换到当前步骤的面板
+                // Geçerli adımın paneline otomatik geç
                 const panel = document.getElementById(`panel-${step}`);
                 if (panel) {
                     document.querySelectorAll('.response-tab').forEach(t => t.classList.remove('active'));
                     document.querySelectorAll('.response-panel').forEach(p => p.classList.remove('active'));
-                    // 尝试点击对应的tab
+                    // İlgili sekmeye tıklamayı dene
                     const tab = document.querySelector(`[data-tab="${step}"]`);
                     if (tab) { tab.classList.add('active'); panel.classList.add('active'); }
                     else { document.querySelector('[data-tab="result"]').classList.add('active'); document.getElementById('panel-result').classList.add('active'); }
@@ -700,19 +700,19 @@
                 state.stepOutputs[step] = content || '';
                 advancePipeline(step);
                 updateDynamicStep(step, 'completed');
-                // 实时更新面板内容
+                // Panel içeriğini gerçek zamanlı güncelle
                 const panel = document.getElementById(`panel-${step}`);
                 if (panel) panel.innerHTML = `<div class="markdown-body">${md(content || '')}</div>`;
             }
             else if (type === 'step_failed') {
                 setStepStatus(step, 'failed');
                 updateDynamicStep(step, 'failed');
-                showToast(`❌ ${escapeHtml(step)} 失败`, 'error');
+                showToast(`❌ ${escapeHtml(step)} başarısız`, 'error');
                 const panel = document.getElementById(`panel-${step}`);
-                if (panel) panel.innerHTML = `<div style="color:var(--danger);padding:16px;">❌ <b>${escapeHtml(step)}</b> 执行失败:<br><pre style="margin-top:8px;white-space:pre-wrap;font-size:13px;">${escapeHtml(content || '未知错误')}</pre></div>`;
+                if (panel) panel.innerHTML = `<div style="color:var(--danger);padding:16px;">❌ <b>${escapeHtml(step)}</b> yürütme başarısız:<br><pre style="margin-top:8px;white-space:pre-wrap;font-size:13px;">${escapeHtml(content || 'Bilinmeyen hata')}</pre></div>`;
             }
             else if (type === 'complete') { state.result = d.result || d; renderResult(); autoSaveReport(taskId); }
-            else if (type === 'error') { showToast(`执行失败: ${content}`, 'error'); stopRunning(); }
+            else if (type === 'error') { showToast(`Yürütme başarısız: ${content}`, 'error'); stopRunning(); }
         }
 
         // ===== Render =====
@@ -725,27 +725,27 @@
             const hasFailures = stats?.steps_failed?.length > 0;
             const allFailed = stats?.steps_failed?.length > 0 && stats?.steps_completed?.length === 0;
 
-            // 主结果面板
+            // Ana sonuç paneli
             let resultHtml = '';
             if (allFailed) {
                 resultHtml = `<div style="text-align:center;padding:40px 20px;">
                     <div style="font-size:48px;margin-bottom:16px;">❌</div>
-                    <h3 style="color:var(--danger);margin-bottom:8px;">任务执行失败</h3>
-                    <p style="color:var(--text-muted);">所有步骤均失败，请检查 API 配置后重试</p>
-                    ${stats?.steps_failed?.map(s => `<div style="margin-top:12px;padding:8px 16px;background:var(--bg-secondary);border-radius:8px;display:inline-block;font-size:13px;">❌ ${s}: ${state.stepOutputs[s] || '未知错误'}</div>`).join('')}
+                    <h3 style="color:var(--danger);margin-bottom:8px;">Görev yürütme başarısız</h3>
+                    <p style="color:var(--text-muted);">Tüm adımlar başarısız oldu, lütfen API yapılandırmasını kontrol edip tekrar deneyin</p>
+                    ${stats?.steps_failed?.map(s => `<div style="margin-top:12px;padding:8px 16px;background:var(--bg-secondary);border-radius:8px;display:inline-block;font-size:13px;">❌ ${s}: ${state.stepOutputs[s] || 'Bilinmeyen hata'}</div>`).join('')}
                 </div>`;
             } else if (hasFailures) {
                 resultHtml = `<div class="markdown-body">${md(r?.result || '')}</div>
                     <div style="margin-top:16px;padding:12px 16px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
-                        <b style="color:var(--danger);">⚠️ 部分步骤失败：</b>
-                        ${stats?.steps_failed?.map(s => `<div style="margin-top:6px;font-size:13px;">❌ <b>${escapeHtml(s)}</b>: ${escapeHtml(state.stepOutputs[s] || '未知错误')}</div>`).join('')}
+                        <b style="color:var(--danger);">⚠️ Bazı adımlar başarısız:</b>
+                        ${stats?.steps_failed?.map(s => `<div style="margin-top:6px;font-size:13px;">❌ <b>${escapeHtml(s)}</b>: ${escapeHtml(state.stepOutputs[s] || 'Bilinmeyen hata')}</div>`).join('')}
                     </div>`;
             } else {
                 resultHtml = `<div class="markdown-body">${md(r?.result || r)}</div>`;
             }
             document.getElementById('panel-result').innerHTML = resultHtml;
 
-            // 各步骤面板
+            // Her adım paneli
             ['explore','analyst','architect','executor','verifier'].forEach(s => {
                 const p = document.getElementById(`panel-${s}`);
                 if (p && !p.querySelector('pre')) {
@@ -755,35 +755,35 @@
             renderStats(stats);
             document.querySelector('[data-tab="result"]').click();
             if (allFailed) {
-                showToast('❌ 任务执行失败，请检查 API 配置', 'error');
+                showToast('❌ Görev yürütme başarısız, lütfen API yapılandırmasını kontrol edin', 'error');
             } else if (hasFailures) {
-                showToast('⚠️ 任务完成，部分步骤失败', 'error');
+                showToast('⚠️ Görev tamamlandı, bazı adımlar başarısız', 'error');
             } else {
-                showToast('执行完成！🎉', 'success');
+                showToast('Yürütme tamamlandı! 🎉', 'success');
             }
         }
         function renderStats(stats) {
             const p = document.getElementById('panel-stats');
-            if (!stats) { p.innerHTML = '<div class="empty-state"><span class="empty-state-icon">📊</span><p>暂无统计信息</p></div>'; return; }
+            if (!stats) { p.innerHTML = '<div class="empty-state"><span class="empty-state-icon">📊</span><p>Henüz istatistik bilgisi yok</p></div>'; return; }
             p.innerHTML = `
                 <div class="stats-grid" style="margin-bottom:24px;">
                     <div class="stat-card"><div class="stat-value">${stats.total_tokens||0}</div><div class="stat-label">Tokens</div></div>
-                    <div class="stat-card"><div class="stat-value">${stats.execution_time||0}s</div><div class="stat-label">执行时间</div></div>
-                    <div class="stat-card"><div class="stat-value">¥${(stats.total_cost||0).toFixed(4)}</div><div class="stat-label">估算成本</div></div>
-                    <div class="stat-card"><div class="stat-value">${(stats.steps_completed||[]).length}/${stats.steps_total||5}</div><div class="stat-label">完成步骤</div></div>
+                    <div class="stat-card"><div class="stat-value">${stats.execution_time||0}s</div><div class="stat-label">Yürütme Süresi</div></div>
+                    <div class="stat-card"><div class="stat-value">¥${(stats.total_cost||0).toFixed(4)}</div><div class="stat-label">Tahmini Maliyet</div></div>
+                    <div class="stat-card"><div class="stat-value">${(stats.steps_completed||[]).length}/${stats.steps_total||5}</div><div class="stat-label">Tamamlanan Adımlar</div></div>
                 </div>
                 <div style="text-align:right;margin-top:8px;">
-                    <button class="btn btn-ghost btn-sm" onclick="deleteCurrentTask()" style="color:var(--danger);font-size:13px;">🗑️ 删除此任务</button>
-                    <a href="/history" class="btn btn-ghost btn-sm" style="font-size:13px;margin-left:8px;">📋 查看全部历史</a>
+                    <button class="btn btn-ghost btn-sm" onclick="deleteCurrentTask()" style="color:var(--danger);font-size:13px;">🗑️ Bu Görevi Sil</button>
+                    <a href="/history" class="btn btn-ghost btn-sm" style="font-size:13px;margin-left:8px;">📋 Tüm Geçmişi Gör</a>
                 </div>`;
         }
         async function deleteCurrentTask() {
             if (!state.currentTask) return;
-            if (!confirm('确定要删除这个任务吗？')) return;
+            if (!confirm('Bu görevi silmek istediğinizden emin misiniz?')) return;
             try {
                 await fetch(`/api/tasks/${state.currentTask}`, { method: 'DELETE' });
                 document.getElementById('responseSection').style.display = 'none';
-                showToast('已删除', 'info');
+                showToast('Silindi', 'info');
             } catch (e) {}
         }
 
@@ -813,7 +813,7 @@
             }
         }
 
-        // 任务完成后自动保存报告
+        // Görev tamamlandıktan sonra raporu otomatik kaydet
         async function autoSaveReport(taskId) {
             try {
                 const res = await fetch(`/api/tasks/${taskId}`);
@@ -825,9 +825,9 @@
                 });
                 const data = await saveRes.json();
                 if (data.path) {
-                    showToast(`📄 报告已保存: ${data.path}`, 'success', 5000);
+                    showToast(`📄 Rapor kaydedildi: ${data.path}`, 'success', 5000);
                 }
-            } catch (e) { console.error('自动保存报告失败:', e); }
+            } catch (e) { console.error('Raporu otomatik kaydetme başarısız:', e); }
         }
 
         // ===== Form Submit =====
@@ -835,7 +835,7 @@
             e.preventDefault();
             if (state.isRunning) return;
             const task = document.getElementById('taskInput').value.trim();
-            if (!task) { showToast('请输入任务描述', 'error'); return; }
+            if (!task) { showToast('Lütfen görev açıklaması girin', 'error'); return; }
             startRunning(); resetPipeline();
             document.getElementById('responseSection').style.display = 'none';
             try {
@@ -852,10 +852,10 @@
                     })
                 });
                 const data = await res.json();
-                if (data.status === 'started') { state.currentTask = data.task_id; showToast('任务已启动', 'info', 2000); startSSE(data.task_id); }
+                if (data.status === 'started') { state.currentTask = data.task_id; showToast('Görev başlatıldı', 'info', 2000); startSSE(data.task_id); }
                 else if (data.status === 'success') { state.result = data.result; renderResult(); }
-                else { showToast(data.message || '执行失败', 'error'); stopRunning(); }
-            } catch (err) { showToast(`网络错误: ${err.message}`, 'error'); stopRunning(); }
+                else { showToast(data.message || 'Yürütme başarısız', 'error'); stopRunning(); }
+            } catch (err) { showToast(`Ağ hatası: ${err.message}`, 'error'); stopRunning(); }
         }
         function startRunning() {
             state.isRunning = true;
@@ -873,7 +873,7 @@
         document.getElementById('taskForm').addEventListener('submit', handleSubmit);
 
         // ===== Health Check =====
-        fetch('/health').catch(() => showToast('后端服务未连接', 'error'));
+        fetch('/health').catch(() => showToast('Arka uç servisine bağlanılamadı', 'error'));
     
         // Custom model management
         const CUSTOM_MODELS_KEY = 'omc-custom-models';
@@ -893,11 +893,11 @@
         function addCustomModel() {
             const name = document.getElementById('cm-name').value.trim();
             const url = document.getElementById('cm-url').value.trim();
-            if (!name || !url) { showToast('请填写模型名称和 API 地址', 'error'); return; }
+            if (!name || !url) { showToast('Lütfen model adını ve API adresini girin', 'error'); return; }
             const model = {
                 id: 'cm-' + Date.now(),
                 name: name,
-                provider: document.getElementById('cm-provider').value.trim() || '自定义',
+                provider: document.getElementById('cm-provider').value.trim() || 'Özel',
                 url: url,
                 key: document.getElementById('cm-key').value.trim(),
                 modelId: document.getElementById('cm-model-id').value.trim() || name
@@ -907,7 +907,7 @@
             saveCustomModels(models);
             injectCustomModels();
             closeAddCustomModel();
-            showToast('✅ 已添加 ' + name, 'success');
+            showToast('✅ ' + name + ' eklendi', 'success');
         }
         async function testCustomModel() {
             const url = document.getElementById('cm-url').value.trim();
@@ -915,9 +915,9 @@
             const modelId = document.getElementById('cm-model-id').value.trim() || document.getElementById('cm-name').value.trim();
             const msgDiv = document.getElementById('cm-test-msg');
             const btn = document.getElementById('cm-test-btn');
-            if (!url) { msgDiv.textContent = '⚠️ 请先填写 API 地址'; msgDiv.style.display = 'block'; msgDiv.style.color = 'var(--danger)'; return; }
-            if (!modelId) { msgDiv.textContent = '⚠️ 请填写模型 ID 或模型名称'; msgDiv.style.display = 'block'; msgDiv.style.color = 'var(--danger)'; return; }
-            btn.disabled = true; btn.textContent = '⏳ 测试中...';
+            if (!url) { msgDiv.textContent = '⚠️ Lütfen önce API adresini girin'; msgDiv.style.display = 'block'; msgDiv.style.color = 'var(--danger)'; return; }
+            if (!modelId) { msgDiv.textContent = '⚠️ Lütfen model ID veya model adını girin'; msgDiv.style.display = 'block'; msgDiv.style.color = 'var(--danger)'; return; }
+            btn.disabled = true; btn.textContent = '⏳ Test ediliyor...';
             msgDiv.style.display = 'none';
             try {
                 const res = await fetch('/api/test-connection', {
@@ -934,17 +934,17 @@
                     msgDiv.style.color = 'var(--danger)';
                 }
             } catch (e) {
-                msgDiv.textContent = '❌ 测试失败: ' + e.message;
+                msgDiv.textContent = '❌ Test başarısız: ' + e.message;
                 msgDiv.style.color = 'var(--danger)';
             }
             msgDiv.style.display = 'block';
-            btn.disabled = false; btn.textContent = '🔗 测试连接';
+            btn.disabled = false; btn.textContent = '🔗 Bağlantıyı Test Et';
         }
         function deleteCustomModel(id) {
             const models = getCustomModels().filter(m => m.id !== id);
             saveCustomModels(models);
             injectCustomModels();
-            showToast('已删除', 'info');
+            showToast('Silindi', 'info');
         }
         function injectCustomModels() {
             const sel = document.getElementById('modelSelect');
@@ -954,7 +954,7 @@
             models.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = 'custom:' + m.id;
-                opt.textContent = m.name + ' (自定义)';
+                opt.textContent = m.name + ' (Özel)';
                 opt.setAttribute('data-custom', '1');
                 sel.appendChild(opt);
             });
@@ -966,31 +966,31 @@
     <!-- Add Custom Model Modal -->
     <div id="addCustomModelModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;justify-content:center;align-items:center" onclick="closeAddCustomModel()">
         <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:16px;padding:32px;width:480px;max-width:90vw" onclick="event.stopPropagation()">
-            <h3 style="margin:0 0 24px;font-size:18px">添加自定义模型</h3>
+            <h3 style="margin:0 0 24px;font-size:18px">Özel Model Ekle</h3>
             <div class="form-group">
-                <label class="form-label">模型名称 <span style="color:var(--danger)">*</span></label>
-                <input type="text" class="form-input" id="cm-name" placeholder="例如：我的 Qwen Coder">
+                <label class="form-label">Model Adı <span style="color:var(--danger)">*</span></label>
+                <input type="text" class="form-input" id="cm-name" placeholder="Örneğin: Benim Qwen Coder'ım">
             </div>
             <div class="form-group">
-                <label class="form-label">供应商</label>
-                <input type="text" class="form-input" id="cm-provider" placeholder="例如：通义千问、本地 Ollama">
+                <label class="form-label">Sağlayıcı</label>
+                <input type="text" class="form-input" id="cm-provider" placeholder="Örneğin: Tongyi Qianwen, Yerel Ollama">
             </div>
             <div class="form-group">
-                <label class="form-label">API 地址 <span style="color:var(--danger)">*</span></label>
+                <label class="form-label">API Adresi <span style="color:var(--danger)">*</span></label>
                 <input type="text" class="form-input" id="cm-url" placeholder="https://api.example.com/v1/chat/completions">
             </div>
             <div class="form-group">
-                <label class="form-label">模型 ID</label>
-                <input type="text" class="form-input" id="cm-model-id" placeholder="qwen2.5-coder-32b（留空则用模型名称）">
+                <label class="form-label">Model ID</label>
+                <input type="text" class="form-input" id="cm-model-id" placeholder="qwen2.5-coder-32b (boş bırakırsanız model adı kullanılır)">
             </div>
             <div class="form-group">
                 <label class="form-label">API Key</label>
-                <input type="password" class="form-input" id="cm-key" placeholder="本地模型可留空">
+                <input type="password" class="form-input" id="cm-key" placeholder="Yerel modeller için boş bırakılabilir">
             </div>
             <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px">
-                <button type="button" class="btn btn-secondary" id="cm-test-btn" onclick="testCustomModel()">🔗 测试连接</button>
-                <button type="button" class="btn btn-secondary" onclick="closeAddCustomModel()">取消</button>
-                <button type="button" class="btn btn-primary" onclick="addCustomModel()">添加</button>
+                <button type="button" class="btn btn-secondary" id="cm-test-btn" onclick="testCustomModel()">🔗 Bağlantıyı Test Et</button>
+                <button type="button" class="btn btn-secondary" onclick="closeAddCustomModel()">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="addCustomModel()">Ekle</button>
             </div>
             <div id="cm-test-msg" style="margin-top:10px;font-size:13px;display:none;"></div>
         </div>

@@ -4,16 +4,16 @@ from __future__ import annotations
 
 
 """
-多平台包管理器 - omc pkg
+Çok platformlu paket yöneticisi- omc pkg
 
-支持 Homebrew/npm/scoop/winget/AUR 等包管理器，
-统一安装和管理开发工具。
+DestekHomebrew/npm/scoop/winget/AURPaket yöneticisini bekleyin,
+Geliştirme araçlarının birleşik kurulumu ve yönetimi.
 
 Usage:
-    omc pkg install <package>    # 安装包
-    omc pkg search <query>      # 搜索包
-    omc pkg list                # 列出已安装
-    omc pkg update              # 更新包
+    omc pkg install <package>    #Kurulum paketi
+    omc pkg search <query>      #Paket ara
+    omc pkg list                #Liste yüklendi
+    omc pkg update              #Paketi güncelle
 """
 
 
@@ -27,12 +27,12 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-app = typer.Typer(help="多平台包管理器 - 统一管理 Homebrew/npm/scoop/winget/AUR")
+app = typer.Typer(help="Çok platformlu paket yöneticisi-Birleşik yönetimHomebrew/npm/scoop/winget/AUR")
 console = Console()
 
 
 class Platform(Enum):
-    """支持的平台"""
+    """Desteklenen platformlar"""
 
     MACOS = "macos"
     LINUX = "linux"
@@ -40,7 +40,7 @@ class Platform(Enum):
 
 
 class PackageManager(Enum):
-    """包管理器"""
+    """Paket yöneticisi"""
 
     HOMEBREW = "homebrew"
     NPM = "npm"
@@ -53,7 +53,7 @@ class PackageManager(Enum):
 
 
 def get_current_platform() -> Platform:
-    """获取当前平台"""
+    """Mevcut platformu edinin"""
     system = platform.system().lower()
     if system == "darwin":
         return Platform.MACOS
@@ -65,11 +65,11 @@ def get_current_platform() -> Platform:
 
 
 def get_available_managers() -> list[PackageManager]:
-    """获取可用的包管理器"""
+    """Kullanılabilir paket yöneticilerini edinin"""
     available = []
     system = get_current_platform()
 
-    # 检查各包管理器是否可用
+    #Her paket yöneticisinin mevcut olup olmadığını kontrol edin
     managers = [
         (PackageManager.NPM, "npm"),
         (PackageManager.YARN, "yarn"),
@@ -105,7 +105,7 @@ def get_available_managers() -> list[PackageManager]:
 
 
 def _is_command_available(cmd: str) -> bool:
-    """检查命令是否可用"""
+    """Komutun mevcut olup olmadığını kontrol edin"""
     try:
         result = subprocess.run(
             ["which", cmd] if platform.system() != "Windows" else ["where", cmd],
@@ -119,7 +119,7 @@ def _is_command_available(cmd: str) -> bool:
 
 
 def _run_command(cmd: list[str], capture: bool = True) -> tuple:
-    """运行命令"""
+    """Komutu çalıştır"""
     try:
         if capture:
             result = subprocess.run(
@@ -137,102 +137,102 @@ def _run_command(cmd: list[str], capture: bool = True) -> tuple:
         return False, "", "unavailable"
 
 
-# 常用开发工具推荐
+#Önerilen yaygın olarak kullanılan geliştirme araçları
 RECOMMENDED_PACKAGES = {
     "cli": [
         {
             "name": "git",
-            "desc": "版本控制",
+            "desc": "sürüm kontrolü",
             "managers": ["brew", "scoop", "winget", "aur"],
         },
         {"name": "gh", "desc": "GitHub CLI", "managers": ["brew", "scoop", "winget"]},
-        {"name": "lazygit", "desc": "终端 Git 客户端", "managers": ["brew", "scoop"]},
-        {"name": "delta", "desc": "Git 差异查看器", "managers": ["brew", "scoop"]},
-        {"name": "fzf", "desc": "命令行模糊搜索", "managers": ["brew", "scoop", "aur"]},
+        {"name": "lazygit", "desc": "terminalGitmüşteri", "managers": ["brew", "scoop"]},
+        {"name": "delta", "desc": "GitFark görüntüleyici", "managers": ["brew", "scoop"]},
+        {"name": "fzf", "desc": "Komut satırı bulanık arama", "managers": ["brew", "scoop", "aur"]},
         {
             "name": "ripgrep",
-            "desc": "快速搜索工具",
+            "desc": "Hızlı arama aracı",
             "managers": ["brew", "scoop", "winget"],
         },
-        {"name": "fd", "desc": "快速文件查找", "managers": ["brew", "scoop"]},
-        {"name": "bat", "desc": "cat 替代品", "managers": ["brew", "scoop", "winget"]},
-        {"name": "exa", "desc": "ls 替代品", "managers": ["brew", "scoop"]},
-        {"name": "htop", "desc": "系统监控", "managers": ["brew", "aur"]},
-        {"name": "tldr", "desc": "简化 man 手册", "managers": ["brew", "scoop", "pip"]},
-        {"name": "httpie", "desc": "HTTP 客户端", "managers": ["brew", "pip", "scoop"]},
+        {"name": "fd", "desc": "Hızlı dosya arama", "managers": ["brew", "scoop"]},
+        {"name": "bat", "desc": "catYerine geçmek", "managers": ["brew", "scoop", "winget"]},
+        {"name": "exa", "desc": "lsYerine geçmek", "managers": ["brew", "scoop"]},
+        {"name": "htop", "desc": "Sistem izleme", "managers": ["brew", "aur"]},
+        {"name": "tldr", "desc": "çıktımanmanuel", "managers": ["brew", "scoop", "pip"]},
+        {"name": "httpie", "desc": "HTTPmüşteri", "managers": ["brew", "pip", "scoop"]},
         {
             "name": "jq",
-            "desc": "JSON 处理",
+            "desc": "JSONuğraşmak",
             "managers": ["brew", "scoop", "winget", "aur"],
         },
-        {"name": "yq", "desc": "YAML 处理", "managers": ["brew", "scoop"]},
-        {"name": "tree", "desc": "目录树", "managers": ["brew", "scoop", "winget"]},
+        {"name": "yq", "desc": "YAMLuğraşmak", "managers": ["brew", "scoop"]},
+        {"name": "tree", "desc": "dizin ağacı", "managers": ["brew", "scoop", "winget"]},
     ],
     "dev": [
-        {"name": "node", "desc": "Node.js 运行时", "managers": ["brew"]},
-        {"name": "python", "desc": "Python 解释器", "managers": ["brew"]},
-        {"name": "go", "desc": "Go 编译器", "managers": ["brew", "scoop"]},
-        {"name": "rustc", "desc": "Rust 编译器", "managers": ["brew", "scoop"]},
-        {"name": "docker", "desc": "容器引擎", "managers": ["brew", "scoop", "winget"]},
+        {"name": "node", "desc": "Node.jsçalışma zamanı", "managers": ["brew"]},
+        {"name": "python", "desc": "Pythontercüman", "managers": ["brew"]},
+        {"name": "go", "desc": "Goderleyici", "managers": ["brew", "scoop"]},
+        {"name": "rustc", "desc": "Rustderleyici", "managers": ["brew", "scoop"]},
+        {"name": "docker", "desc": "konteyner motoru", "managers": ["brew", "scoop", "winget"]},
         {"name": "kubectl", "desc": "Kubernetes CLI", "managers": ["brew", "scoop"]},
-        {"name": "helm", "desc": "Kubernetes 包管理器", "managers": ["brew", "scoop"]},
-        {"name": "terraform", "desc": "IaC 工具", "managers": ["brew", "scoop"]},
-        {"name": "ansible", "desc": "自动化工具", "managers": ["pip"]},
+        {"name": "helm", "desc": "KubernetesPaket yöneticisi", "managers": ["brew", "scoop"]},
+        {"name": "terraform", "desc": "IaCalet", "managers": ["brew", "scoop"]},
+        {"name": "ansible", "desc": "Otomasyon araçları", "managers": ["pip"]},
     ],
 }
 
 
 @app.command()
 def install(
-    package: str = typer.Argument(..., help="包名称"),
-    manager: Optional[str] = typer.Option(None, "--manager", "-m", help="指定包管理器"),
-    sudo: bool = typer.Option(False, "--sudo", "-s", help="使用 sudo 安装"),
+    package: str = typer.Argument(..., help="paket adı"),
+    manager: Optional[str] = typer.Option(None, "--manager", "-m", help="Paket yöneticisini belirtin"),
+    sudo: bool = typer.Option(False, "--sudo", "-s", help="kullanmaksudoDüzenlemek"),
 ):
     """
-    安装包
+Kurulum paketi
 
-    示例:
+Örnek:
         omc pkg install git
         omc pkg install gh --manager brew
         omc pkg install node --sudo
     """
-    console.print(f"\n[cyan]安装包: {package}[/cyan]")
+    console.print(f"\n[cyan]Kurulum paketi: {package}[/cyan]")
 
-    # 如果没有指定管理器，自动选择
+    #Yönetici belirtilmemişse otomatik olarak seçilir
     if not manager:
         manager = _select_best_manager(package)
         if not manager:
-            console.print("[yellow]未找到合适的包管理器[/yellow]")
-            console.print("[dim]请先安装 Homebrew 或其他包管理器[/dim]")
+            console.print("[yellow]Uygun paket yöneticisi bulunamadı[/yellow]")
+            console.print("[dim]Lütfen önce yükleyinHomebrewveya diğer paket yöneticileri[/dim]")
             return
 
-    console.print(f"[dim]使用管理器: {manager}[/dim]\n")
+    console.print(f"[dim]Yöneticiyi kullan: {manager}[/dim]\n")
 
-    # 构建命令
+    #Komut oluştur
     cmd = _build_install_command(manager, package, sudo)
 
     if not cmd:
-        console.print(f"[red]不支持的包管理器: {manager}[/red]")
+        console.print(f"[red]Desteklenmeyen paket yöneticisi: {manager}[/red]")
         return
 
-    console.print(f"[yellow]执行: {' '.join(cmd)}[/yellow]\n")
+    console.print(f"[yellow]çalıştır: {' '.join(cmd)}[/yellow]\n")
 
-    # 执行安装
+    #Kurulumu gerçekleştir
     success, _stdout, stderr = _run_command(cmd, capture=False)
 
     if success:
-        console.print(f"[green]✅ 安装成功: {package}[/green]")
+        console.print(f"[green]✅Kurulum başarılı: {package}[/green]")
     else:
-        console.print("[red]❌ 安装失败[/red]")
+        console.print("[red]❌Kurulum başarısız oldu[/red]")
         if stderr:
             console.print(f"[dim]{stderr}[/dim]")
 
 
 def _select_best_manager(package: str) -> Optional[str]:
-    """选择最佳包管理器"""
+    """En iyi paket yöneticisini seçin"""
     available = get_available_managers()
 
-    # 根据包名推断
+    #Paket adından anlaşıldı
     npm_packages = ["node", "npm", "yarn", "pnpm", "typescript", "eslint", "prettier"]
     pip_packages = ["python", "pip", "ansible", "httpie", "tldr"]
 
@@ -242,7 +242,7 @@ def _select_best_manager(package: str) -> Optional[str]:
     if package.lower() in pip_packages and PackageManager.PIP in available:
         return "pip"
 
-    # 默认选择
+    #Varsayılan seçim
     if PackageManager.HOMEBREW in available:
         return "brew"
     if PackageManager.NPM in available:
@@ -260,7 +260,7 @@ def _select_best_manager(package: str) -> Optional[str]:
 def _build_install_command(
     manager: str, package: str, sudo: bool
 ) -> Optional[list[str]]:
-    """构建安装命令"""
+    """Kurulum komutunu oluştur"""
     cmd_prefix = ["sudo"] if sudo else []
 
     commands = {
@@ -279,28 +279,28 @@ def _build_install_command(
 
 @app.command()
 def search(
-    query: str = typer.Argument(..., help="搜索关键词"),
-    manager: Optional[str] = typer.Option(None, "--manager", "-m", help="指定包管理器"),
+    query: str = typer.Argument(..., help="Anahtar kelimeleri arayın"),
+    manager: Optional[str] = typer.Option(None, "--manager", "-m", help="Paket yöneticisini belirtin"),
 ):
     """
-    搜索包
+Paket ara
 
-    示例:
+Örnek:
         omc pkg search git
         omc pkg search node --manager npm
     """
-    console.print(f"\n[cyan]搜索: {query}[/cyan]\n")
+    console.print(f"\n[cyan]aramak: {query}[/cyan]\n")
 
     if manager:
         _search_with_manager(manager, query)
     else:
-        # 在所有可用管理器中搜索
+        #Mevcut tüm yöneticiler arasında arama yapın
         for mgr in get_available_managers():
             _search_with_manager(mgr.value, query)
 
 
 def _search_with_manager(manager: str, query: str):
-    """使用指定管理器搜索"""
+    """Belirtilen yöneticiyi kullanarak arama yapın"""
     console.print(f"\n[bold]{manager.upper()}:[/bold]")
 
     commands = {
@@ -311,31 +311,31 @@ def _search_with_manager(manager: str, query: str):
 
     cmd = commands.get(manager)
     if not cmd:
-        console.print(f"[dim]管理器 {manager} 不支持搜索[/dim]")
+        console.print(f"[dim]Müdür{manager}Arama desteklenmiyor[/dim]")
         return
 
     success, stdout, _stderr = _run_command(cmd)
 
     if success and stdout:
-        lines = stdout.strip().splitlines()[:10]  # 只显示前10个
+        lines = stdout.strip().splitlines()[:10]  #Yalnızca ilk 10'u göster
         for line in lines:
             console.print(f"  {line}")
     else:
-        console.print("[dim]未找到结果[/dim]")
+        console.print("[dim]Sonuç bulunamadı[/dim]")
 
 
 @app.command()
 def list_installed(
-    manager: Optional[str] = typer.Option(None, "--manager", "-m", help="指定包管理器"),
+    manager: Optional[str] = typer.Option(None, "--manager", "-m", help="Paket yöneticisini belirtin"),
 ):
     """
-    列出已安装的包
+Kurulu paketleri listele
 
-    示例:
+Örnek:
         omc pkg list
         omc pkg list --manager npm
     """
-    console.print("\n[cyan]已安装的包[/cyan]\n")
+    console.print("\n[cyan]Kurulu paketler[/cyan]\n")
 
     if manager:
         _list_with_manager(manager)
@@ -345,7 +345,7 @@ def list_installed(
 
 
 def _list_with_manager(manager: str):
-    """列出指定管理器的包"""
+    """Belirli bir yönetici için paketleri listeleme"""
     console.print(f"\n[bold]{manager.upper()}:[/bold]")
 
     commands = {
@@ -357,42 +357,42 @@ def _list_with_manager(manager: str):
 
     cmd = commands.get(manager)
     if not cmd:
-        console.print(f"[dim]管理器 {manager} 不支持列出[/dim]")
+        console.print(f"[dim]Müdür{manager}Listeleme desteklenmiyor[/dim]")
         return
 
     success, stdout, _stderr = _run_command(cmd)
 
     if success and stdout:
-        lines = stdout.strip().splitlines()[:20]  # 只显示前20个
+        lines = stdout.strip().splitlines()[:20]  #Yalnızca ilk 20'yi göster
         for line in lines:
             console.print(f"  {line}")
     else:
-        console.print("[dim]无[/dim]")
+        console.print("[dim]hiçbiri[/dim]")
 
 
 @app.command()
 def update(
-    package: Optional[str] = typer.Argument(None, help="包名称（不指定则更新所有）"),
-    manager: Optional[str] = typer.Option(None, "--manager", "-m", help="指定包管理器"),
+    package: Optional[str] = typer.Argument(None, help="Paket adı (belirtilmemişse tümü güncellenir)"),
+    manager: Optional[str] = typer.Option(None, "--manager", "-m", help="Paket yöneticisini belirtin"),
 ):
     """
-    更新包
+Paketi güncelle
 
-    示例:
+Örnek:
         omc pkg update
         omc pkg update npm
         omc pkg update git --manager brew
     """
-    console.print("\n[cyan]更新包[/cyan]\n")
+    console.print("\n[cyan]Paketi güncelle[/cyan]\n")
 
     if not manager:
         manager = _select_best_manager(package or "npm")
 
     if not manager:
-        console.print("[yellow]未找到可用的包管理器[/yellow]")
+        console.print("[yellow]Kullanılabilir paket yöneticisi bulunamadı[/yellow]")
         return
 
-    console.print(f"[dim]管理器: {manager}[/dim]")
+    console.print(f"[dim]Müdür: {manager}[/dim]")
 
     commands = {
         "npm": (
@@ -404,34 +404,34 @@ def update(
 
     cmd = commands.get(manager)
     if not cmd:
-        console.print(f"[red]管理器 {manager} 不支持更新[/red]")
+        console.print(f"[red]Müdür{manager}Güncellemeler desteklenmiyor[/red]")
         return
 
-    console.print(f"[yellow]执行: {' '.join(cmd)}[/yellow]\n")
+    console.print(f"[yellow]çalıştır: {' '.join(cmd)}[/yellow]\n")
 
     success, _stdout, stderr = _run_command(cmd, capture=False)
 
     if success:
-        console.print("[green]✅ 更新成功[/green]")
+        console.print("[green]✅Güncelleme başarılı[/green]")
     else:
-        console.print(f"[red]❌ 更新失败: {stderr}[/red]")
+        console.print(f"[red]❌Güncelleme başarısız oldu: {stderr}[/red]")
 
 
 @app.command("recommend")
 def recommend():
-    """显示推荐安装的开发工具"""
+    """Yüklenecek önerilen geliştirme araçlarını göster"""
     console.print(
         Panel.fit(
-            "[bold cyan]推荐开发工具[/bold cyan]\n[dim]快速安装常用命令行工具[/dim]",
+            "[bold cyan]Önerilen geliştirme araçları[/bold cyan]\n[dim]Yaygın komut satırı araçlarını hızlı bir şekilde yükleyin[/dim]",
             border_style="cyan",
         )
     )
 
     for category, packages in RECOMMENDED_PACKAGES.items():
         table = Table(title=f"[bold]{category.upper()}[/bold]")
-        table.add_column("包名", style="cyan")
-        table.add_column("描述", style="white")
-        table.add_column("安装命令", style="dim")
+        table.add_column("orijinal komut", style="cyan")
+        table.add_column("betimlemek", style="white")
+        table.add_column("Kurulum komutu", style="dim")
 
         for pkg in packages:
             install_cmd = f"omc pkg install {pkg['name']}"
@@ -443,39 +443,39 @@ def recommend():
 
 @app.command("check")
 def check():
-    """检查可用的包管理器"""
-    console.print("\n[cyan]包管理器状态[/cyan]\n")
+    """Mevcut paket yöneticilerini kontrol edin"""
+    console.print("\n[cyan]Paket yöneticisi durumu[/cyan]\n")
 
     system = get_current_platform()
-    console.print(f"平台: [yellow]{system.value}[/yellow]\n")
+    console.print(f"platformu: [yellow]{system.value}[/yellow]\n")
 
     all_managers = [
         ("brew", "Homebrew", "macOS/Linux"),
-        ("npm", "npm", "全平台"),
-        ("yarn", "Yarn", "全平台"),
-        ("pnpm", "pnpm", "全平台"),
-        ("pip", "pip", "全平台"),
+        ("npm", "npm", "Tüm platformlar"),
+        ("yarn", "Yarn", "Tüm platformlar"),
+        ("pnpm", "pnpm", "Tüm platformlar"),
+        ("pip", "pip", "Tüm platformlar"),
         ("scoop", "Scoop", "Windows"),
         ("winget", "WinGet", "Windows"),
         ("yay", "Yay (AUR)", "Linux"),
     ]
 
     table = Table()
-    table.add_column("命令", style="cyan")
-    table.add_column("管理器", style="white")
-    table.add_column("平台", style="dim")
-    table.add_column("状态", style="green")
+    table.add_column("Emir", style="cyan")
+    table.add_column("Müdür", style="white")
+    table.add_column("platformu", style="dim")
+    table.add_column("durum", style="green")
 
     available = [m.value for m in get_available_managers()]
 
     for cmd, name, platforms in all_managers:
         if cmd in available or (cmd == "brew" and system == Platform.MACOS):
-            status = "✅ 已安装" if cmd in available else "❌ 未安装"
+            status = "✅Yüklendi" if cmd in available else "❌Kurulu değil"
         else:
-            if platforms.lower() == system.value.lower() or platforms == "全平台":
-                status = "❌ 未安装"
+            if platforms.lower() == system.value.lower() or platforms == "Tüm platformlar":
+                status = "❌Kurulu değil"
             else:
-                status = "⏭️ 不适用"
+                status = "⏭️uygulanamaz"
 
         table.add_row(cmd, name, platforms, status)
 

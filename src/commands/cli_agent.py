@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 """
-Agent 配置 CLI - 导出/导入/管理 Agent 配置
+AgentYapılandırmaCLI -İhracat/içe aktarmak/üstesinden gelmekAgentYapılandırma
 
-命令：
-- omc agent list              # 列出所有可用 Agent
-- omc agent show <name>       # 显示 Agent 详细信息
-- omc agent export <name>     # 导出 Agent 配置为 JSON
-- omc agent import <file>     # 从文件导入 Agent 配置
-- omc agent evolve <name>     # 触发 Agent 自进化
-- omc agent stats <name>      # 显示 Agent 进化统计
+Emir:
+- omc agent list              #Mevcut olanların hepsini listeleAgent
+- omc agent show <name>       #göstermekAgentDetaylar
+- omc agent export <name>     #İhracatAgentolarak yapılandırılmışJSON
+- omc agent import <file>     #dosyadan içe aktarAgentYapılandırma
+- omc agent evolve <name>     #tetiklemekAgentModel yapılandırmasını toplulukla paylaşın
+- omc agent stats <name>      #göstermekAgentEvrimsel İstatistikler
 """
 
 
@@ -25,7 +25,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-app = typer.Typer(help="Agent 配置管理")
+app = typer.Typer(help="AgentYapılandırma yönetimi")
 console = Console()
 
 
@@ -35,19 +35,19 @@ def list_agents(
         False,
         "--monorepo",
         "-m",
-        help="显示 Monorepo 中的所有子项目 Agent",
+        help="göstermekMonorepoÇıkış yolu (varsayılan olarak terminale yazdırılır)Agent",
     ),
 ):
-    """列出所有可用 Agent"""
+    """Mevcut olanların hepsini listeleAgent"""
     from src.agents.base import list_all_agents
 
     agents = list_all_agents()
 
-    table = Table(title="可用 Agent 列表")
-    table.add_column("名称", style="cyan")
-    table.add_column("描述", style="white")
+    table = Table(title="MevcutAgentliste")
+    table.add_column("isim", style="cyan")
+    table.add_column("betimlemek", style="white")
     table.add_column("Lane", style="yellow")
-    table.add_column("默认 Tier", style="green")
+    table.add_column("varsayılanTier", style="green")
 
     for agent_info in agents:
         table.add_row(
@@ -59,30 +59,30 @@ def list_agents(
 
     console.print(table)
 
-    # Monorepo 子项目展示
+    # Monorepoİzin kuralları dosyası
     if monorepo:
         from src.core.monorepo import detect_monorepo, list_subprojects
 
         info = detect_monorepo()
         if info is None:
-            console.print("\n[yellow]⚠[/yellow] 当前目录不是 Monorepo 根目录")
+            console.print("\n[yellow]⚠[/yellow]Geçerli dizin değilMonorepokök dizin")
             return
 
         console.print()
         subprojects = list_subprojects(info)
         if not subprojects:
-            console.print("[dim]未检测到子项目[/dim]")
+            console.print("[dim]Hiçbir alt proje algılanmadı[/dim]")
             return
 
-        pkg_table = Table(title=f"Monorepo 子项目 - {info.type}")
-        pkg_table.add_column("项目", style="cyan")
-        pkg_table.add_column("路径", style="dim")
-        pkg_table.add_column("语言", style="yellow")
-        pkg_table.add_column("框架", style="green")
-        pkg_table.add_column("Agent 配置", style="magenta")
+        pkg_table = Table(title=f"MonorepoAlt proje- {info.type}")
+        pkg_table.add_column("proje", style="cyan")
+        pkg_table.add_column("yol", style="dim")
+        pkg_table.add_column("dil", style="yellow")
+        pkg_table.add_column("çerçeve", style="green")
+        pkg_table.add_column("AgentYapılandırma", style="magenta")
 
         for sp in subprojects:
-            agent_status = "✓ 已配置" if sp.has_agent_config else "- 未配置"
+            agent_status = "✓yapılandırılmış" if sp.has_agent_config else "-Yapılandırılmadı"
             rel_path = sp.path.relative_to(info.root)
             pkg_table.add_row(
                 sp.name,
@@ -94,35 +94,35 @@ def list_agents(
 
         console.print(pkg_table)
         console.print(
-            f"\n[dim]共 {len(subprojects)} 个子项目，"
-            f"{sum(1 for sp in subprojects if sp.has_agent_config)} 个已配置 Agent[/dim]"
+            f"\n[dim]yaygın{len(subprojects)}alt proje,"
+            f"{sum(1 for sp in subprojects if sp.has_agent_config)}yapılandırılmışAgent[/dim]"
         )
 
 
 @app.command("show")
 def show_agent(
-    name: str = typer.Argument(..., help="Agent 名称"),
-    evolution: bool = typer.Option(False, "--evolution", "-e", help="显示进化信息"),
+    name: str = typer.Argument(..., help="Agentisim"),
+    evolution: bool = typer.Option(False, "--evolution", "-e", help="Evrim bilgilerini göster"),
 ):
-    """显示 Agent 详细信息"""
+    """göstermekAgentDetaylar"""
     from src.agents.base import get_agent
 
     agent_class = get_agent(name)
     if not agent_class:
-        console.print(f"[red]错误：未找到 Agent '{name}'[/red]")
+        console.print(f"[red]Hata: bulunamadıAgent '{name}'[/red]")
         raise typer.Exit(1)
 
-    # 创建实例获取信息
+    #Bilgi almak için bir örnek oluşturun
     agent = agent_class()
 
     lane_str = agent.lane.value if hasattr(agent.lane, "value") else str(agent.lane)
     info = Panel(
-        f"[bold]名称:[/bold] {agent.name}\n"
-        f"[bold]描述:[/bold] {agent.description}\n"
+        f"[bold]isim:[/bold] {agent.name}\n"
+        f"[bold]betimlemek:[/bold] {agent.description}\n"
         f"[bold]Lane:[/bold] {lane_str}\n"
-        f"[bold]默认 Tier:[/bold] {agent.default_tier}\n"
-        f"[bold]图标:[/bold] {agent.icon}\n"
-        f"[bold]工具:[/bold] {', '.join(agent.tools) if agent.tools else '无'}\n\n"
+        f"[bold]varsayılanTier:[/bold] {agent.default_tier}\n"
+        f"[bold]simge:[/bold] {agent.icon}\n"
+        f"[bold]alet:[/bold] {', '.join(agent.tools) if agent.tools else 'hiçbiri'}\n\n"
         f"[bold]System Prompt:[/bold]\n{agent.system_prompt[:500]}...",
         title=f"Agent: {name}",
         border_style="cyan",
@@ -136,12 +136,12 @@ def show_agent(
         stats = sia.get_evolution_stats(name)
 
         evolution_info = Panel(
-            f"[bold]当前代数:[/bold] {stats.get('current_generation', 1)}\n"
-            f"[bold]总进化次数:[/bold] {stats.get('total_evolutions', 0)}\n"
-            f"[bold]模式数:[/bold] {stats.get('total_patterns', 0)}\n"
-            f"[bold]Prompt 版本:[/bold] {stats.get('prompt_version', 0)}\n"
-            f"[bold]最后进化:[/bold] {stats.get('last_evolution', '尚未进化')}",
-            title="进化信息",
+            f"[bold]güncel cebir:[/bold] {stats.get('current_generation', 1)}\n"
+            f"[bold]Toplam evrim sayısı:[/bold] {stats.get('total_evolutions', 0)}\n"
+            f"[bold]Mod sayısı:[/bold] {stats.get('total_patterns', 0)}\n"
+            f"[bold]PromptSürüm:[/bold] {stats.get('prompt_version', 0)}\n"
+            f"[bold]son evrim:[/bold] {stats.get('last_evolution', 'Henüz gelişmemiş')}",
+            title="evrimsel bilgi",
             border_style="green",
         )
         console.print(evolution_info)
@@ -149,33 +149,33 @@ def show_agent(
 
 @app.command("export")
 def export_agent(
-    name: str = typer.Argument(..., help="Agent 名称"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="输出文件路径"),
+    name: str = typer.Argument(..., help="Agentisim"),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Çıkış dosyası yolu"),
     include_evolution: bool = typer.Option(
-        False, "--evolution", "-e", help="包含进化历史"
+        False, "--evolution", "-e", help="Evrimsel tarih içerir"
     ),
     include_patterns: bool = typer.Option(
-        False, "--patterns", "-p", help="包含成功模式库"
+        False, "--patterns", "-p", help="Başarı Modeli Kitaplığını İçerir"
     ),
 ):
     """
-    导出 Agent 配置为 JSON
+İhracatAgentolarak yapılandırılmışJSON
 
-    导出内容包含：
-    - Agent 基础配置（system prompt、模型、温度等）
-    - 进化历史（可选）
-    - 成功模式库（可选）
+Dışa aktarılan içerik şunları içerir:
+    - AgentTemel yapılandırma (system prompt, model, sıcaklık vb.)
+    -Evrimsel tarih (isteğe bağlı)
+    -Başarı Modeli Kitaplığı (isteğe bağlı)
     """
     from src.agents.base import get_agent
 
     agent_class = get_agent(name)
     if not agent_class:
-        console.print(f"[red]错误：未找到 Agent '{name}'[/red]")
+        console.print(f"[red]Hata: bulunamadıAgent '{name}'[/red]")
         raise typer.Exit(1)
 
     agent = agent_class()
 
-    # 构建配置
+    #Yapı yapılandırması
     config_data = {
         "name": agent.name,
         "description": agent.description,
@@ -194,7 +194,7 @@ def export_agent(
         },
     }
 
-    # 可选：包含进化历史
+    #İsteğe bağlı: evrimsel geçmişi dahil edin
     if include_evolution:
         from pathlib import Path
 
@@ -213,7 +213,7 @@ def export_agent(
             for r in history
         ]
 
-    # 可选：包含成功模式库
+    #Duruma göre filtrele
     if include_patterns:
         from pathlib import Path
 
@@ -232,92 +232,92 @@ def export_agent(
             for p in patterns
         ]
 
-    # 确定输出路径
+    #Çıkış yolunu belirleyin
     if output is None:
         output = Path(f"{name}-agent-config.json")
 
-    # 写入文件
+    #dosya yaz
     output.write_text(
         json.dumps(config_data, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
-    console.print(f"[green]✓[/green] Agent '{name}' 配置已导出到: {output}")
-    console.print("  - 基础配置: ✓")
+    console.print(f"[green]✓[/green] Agent '{name}'İstatistiksel özeti okuyun: {output}")
+    console.print("  -Temel konfigürasyon: ✓")
     if include_evolution:
-        console.print("  - 进化历史: ✓")
+        console.print("  -evrim tarihi: ✓")
     if include_patterns:
-        console.print("  - 成功模式: ✓")
+        console.print("  -başarı modeli: ✓")
 
 
 @app.command("import")
 def import_agent(
-    source: str = typer.Argument(..., help="配置文件路径或 URL"),
-    name: Optional[str] = typer.Option(None, "--name", "-n", help="新 Agent 名称"),
+    source: str = typer.Argument(..., help="Yapılandırma dosyası yolu veyaURL"),
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="yeniAgentisim"),
 ):
     """
-    从文件或 URL 导入 Agent 配置
+dosyadan veyaURLiçe aktarmakAgentYapılandırma
 
-    支持：
-    - 本地 JSON 文件
+Destek:
+    -yerelJSONbelge
     - GitHub raw URL
     - HTTP/HTTPS URL
     """
     source_path: Optional[Path] = None
     config_data: dict[str, Any]
 
-    # 判断是 URL 还是本地文件
+    #Karar şu:URLVeya yerel bir dosya
     if source.startswith(("http://", "https://")):
-        # 从 URL 下载
-        console.print("[cyan]正在从 URL 下载配置...[/cyan]")
+        #itibarenURLindirmek
+        console.print("[cyan]Şuradan kaldırılıyor:URLYapılandırmayı indir...[/cyan]")
         try:
             with httpx.Client(timeout=30.0) as client:
                 response = client.get(source)
                 response.raise_for_status()
                 config_data = response.json()
         except Exception as e:
-            console.print(f"[red]下载失败: {e}[/red]")
+            console.print(f"[red]İndirme başarısız oldu: {e}[/red]")
             raise typer.Exit(1)
-        console.print("[green]✓[/green] 配置下载成功")
+        console.print("[green]✓[/green]Yapılandırma indirme işlemi başarılı")
     else:
-        # 本地文件
+        #yerel dosya
         source_path = Path(source)
         if not source_path.exists():
-            console.print(f"[red]错误：文件不存在 '{source}'[/red]")
+            console.print(f"[red]Hata: Dosya mevcut değil'{source}'[/red]")
             raise typer.Exit(1)
 
         try:
             config_data = json.loads(source_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
-            console.print(f"[red]JSON 解析失败: {e}[/red]")
+            console.print(f"[red]JSONAyrıştırma başarısız oldu: {e}[/red]")
             raise typer.Exit(1)
 
-    # 验证配置格式
+    #Destek
     required_fields = ["name", "description"]
     for field in required_fields:
         if field not in config_data:
-            console.print(f"[red]错误：缺少必需字段 '{field}'[/red]")
+            console.print(f"[red]Düşünce zinciri başladı'{field}'[/red]")
             raise typer.Exit(1)
 
-    # 确定最终名称
+    #Soyadını belirle
     final_name = name or config_data["name"]
 
-    # 保存配置到 .omc/agents/ 目录
+    #Yapılandırmayı şuraya kaydet:.omc/agents/İçindekiler
     agents_dir = Path.home() / ".omc" / "agents"
     agents_dir.mkdir(parents=True, exist_ok=True)
 
     config_file = agents_dir / f"{final_name}.json"
-    config_data["name"] = final_name  # 更新名称
+    config_data["name"] = final_name  #Adı güncelle
 
     config_file.write_text(
         json.dumps(config_data, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
-    console.print(f"[green]✓[/green] Agent '{final_name}' 配置已导入")
-    console.print(f"  位置: {config_file}")
+    console.print(f"[green]✓[/green] Agent '{final_name}'Yapılandırma içe aktarıldı")
+    console.print(f"Konum: {config_file}")
 
-    # 如果包含进化历史，也保存
+    #Evrimsel tarih dahil edilmişse şunu da kaydedin:
     if "evolution_history" in config_data:
         from src.agents.evolution import EvolutionRecord, EvolutionStore
 
@@ -335,9 +335,9 @@ def import_agent(
             )
             store.save_evolution_record(record)
 
-        console.print("  - 进化历史已导入")
+        console.print("  -Evrim geçmişi içe aktarıldı")
 
-    # 如果包含成功模式，也保存
+    #Başarı modelinin dahil edilmesi durumunda da tasarruf sağlar
     if "success_patterns" in config_data:
         from src.agents.evolution import EvolutionStore
 
@@ -352,15 +352,15 @@ def import_agent(
                 context=pattern_data.get("context", ""),
             )
 
-        console.print("  - 成功模式已导入")
+        console.print("  -Başarı modeli içe aktarıldı")
 
 
 @app.command("evolve")
 def evolve_agent(
-    name: str = typer.Argument(..., help="Agent 名称"),
-    trigger: str = typer.Option("manual", "--trigger", "-t", help="触发原因"),
+    name: str = typer.Argument(..., help="Agentisim"),
+    trigger: str = typer.Option("manual", "--trigger", "-t", help="Tetikleyici neden"),
 ):
-    """手动触发 Agent 自进化"""
+    """manuel tetikAgentModel yapılandırmasını toplulukla paylaşın"""
     from src.agents.self_improving import SelfImprovingAgent
 
     sia = SelfImprovingAgent()
@@ -368,45 +368,45 @@ def evolve_agent(
 
     if record:
         console.print(
-            f"[green]✓[/green] Agent '{name}' 完成第 {record.generation} 代进化"
+            f"[green]✓[/green] Agent '{name}'İlkini tamamla{record.generation}Nesiller boyu evrim"
         )
-        console.print(f"  进化 ID: {record.id}")
-        console.print("  变更:")
+        console.print(f"evrimID: {record.id}")
+        console.print("değiştirmek:")
         for change in record.changes:
             console.print(f"    - {change}")
     else:
-        console.print("[yellow]未触发进化（样本不足或无需优化）[/yellow]")
+        console.print("[yellow]Evrim tetiklenmiyor (yetersiz örnek veya optimizasyona gerek yok)[/yellow]")
 
 
 @app.command("stats")
 def agent_stats(
-    name: str = typer.Argument(..., help="Agent 名称"),
+    name: str = typer.Argument(..., help="Agentisim"),
 ):
-    """显示 Agent 进化统计"""
+    """göstermekAgentEvrimsel İstatistikler"""
     from src.agents.self_improving import SelfImprovingAgent
 
     sia = SelfImprovingAgent()
     stats = sia.get_evolution_stats(name)
 
-    table = Table(title=f"Agent '{name}' 进化统计")
-    table.add_column("指标", style="cyan")
-    table.add_column("值", style="green")
+    table = Table(title=f"Agent '{name}'Evrimsel İstatistikler")
+    table.add_column("dizin", style="cyan")
+    table.add_column("değer", style="green")
 
-    table.add_row("当前代数", str(stats.get("current_generation", 1)))
-    table.add_row("总进化次数", str(stats.get("total_evolutions", 0)))
-    table.add_row("成功模式数", str(stats.get("total_patterns", 0)))
-    table.add_row("Prompt 版本", str(stats.get("prompt_version", 0)))
-    table.add_row("最后进化", stats.get("last_evolution", "尚未进化"))
-    table.add_row("自进化启用", str(stats.get("config", {}).get("enabled", True)))
+    table.add_row("güncel cebir", str(stats.get("current_generation", 1)))
+    table.add_row("Toplam evrim sayısı", str(stats.get("total_evolutions", 0)))
+    table.add_row("Başarılı kalıpların sayısı", str(stats.get("total_patterns", 0)))
+    table.add_row("PromptSürüm", str(stats.get("prompt_version", 0)))
+    table.add_row("son evrim", stats.get("last_evolution", "Henüz gelişmemiş"))
+    table.add_row("Kişisel gelişim etkin", str(stats.get("config", {}).get("enabled", True)))
     table.add_row(
-        "改进阈值", f"{stats.get('config', {}).get('improvement_threshold', 0.8):.0%}"
+        "Eşiği geliştirin", f"{stats.get('config', {}).get('improvement_threshold', 0.8):.0%}"
     )
 
     console.print(table)
 
 
 # ------------------------------------------------------------------
-# 版本迭代记忆 - 解决鬼打墙问题
+#Sürüm yineleme belleği-şuraya kaydedildi:
 # ------------------------------------------------------------------
 
 
@@ -416,26 +416,26 @@ def list_decisions(
         None,
         "--category",
         "-c",
-        help="按类别过滤 (bug_fix/solution_choice/rejection/architecture)",
+        help="Kategoriye göre filtrele(bug_fix/solution_choice/rejection/architecture)",
     ),
-    limit: int = typer.Option(10, "--limit", "-n", help="显示数量"),
+    limit: int = typer.Option(10, "--limit", "-n", help="Ekran miktarı"),
 ):
-    """列出历史决策记录"""
+    """Geçmiş karar kayıtlarını listeleyin"""
     from src.agents.self_improving import SelfImprovingAgent
 
     sia = SelfImprovingAgent()
     decisions = sia.list_decisions(category=category, limit=limit)
 
     if not decisions:
-        console.print("[yellow]暂无决策记录[/yellow]")
+        console.print("[yellow]Henüz karar kaydı yok[/yellow]")
         return
 
-    table = Table(title="历史决策记录")
+    table = Table(title="Tarihsel karar kaydı")
     table.add_column("ID", style="cyan", width=25)
-    table.add_column("标题", style="white")
-    table.add_column("类别", style="yellow")
-    table.add_column("结果", style="green")
-    table.add_column("问题", style="dim", width=40)
+    table.add_column("başlık", style="white")
+    table.add_column("kategori", style="yellow")
+    table.add_column("sonuç", style="green")
+    table.add_column("alt komut", style="dim", width=40)
 
     for d in decisions:
         table.add_row(
@@ -447,35 +447,35 @@ def list_decisions(
         )
 
     console.print(table)
-    console.print("\n[dim]使用 'omc agent decision <问题描述>' 检索相关决策[/dim]")
+    console.print("\n[dim]kullanmak'omc agent decision <Sorun açıklaması>'İlgili kararları alın[/dim]")
 
 
 @app.command("decision")
 def retrieve_decision(
-    problem: str = typer.Argument(..., help="问题描述，用于检索相似决策"),
-    limit: int = typer.Option(3, "--limit", "-n", help="返回数量"),
+    problem: str = typer.Argument(..., help="Benzer kararların alınmasına ilişkin problem tanımı"),
+    limit: int = typer.Option(3, "--limit", "-n", help="İade miktarı"),
 ):
-    """检索历史决策，避免重复踩坑"""
+    """Tekrarlanan hatalardan kaçınmak için geçmiş kararları alın"""
     from src.agents.self_improving import SelfImprovingAgent
 
     sia = SelfImprovingAgent()
     decisions = sia.retrieve_past_decisions(problem, limit=limit)
 
     if not decisions:
-        console.print("[yellow]未找到相关决策记录[/yellow]")
-        console.print("[dim]使用 'omc agent record-decision' 记录新决策[/dim]")
+        console.print("[yellow]İlgili karar kaydı bulunamadı[/yellow]")
+        console.print("[dim]kullanmak'omc agent record-decision'Yeni kararları kaydedin[/dim]")
         return
 
-    console.print(f"[cyan]找到 {len(decisions)} 条相关决策：[/cyan]\n")
+    console.print(f"[cyan]açmak{len(decisions)}İlgili kararlar:[/cyan]\n")
 
     for i, d in enumerate(decisions, 1):
         panel = Panel(
-            f"**问题**: {d['problem']}\n\n"
-            f"**解决方案**: {d['chosen_solution']}\n\n"
-            f"**结果**: {d['result']}\n\n"
-            f"**效果**: {d.get('outcome', 'N/A')}\n\n"
-            f"**适用场景**: {d.get('reusable_for', 'N/A')}\n\n"
-            f"**关键词**: {', '.join(d.get('keywords', []))}",
+            f"**alt komut**: {d['problem']}\n\n"
+            f"**çözüm**: {d['chosen_solution']}\n\n"
+            f"**sonuç**: {d['result']}\n\n"
+            f"**Etki**: {d.get('outcome', 'N/A')}\n\n"
+            f"**Uygulanabilir senaryolar**: {d.get('reusable_for', 'N/A')}\n\n"
+            f"**anahtar kelimeler**: {', '.join(d.get('keywords', []))}",
             title=f"{i}. {d['title']}",
             border_style="cyan",
         )
@@ -484,19 +484,19 @@ def retrieve_decision(
 
 @app.command("record-decision")
 def record_decision(
-    title: str = typer.Option(..., "--title", "-t", help="决策标题"),
-    problem: str = typer.Option(..., "--problem", "-p", help="遇到的问题"),
-    solution: str = typer.Option(..., "--solution", "-s", help="选择的解决方案"),
+    title: str = typer.Option(..., "--title", "-t", help="Karar başlığı"),
+    problem: str = typer.Option(..., "--problem", "-p", help="Karşılaşılan sorunlar"),
+    solution: str = typer.Option(..., "--solution", "-s", help="Seçilen çözüm"),
     category: str = typer.Option(
-        "solution_choice", "--category", "-c", help="决策类别"
+        "solution_choice", "--category", "-c", help="Karar Kategorisi"
     ),
     result: str = typer.Option(
-        "success", "--result", "-r", help="结果 (success/failure)"
+        "success", "--result", "-r", help="sonuç(success/failure)"
     ),
-    outcome: str = typer.Option("", "--outcome", "-o", help="效果描述"),
-    reusable_for: str = typer.Option("", "--reusable-for", help="适用场景"),
+    outcome: str = typer.Option("", "--outcome", "-o", help="Efekt açıklaması"),
+    reusable_for: str = typer.Option("", "--reusable-for", help="Uygulanabilir senaryolar"),
 ):
-    """记录重要决策"""
+    """Önemli kararları kaydedin"""
     from src.agents.self_improving import SelfImprovingAgent
 
     sia = SelfImprovingAgent()
@@ -510,28 +510,28 @@ def record_decision(
         reusable_for=reusable_for,
     )
 
-    console.print(f"[green]✓[/green] 决策已记录: {decision_id}")
+    console.print(f"[green]✓[/green]Karar kaydedildi: {decision_id}")
 
 
 @app.command("decision-stats")
 def decision_stats():
-    """显示决策记忆统计"""
+    """Karar hafızası istatistiklerini göster"""
     from src.agents.self_improving import SelfImprovingAgent
 
     sia = SelfImprovingAgent()
     stats = sia.get_decision_stats()
 
-    table = Table(title="决策记忆统计")
-    table.add_column("指标", style="cyan")
-    table.add_column("值", style="green")
+    table = Table(title="Karar Hafızası İstatistikleri")
+    table.add_column("dizin", style="cyan")
+    table.add_column("değer", style="green")
 
-    table.add_row("总决策数", str(stats.get("total_decisions", 0)))
-    table.add_row("最新决策", stats.get("latest_decision", "无"))
+    table.add_row("toplam karar sayısı", str(stats.get("total_decisions", 0)))
+    table.add_row("Son kararlar", stats.get("latest_decision", "hiçbiri"))
 
     category_data = stats.get("by_category", {})
     if category_data:
         table.add_row(
-            "按类别", ", ".join(f"{k}: {v}" for k, v in category_data.items())
+            "kategoriye göre", ", ".join(f"{k}: {v}" for k, v in category_data.items())
         )
 
     console.print(table)
@@ -540,10 +540,10 @@ def decision_stats():
 @app.command("health")
 def agent_health(
     show_logs: bool = typer.Option(
-        False, "--logs", "-l", help="同时显示最近的重分配日志"
+        False, "--logs", "-l", help="Ayrıca son yeniden tahsis günlüklerini de görüntüler"
     ),
 ):
-    """显示所有 Agent 的健康状态（读取 .omc/state/health/ 目录）"""
+    """Tümünü gösterAgentsağlık durumu (oku.omc/state/health/İçindekiler)"""
     from pathlib import Path
 
     from src.agents.health_check import format_health_display
@@ -551,10 +551,10 @@ def agent_health(
     state_dir = Path.cwd() / ".omc" / "state" / "health"
 
     if not state_dir.exists():
-        console.print("[yellow]暂无健康检查记录（工作流尚未执行）[/yellow]")
+        console.print("[yellow]Sağlık kontrolü kaydı yok (iş akışı henüz yürütülmedi)[/yellow]")
         return
 
-    # 读取所有健康记录
+    #Tüm sağlık kayıtlarını okuyun
     health_files = sorted(state_dir.glob("health_*.json"))
     health_map: dict[str, dict] = {}
 
@@ -568,43 +568,43 @@ def agent_health(
         except Exception:
             pass
 
-    # 读取统计摘要
+    #İstatistiksel özeti okuyun
     status_file = state_dir / "status.json"
     summary: dict = {}
     if status_file.exists():
         with contextlib.suppress(Exception):
             summary = json.loads(status_file.read_text(encoding="utf-8"))
 
-    # 打印摘要
+    #Özeti yazdır
     if summary:
-        summary_table = Table(title="健康检查摘要", show_header=False)
-        summary_table.add_column("指标", style="cyan")
-        summary_table.add_column("值", style="green")
-        summary_table.add_row("总注册 Agent", str(summary.get("total_registered", 0)))
+        summary_table = Table(title="Durum Kontrolü Özeti", show_header=False)
+        summary_table.add_column("dizin", style="cyan")
+        summary_table.add_column("değer", style="green")
+        summary_table.add_row("toplam kayıtAgent", str(summary.get("total_registered", 0)))
         summary_table.add_row("✅ Healthy", str(summary.get("healthy", 0)))
         summary_table.add_row("⚠️  Stale", str(summary.get("stale", 0)))
         summary_table.add_row("❌ Failed", str(summary.get("failed", 0)))
-        summary_table.add_row("🔄 已重分配", str(summary.get("total_reassignments", 0)))
-        summary_table.add_row("运行中", str(summary.get("running", 0)))
-        summary_table.add_row("检查间隔", f"{summary.get('check_interval', 60):.0f}s")
-        summary_table.add_row("超时阈值", f"{summary.get('stale_threshold', 300):.0f}s")
-        summary_table.add_row("最大重试", str(summary.get("max_retries", 3)))
+        summary_table.add_row("🔄Yeniden tahsis edildi", str(summary.get("total_reassignments", 0)))
+        summary_table.add_row("Koşma", str(summary.get("running", 0)))
+        summary_table.add_row("Kontrol aralığı", f"{summary.get('check_interval', 60):.0f}s")
+        summary_table.add_row("zaman aşımı eşiği", f"{summary.get('stale_threshold', 300):.0f}s")
+        summary_table.add_row("Maksimum yeniden deneme sayısı", str(summary.get("max_retries", 3)))
         console.print(summary_table)
         console.print()
 
-    # 打印各 Agent 状态
+    #Her birini yazdırAgentdurum
     if health_map:
-        console.print("[bold cyan]Agent 健康状态：[/bold cyan]")
+        console.print("[bold cyan]AgentSağlık durumu:[/bold cyan]")
         display = format_health_display(health_map)
         console.print(display)
     else:
-        console.print("[yellow]暂无活跃 Agent 健康记录[/yellow]")
+        console.print("[yellow]Henüz aktif değilAgentTüm öneri formlarını göster[/yellow]")
 
-    # 打印最近重分配日志
+    #model cevap
     if show_logs:
         reassign_files = sorted(state_dir.glob("reassignment_*.json"))[-5:]
         if reassign_files:
-            console.print("\n[bold yellow]最近重分配记录：[/bold yellow]")
+            console.print("\n[bold yellow]Son yeniden tahsis kayıtları:[/bold yellow]")
             for f in reassign_files:
                 try:
                     data = json.loads(f.read_text(encoding="utf-8"))
@@ -618,67 +618,67 @@ def agent_health(
 
 
 # ------------------------------------------------------------------
-# Agent 状态持久化命令
+# AgentDurum kalıcılığı komutları
 # ------------------------------------------------------------------
 
 
 @app.command("save")
 def save_agent(
-    name: str = typer.Argument(..., help="Agent 名称"),
-    model: str = typer.Option("deepseek", "--model", "-m", help="模型"),
-    description: str = typer.Option("", "--description", "-d", help="描述"),
+    name: str = typer.Argument(..., help="Agentisim"),
+    model: str = typer.Option("deepseek", "--model", "-m", help="Modeli"),
+    description: str = typer.Option("", "--description", "-d", help="betimlemek"),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="导出 JSON 文件"
+        None, "--output", "-o", help="İhracatJSONbelge"
     ),
 ):
     """
-    保存 Agent 配置到 ~/.oh-my-coder/agents/<name>/
+kaydetmekAgentiçin yapılandırılmış~/.oh-my-coder/agents/<name>/
 
-    保存内容：
-    - config.json: Agent 配置快照
-    - state.json: 运行时状态（session_id, tokens 等）
+İçeriği kaydet:
+    - config.json: AgentYapılandırma anlık görüntüsü
+    - state.json:Çalışma zamanı durumu (session_id, tokensBeklemek)
     """
     from src.agents.persistence.store import AgentConfig, AgentState, AgentStateStore
 
     store = AgentStateStore()
 
-    # 创建配置
+    #Yapılandırma oluştur
     config = AgentConfig(
         name=name,
         description=description,
         model=model,
     )
 
-    # 创建初始状态
+    #Başlangıç ​​durumu oluştur
     state = AgentState(
         agent_name=name,
         session_id=f"sess-{int(time.time())}",
         created_at=time.strftime("%Y-%m-%dT%H:%M:%S"),
     )
 
-    # 保存到磁盘
+    #diske kaydet
     agent_dir = store.save(name, config, state=state)
 
-    console.print(f"[green]✓[/green] Agent '{name}' 已保存到: {agent_dir}")
+    console.print(f"[green]✓[/green] Agent '{name}'şuraya kaydedildi:: {agent_dir}")
 
-    # 如果指定了 output，同时导出
+    #Belirtilmişseoutputve aynı anda ihracat
     if output:
         store.export_agent(name, output, include_history=False)
-        console.print(f"[green]✓[/green] 配置已导出到: {output}")
+        console.print(f"[green]✓[/green]İstatistiksel özeti okuyun: {output}")
 
 
 @app.command("restore")
 def restore_agent(
-    name: str = typer.Argument(..., help="Agent 名称"),
-    show_history: bool = typer.Option(False, "--history", "-h", help="显示对话历史"),
+    name: str = typer.Argument(..., help="Agentisim"),
+    show_history: bool = typer.Option(False, "--history", "-h", help="Konuşma geçmişini göster"),
 ):
     """
-    从 ~/.oh-my-coder/agents/<name>/ 恢复 Agent 状态
+itibaren~/.oh-my-coder/agents/<name>/iyileşmekAgentdurum
 
-    恢复内容：
-    - config.json → Agent 配置
-    - history.jsonl → 对话历史（可选加载）
-    - state.json → 运行时状态
+doğrulamak
+    - config.json → AgentYapılandırma
+    - history.jsonl →Konuşma geçmişi (isteğe bağlı yükleme)
+    - state.json →çalışma zamanı durumu
     """
     from src.agents.persistence.store import AgentStateStore
 
@@ -686,25 +686,25 @@ def restore_agent(
     config, history, state = store.restore(name, include_history=show_history)
 
     if config is None:
-        console.print(f"[red]错误：Agent '{name}' 未找到[/red]")
+        console.print(f"[red]hata:Agent '{name}'bulunamadı[/red]")
         raise typer.Exit(1)
 
-    # 显示恢复信息
+    #Kurtarma bilgilerini göster
     info_lines = [
-        f"[bold]名称:[/bold] {config.name}",
-        f"[bold]描述:[/bold] {config.description}",
-        f"[bold]模型:[/bold] {config.model}",
+        f"[bold]isim:[/bold] {config.name}",
+        f"[bold]betimlemek:[/bold] {config.description}",
+        f"[bold]Modeli:[/bold] {config.model}",
         f"[bold]Lane:[/bold] {config.lane}",
-        f"[bold]工具:[/bold] {', '.join(config.tools) if config.tools else '无'}",
+        f"[bold]alet:[/bold] {', '.join(config.tools) if config.tools else 'hiçbiri'}",
     ]
 
     if state:
         info_lines.extend(
             [
                 f"[bold]Session ID:[/bold] {state.session_id}",
-                f"[bold]总 Tokens:[/bold] {state.total_tokens:,}",
-                f"[bold]总成本:[/bold] ¥{state.total_cost:.4f}",
-                f"[bold]最后任务:[/bold] {state.last_task or '无'}",
+                f"[bold]toplamTokens:[/bold] {state.total_tokens:,}",
+                f"[bold]var olmak,:[/bold] ¥{state.total_cost:.4f}",
+                f"[bold]son görev:[/bold] {state.last_task or 'hiçbiri'}",
             ]
         )
 
@@ -713,7 +713,7 @@ def restore_agent(
     )
 
     if show_history and history:
-        console.print(f"\n[cyan]对话历史 ({len(history)} 条):[/cyan]")
+        console.print(f"\n[cyan]Konuşma geçmişi({len(history)}şerit):[/cyan]")
         for _i, entry in enumerate(history[-10:], 1):
             role_color = "green" if entry.role == "user" else "yellow"
             console.print(
@@ -723,20 +723,20 @@ def restore_agent(
 
 @app.command("export-state")
 def export_agent_state(
-    name: str = typer.Argument(..., help="Agent 名称"),
-    output: Path = typer.Argument(..., help="输出 JSON 文件路径"),
-    include_history: bool = typer.Option(False, "--history", "-h", help="包含对话历史"),
+    name: str = typer.Argument(..., help="Agentisim"),
+    output: Path = typer.Argument(..., help="çıktıJSONdosya yolu"),
+    include_history: bool = typer.Option(False, "--history", "-h", help="Konuşma geçmişini içerir"),
     max_history: int = typer.Option(
-        100, "--max-history", "-n", help="最多导出的历史条数"
+        100, "--max-history", "-n", help="Dışa aktarılan maksimum geçmiş öğesi sayısı"
     ),
 ):
     """
-    导出 Agent 为单个 JSON 文件（可分享）
+İhracatAgenttek kişilikJSONDosya (paylaşılabilir)
 
-    导出内容：
-    - Agent 配置
-    - 运行时状态
-    - 对话历史（可选）
+İçeriği dışa aktar:
+    - AgentYapılandırma
+    -çalışma zamanı durumu
+    -Konuşma geçmişi (isteğe bağlı)
     """
     from src.agents.persistence.store import AgentStateStore
 
@@ -746,31 +746,31 @@ def export_agent_state(
         store.export_agent(
             name, output, include_history=include_history, max_history=max_history
         )
-        console.print(f"[green]✓[/green] Agent '{name}' 已导出到: {output}")
+        console.print(f"[green]✓[/green] Agent '{name}'Şuraya aktarıldı:: {output}")
         if include_history:
-            console.print("[dim]（包含对话历史）[/dim]")
+            console.print("[dim](Konuşma geçmişini içerir)[/dim]")
     except FileNotFoundError:
-        console.print(f"[red]错误：Agent '{name}' 未找到[/red]")
+        console.print(f"[red]hata:Agent '{name}'bulunamadı[/red]")
         raise typer.Exit(1)
 
 
 @app.command("import-state")
 def import_agent_state(
-    source: Path = typer.Argument(..., help="JSON 配置文件路径"),
-    new_name: Optional[str] = typer.Option(None, "--name", "-n", help="新 Agent 名称"),
-    merge_history: bool = typer.Option(False, "--merge", help="合并历史而非覆盖"),
+    source: Path = typer.Argument(..., help="JSONYapılandırma dosyası yolu"),
+    new_name: Optional[str] = typer.Option(None, "--name", "-n", help="yeniAgentisim"),
+    merge_history: bool = typer.Option(False, "--merge", help="Üzerine yazmak yerine geçmişi birleştir"),
 ):
     """
-    从 JSON 文件导入 Agent 配置
+itibarenJSONDosya içe aktarmaAgentYapılandırma
 
-    支持：
-    - 本地 JSON 文件
-    - 导入后可恢复为运行中的 Agent
+Destek:
+    -yerelJSONbelge
+    -İçe aktarıldıktan sonra çalışır duruma getirilebilirAgent
     """
     from src.agents.persistence.store import AgentStateStore
 
     if not source.exists():
-        console.print(f"[red]错误：文件不存在 '{source}'[/red]")
+        console.print(f"[red]Hata: Dosya mevcut değil'{source}'[/red]")
         raise typer.Exit(1)
 
     store = AgentStateStore()
@@ -779,69 +779,69 @@ def import_agent_state(
         imported_name = store.import_agent(
             source, new_name=new_name, merge_history=merge_history
         )
-        console.print(f"[green]✓[/green] Agent '{imported_name}' 已导入")
-        console.print(f"  位置: {store.store_root / imported_name}")
+        console.print(f"[green]✓[/green] Agent '{imported_name}'İthal")
+        console.print(f"Konum: {store.store_root / imported_name}")
     except Exception as e:
-        console.print(f"[red]导入失败: {e}[/red]")
+        console.print(f"[red]İçe aktarma başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("list-saved")
 def list_saved_agents():
-    """列出所有已保存的 Agent"""
+    """Kaydedilenlerin tümünü listeleAgent"""
     from src.agents.persistence.store import AgentStateStore
 
     store = AgentStateStore()
     saved = store.list_saved()
 
     if not saved:
-        console.print("[dim]暂无已保存的 Agent[/dim]")
+        console.print("[dim]Henüz hiçbiri kaydedilmediAgent[/dim]")
         console.print(
-            "\n[dim]使用 [green]omc agent save <name>[/green] 保存 Agent[/dim]"
+            "\n[dim]kullanmak[green]omc agent save <name>[/green]kaydetmekAgent[/dim]"
         )
         return
 
-    table = Table(title="已保存的 Agent")
-    table.add_column("名称", style="cyan")
-    table.add_column("路径", style="dim")
+    table = Table(title="kaydedildiAgent")
+    table.add_column("isim", style="cyan")
+    table.add_column("yol", style="dim")
 
     for name in sorted(saved):
         table.add_row(name, str(store.store_root / name))
 
     console.print(table)
 
-    # 显示统计
+    #istatistikleri göster
     stats = store.get_stats()
     console.print(
-        f"\n[dim]共 {stats['total_agents']} 个 Agent，占用 {stats['total_size_bytes']} 字节[/dim]"
+        f"\n[dim]yaygın{stats['total_agents']}bireyselAgentişgal etmek{stats['total_size_bytes']}bayt[/dim]"
     )
 
 
 @app.command("delete-saved")
 def delete_saved_agent(
-    name: str = typer.Argument(..., help="Agent 名称"),
-    force: bool = typer.Option(False, "--force", "-f", help="强制删除，不确认"),
+    name: str = typer.Argument(..., help="Agentisim"),
+    force: bool = typer.Option(False, "--force", "-f", help="Zorunlu silme, onay yok"),
 ):
-    """删除已保存的 Agent 状态"""
+    """Kaydedilenleri silAgentdurum"""
     from src.agents.persistence.store import AgentStateStore
 
     store = AgentStateStore()
 
     if name not in store.list_saved():
-        console.print(f"[red]错误：Agent '{name}' 未找到[/red]")
+        console.print(f"[red]hata:Agent '{name}'bulunamadı[/red]")
         raise typer.Exit(1)
 
     if not force:
         from rich.prompt import Confirm
 
-        if not Confirm.ask(f"确认删除 Agent '{name}'？"):
-            console.print("[dim]已取消[/dim]")
+        if not Confirm.ask(f"Silmeyi onaylaAgent '{name}'?"):
+            console.print("[dim]İptal edildi[/dim]")
             raise typer.Exit(0)
 
     if store.delete(name):
-        console.print(f"[green]✓[/green] Agent '{name}' 已删除")
+        console.print(f"[green]✓[/green] Agent '{name}'Silindi")
     else:
-        console.print("[red]删除失败[/red]")
+        console.print("[red]Silinemedi[/red]")
         raise typer.Exit(1)
 
 

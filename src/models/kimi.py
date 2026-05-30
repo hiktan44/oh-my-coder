@@ -4,16 +4,16 @@ from __future__ import annotations
 from typing import Optional
 
 """
-Kimi模型适配器
+Kimimodeladaptor
 
 API: https://api.moonshot.cn
-文档: https://platform.moonshot.cn/docs
+dokumantasyon: https://platform.moonshot.cn/docs
 
-特点：
-- 超长上下文（128K tokens）
-- 支持文件理解（PDF/Word 等）
-- 中文能力出色
-- 代码生成能力强
+Ozellikler:
+- asiriuzun bağlam (128K tokens) 
+- destekdosyaanla (PDF/Word vb.) 
+- icindemetinyetenekrenk
+- kod uretimiyetenekguclu
 """
 
 import json
@@ -32,7 +32,7 @@ from .base import (
     Usage,
 )
 
-# Kimi 模型配置
+# Kimi modelyapilandirma
 KIMI_MODELS = {
     "low": {
         "name": "moonshot-v1-8k",
@@ -54,9 +54,9 @@ KIMI_MODELS = {
 
 class KimiModel(BaseModel):
     """
-    Kimi模型适配器
+    Kimimodeladaptor
 
-    兼容 OpenAI 格式，base URL: https://api.moonshot.cn/v1
+    uyumlu OpenAI format, base URL: https://api.moonshot.cn/v1
     """
 
     def __init__(
@@ -106,9 +106,9 @@ class KimiModel(BaseModel):
             item: dict[str, str] = {"role": msg.role, "content": msg.content}
             if msg.name:
                 item["name"] = msg.name
-            if msg.tool_calls:  # assistant 消息的工具调用
+            if msg.tool_calls:  # assistant mesaj aracligicagri
                 item["tool_calls"] = msg.tool_calls  # type: ignore
-            if msg.tool_call_id:  # tool 消息的工具调用 ID
+            if msg.tool_call_id:  # tool mesaj aracligicagri ID
                 item["tool_call_id"] = msg.tool_call_id
             formatted.append(item)
         return formatted
@@ -164,9 +164,9 @@ class KimiModel(BaseModel):
             )
 
         except httpx.HTTPStatusError as e:
-            raise KimiAPIError(f"Kimi API 错误 ({e.response.status_code}): {e}")
+            raise KimiAPIError(f"Kimi API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise KimiAPIError(f"网络请求失败: {e}")
+            raise KimiAPIError(f"ag istegibasarisiz: {e}")
 
     async def stream(self, messages: list[Message], **kwargs) -> AsyncIterator[str]:
         client = await self._get_client()
@@ -201,10 +201,10 @@ class KimiModel(BaseModel):
                         continue
 
         except httpx.HTTPStatusError as e:
-            raise KimiAPIError(f"Kimi API 错误 ({e.response.status_code}): {e}")
+            raise KimiAPIError(f"Kimi API hata ({e.response.status_code}): {e}")
         except httpx.RequestError as e:
-            raise KimiAPIError(f"网络请求失败: {e}")
+            raise KimiAPIError(f"ag istegibasarisiz: {e}")
 
 
 class KimiAPIError(Exception):
-    """Kimi API 错误"""
+    """Kimi API hata"""

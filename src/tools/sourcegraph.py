@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 """
-Sourcegraph 集成 - 让 AI 能搜索公开代码库
+Sourcegraph setol - izin ver AI edebiliraraortakackodkutuphane
 
-支持两种模式：
-1. Sourcegraph API（需要 API Key，免费 tier 足够日常使用）
-2. src CLI（本地安装，无需 API Key）
+destekikiturmod: 
+1. Sourcegraph API (gerekister API Key, ucretsiz tier yeterliyeterligunsikkullan) 
+2. src CLI (yerelkurulum, yokgerek API Key) 
 
-文档：https://sourcegraph.com/docs
-免费 API Key: https://sourcegraph.com/user/settings/tokens
+Dokumantasyon:https://sourcegraph.com/docs
+ucretsiz API Key: https://sourcegraph.com/user/settings/tokens
 """
 
 
@@ -22,40 +22,40 @@ from typing import Any, Optional
 import httpx
 
 # =============================================================================
-# 配置
+# yapilandirma
 # =============================================================================
 
 SG_API_KEY = os.getenv("SOURCEGRAPH_API_KEY", "")
 SG_ENDPOINT = os.getenv("SOURCEGRAPH_ENDPOINT", "https://sourcegraph.com/.api")
-SG_CLI_PATH = os.getenv("SRC_CLI_PATH", "src")  # src 或完整路径
+SG_CLI_PATH = os.getenv("SRC_CLI_PATH", "src")  # src veyatamyol
 
-# src CLI 安装：brew install sourcegraph/tap/src
+# src CLI kurulum: brew install sourcegraph/tap/src
 SRC_CLI_INSTALL_CMD = "brew install sourcegraph/tap/src"
 
 # =============================================================================
-# 数据模型
+# sayigoremodel
 # =============================================================================
 
 
 @dataclass
 class SearchMatch:
-    """单个搜索结果"""
+    """tekilarasonuc"""
 
     repo: str
     file_path: str
     repository_stars: int = 0
     repo_description: str = ""
-    content_preview: str = ""  # 匹配行上下文
+    content_preview: str = ""  # eslestirsatirbaglam
     line_number: int = 0
     language: str = ""
     url: str = ""
-    symbols: list[str] = field(default_factory=list)  # 函数/类名
+    symbols: list[str] = field(default_factory=list)  # fonksiyon/sinifisim
 
     def format_code(self) -> str:
-        """格式化代码片段"""
+        """formatkodparca"""
         lines = [f"[{self.repo}:{self.file_path}:{self.line_number}]"]
         if self.symbols:
-            lines.append(f"  # 定义: {', '.join(self.symbols[:3])}")
+            lines.append(f"  # tanim: {', '.join(self.symbols[:3])}")
         if self.content_preview:
             for line in self.content_preview.splitlines()[:8]:
                 lines.append(f"  {line}")
@@ -64,7 +64,7 @@ class SearchMatch:
 
 @dataclass
 class SearchResult:
-    """完整搜索结果"""
+    """tamarasonuc"""
 
     query: str
     total_matches: int
@@ -74,7 +74,7 @@ class SearchResult:
     warnings: list[str] = field(default_factory=list)
 
     def format_table(self, limit: int = 10) -> str:
-        """格式化表格输出"""
+        """formattablocikti"""
         lines = [
             f"[cyan]Query:[/] {self.query}  "
             f"[green]Matches:[/] {self.total_matches}  "
@@ -98,12 +98,12 @@ class SearchResult:
                     lines.append(f"     {ln[:120]}")
         if len(self.matches) > limit:
             lines.append(
-                f"\n  [dim]... 还有 {len(self.matches) - limit} 个结果，使用 --limit 调整[/dim]"
+                f"\n  [dim]... halavar {len(self.matches) - limit} sonuc, kullan --limit ayartam[/dim]"
             )
         return "\n".join(lines)
 
     def format_json(self) -> str:
-        """JSON 输出"""
+        """JSON cikti"""
         return json.dumps(
             {
                 "query": self.query,
@@ -129,7 +129,7 @@ class SearchResult:
         )
 
     def format_code(self, limit: int = 5) -> str:
-        """AI 友好的代码输出"""
+        """AI arkadasiyikodcikti"""
         lines = [f"# Search: {self.query} ({self.total_matches} matches)\n"]
         for m in self.matches[:limit]:
             lines.append(m.format_code())
@@ -138,16 +138,16 @@ class SearchResult:
 
 
 # =============================================================================
-# Sourcegraph API 客户端
+# Sourcegraph API istemci
 # =============================================================================
 
 
 def _sg_api_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
-    """通过 Sourcegraph API 搜索"""
+    """araciligiyla Sourcegraph API ara"""
     if not SG_API_KEY:
         return None
 
-    # 构建 GraphQL 查询
+    # olustur GraphQL sorgu
     variables = {
         "query": query,
         "first": min(kwargs.get("limit", 20), 100),
@@ -222,7 +222,7 @@ def _sg_api_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
             matches=[],
             elapsed_ms=0,
             source="api",
-            warnings=[f"API 错误: {e.response.status_code}"],
+            warnings=[f"API hata: {e.response.status_code}"],
         )
     except Exception as e:
         return SearchResult(
@@ -231,7 +231,7 @@ def _sg_api_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
             matches=[],
             elapsed_ms=0,
             source="api",
-            warnings=[f"连接失败: {e}"],
+            warnings=[f"baglabaglanbasarisiz: {e}"],
         )
 
     search_data = data.get("data", {}).get("search", {})
@@ -245,7 +245,7 @@ def _sg_api_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
     for item in raw_results:
         typename = item.get("__typename", "")
         if typename == "Repository":
-            continue  # 跳过纯仓库结果
+            continue  # atlasafdepokutuphanesonuc
         if typename == "FileMatch":
             repo_info = item.get("repository", {})
             file_info = item.get("file", {})
@@ -273,7 +273,7 @@ def _sg_api_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
                 )
                 matches.append(match)
 
-    # 估算 total
+    # tahmin total
     match_count = results_conn.get("matchCount", 0)
     if isinstance(match_count, int):
         total = match_count
@@ -288,12 +288,12 @@ def _sg_api_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
 
 
 # =============================================================================
-# src CLI 客户端
+# src CLI istemci
 # =============================================================================
 
 
 def _check_src_cli() -> bool:
-    """检查 src CLI 是否可用"""
+    """kontrol src CLI olup olmadigiolabilirkullan"""
     try:
         result = subprocess.run(
             [SG_CLI_PATH, "version"],
@@ -306,7 +306,7 @@ def _check_src_cli() -> bool:
 
 
 def _src_cli_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
-    """通过 src CLI 搜索"""
+    """araciligiyla src CLI ara"""
     if not _check_src_cli():
         return None
 
@@ -342,7 +342,7 @@ def _src_cli_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
             matches=[],
             elapsed_ms=0,
             source="cli",
-            warnings=[f"src CLI 错误: {e}"],
+            warnings=[f"src CLI hata: {e}"],
         )
 
     matches: list[SearchMatch] = []
@@ -362,7 +362,7 @@ def _src_cli_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
                 )
                 matches.append(match)
             elif item.get("type") == "symbol":
-                # 符号搜索结果
+                # sembolnoarasonuc
                 context = item.get("context", {})
                 match = SearchMatch(
                     repo=item.get("repo", ""),
@@ -379,7 +379,7 @@ def _src_cli_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
             matches=[],
             elapsed_ms=0,
             source="cli",
-            warnings=["src CLI 输出解析失败"],
+            warnings=["src CLI ciktiayristirma basarisiz"],
         )
 
     return SearchResult(
@@ -392,7 +392,7 @@ def _src_cli_search(query: str, **kwargs: Any) -> Optional[SearchResult]:
 
 
 # =============================================================================
-# 主搜索函数
+# anaarafonksiyon
 # =============================================================================
 
 
@@ -406,9 +406,9 @@ def search(
     prefer_api: bool = True,
 ) -> SearchResult:
     """
-    搜索代码。自动选择可用后端：
-    1. Sourcegraph API（有 API Key）
-    2. src CLI（本地安装）
+    arakod. otomatiksecsecolabilirkullansonrauc: 
+    1. Sourcegraph API (var API Key) 
+    2. src CLI (yerelkurulum) 
     """
     kwargs: dict[str, Any] = {
         "limit": limit,
@@ -418,18 +418,18 @@ def search(
         "before": before,
     }
 
-    # 优先 API
+    # oncelik API
     if prefer_api and SG_API_KEY:
         result = _sg_api_search(query, **kwargs)
         if result:
             return result
 
-    # 回退到 CLI
+    # gerigerikadar CLI
     result = _src_cli_search(query, **kwargs)
     if result:
         return result
 
-    # 兜底：返回友好的错误信息
+    # yedek: donusarkadasiyihata mesaji
     return SearchResult(
         query=query,
         total_matches=0,
@@ -437,16 +437,16 @@ def search(
         elapsed_ms=0,
         source="none",
         warnings=[
-            "Sourcegraph API Key 未设置（SOURCEGRAPH_API_KEY）",
-            "src CLI 也未安装",
-            f"安装 src CLI: {SRC_CLI_INSTALL_CMD}",
-            "或获取 API Key: https://sourcegraph.com/user/settings/tokens",
+            "Sourcegraph API Key henuzayarlaayar (SOURCEGRAPH_API_KEY) ",
+            "src CLI ayricakurulu degil",
+            f"kurulum src CLI: {SRC_CLI_INSTALL_CMD}",
+            "veyaal API Key: https://sourcegraph.com/user/settings/tokens",
         ],
     )
 
 
 def install_src_cli() -> tuple[bool, str]:
-    """安装 src CLI，返回 (成功, 消息)"""
+    """kurulum src CLI, donus (basarili, mesaj)"""
     import platform
 
     system = platform.system()
@@ -457,31 +457,31 @@ def install_src_cli() -> tuple[bool, str]:
     elif system == "Windows":
         cmd = ["scoop", "install", "src"]
     else:
-        return False, f"不支持的系统: {system}"
+        return False, f"hayirdesteksistem: {system}"
 
     try:
         result = subprocess.run(cmd, capture_output=True, timeout=60)
         if result.returncode == 0:
-            return True, "src CLI 安装成功"
+            return True, "src CLI kurulumbasarili"
         stderr = result.stderr.decode(errors="replace")
-        return False, f"安装失败: {stderr[:200]}"
+        return False, f"kurulumbasarisiz: {stderr[:200]}"
     except Exception as e:
-        return False, f"安装异常: {e}"
+        return False, f"kurulumfarklisik: {e}"
 
 
 def setup_api_key(api_key: str) -> tuple[bool, str]:
-    """配置 Sourcegraph API Key"""
+    """yapilandirma Sourcegraph API Key"""
 
     if not api_key:
-        return False, "API Key 不能为空"
+        return False, "API Key hayiredebiliricinbos"
 
-    # 写入 .env 文件
+    # yazgiris .env dosya
     env_file = Path.home() / ".omc" / ".env"
     env_file.parent.mkdir(parents=True, exist_ok=True)
 
     content = env_file.read_text(errors="replace") if env_file.exists() else ""
     lines = content.splitlines()
-    # 替换或追加
+    # degistirveyaizleekle
     found = False
     new_lines: list[str] = []
     for line in lines:
@@ -494,11 +494,11 @@ def setup_api_key(api_key: str) -> tuple[bool, str]:
         new_lines.append(f"SOURCEGRAPH_API_KEY={api_key}")
 
     env_file.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
-    return True, f"已保存到 {env_file}"
+    return True, f"kaydetkadar {env_file}"
 
 
 def check_status() -> dict[str, Any]:
-    """检查各后端状态"""
+    """kontrolhersonraucdurum"""
     has_api = bool(SG_API_KEY)
     has_cli = _check_src_cli()
 

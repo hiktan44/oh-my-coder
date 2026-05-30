@@ -4,11 +4,11 @@ from __future__ import annotations
 
 
 """
-omc review - 代码审查命令
+omc review -kod inceleme komutu
 
-支持两种审查模式：
-- omc review pr <url>    # 审查 GitHub PR
-- omc review diff <file> # 审查本地 diff 文件
+İki inceleme modu desteklenir:
+- omc review pr <url>    #gözden geçirmekGitHub PR
+- omc review diff <file> #yerel sansürdiffbelge
 """
 
 import asyncio
@@ -24,21 +24,21 @@ from rich.panel import Panel
 
 from ..core.router import ModelRouter, RouterConfig
 
-app = typer.Typer(help="代码审查 - 智能分析代码变更")
+app = typer.Typer(help="kod incelemesi-Kod değişikliklerinin akıllı analizi")
 console = Console()
 
-# 系统提示词路径
+#Sistem istemi sözcük yolu
 SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "review_system.txt"
 
 
 def _init_router() -> ModelRouter:
-    """初始化模型路由器"""
+    """Model yönlendiriciyi başlat"""
     config = RouterConfig.from_env()
     return ModelRouter(config)
 
 
 def _check_env() -> bool:
-    """检查环境配置"""
+    """Ortam yapılandırmasını kontrol edin"""
 
     keys = [
         "DEEPSEEK_API_KEY",
@@ -52,7 +52,7 @@ def _check_env() -> bool:
     ]
     if not any(os.getenv(k) for k in keys):
         console.print(
-            "[red]❌ 未检测到任何 API Key，请先配置：[/red]\n"
+            "[red]❌Hiçbiri tespit edilmediAPI Key, lütfen önce yapılandırın:[/red]\n"
             "  [cyan]omc self-config set deepseek.api_key sk-xxx[/cyan]"
         )
         return False
@@ -61,23 +61,23 @@ def _check_env() -> bool:
 
 def _fetch_pr_diff(pr_url: str) -> tuple[bool, str]:
     """
-    抓取 GitHub PR diff
+sürünmekGitHub PR diff
 
-    返回: (成功, diff内容或错误信息)
+geri dönmek: (başarı, diffiçerik veya hata mesajı)
     """
     import re
 
-    # 解析 PR URL
-    # 格式: https://github.com/{owner}/{repo}/pull/{number}
+    #ayrıştırmakPR URL
+    #Biçim: https://github.com/{owner}/{repo}/pull/{number}
     match = re.match(
         r"https?://github\.com/([^/]+)/([^/]+)/pull/(\d+)", pr_url.strip("/")
     )
     if not match:
-        return False, f"无效的 GitHub PR URL: {pr_url}"
+        return False, f"GeçersizGitHub PR URL: {pr_url}"
 
     owner, repo, pr_number = match.groups()
 
-    # 使用 gh 命令获取 diff
+    #kullanmakghkomut edinimidiff
     try:
         result = subprocess.run(
             ["gh", "pr", "diff", pr_number, "--repo", f"{owner}/{repo}"],
@@ -87,47 +87,47 @@ def _fetch_pr_diff(pr_url: str) -> tuple[bool, str]:
         )
         if result.returncode == 0 and result.stdout:
             return True, result.stdout
-        # 如果 gh 失败，尝试用 curl
+        #eğerghBaşarısız oldu, kullanmayı deneyincurl
         diff_url = f"https://github.com/{owner}/{repo}/pull/{pr_number}.diff"
 
         resp = httpx.get(diff_url, timeout=15.0)
         if resp.status_code == 200:
             return True, resp.text
-        return False, f"无法获取 PR diff: HTTP {resp.status_code}"
+        return False, f"AlınamıyorPR diff: HTTP {resp.status_code}"
     except FileNotFoundError:
-        # gh 未安装，直接用 HTTP
+        # ghYüklü değil, doğrudan kullanınHTTP
         diff_url = f"https://github.com/{owner}/{repo}/pull/{pr_number}.diff"
 
         try:
             resp = httpx.get(diff_url, timeout=15.0)
             if resp.status_code == 200:
                 return True, resp.text
-            return False, f"无法获取 PR diff: HTTP {resp.status_code}"
+            return False, f"AlınamıyorPR diff: HTTP {resp.status_code}"
         except Exception as e:
-            return False, f"网络请求失败: {e}"
+            return False, f"Ağ isteği başarısız oldu: {e}"
     except subprocess.TimeoutExpired:
-        return False, "获取 PR diff 超时"
+        return False, "Elde etmekPR diffzaman aşımı"
     except Exception as e:
-        return False, f"获取失败: {e}"
+        return False, f"Alınamadı: {e}"
 
 
 def _read_local_diff(diff_file: str) -> tuple[bool, str]:
     """
-    读取本地 diff 文件
+Yerel okudiffbelge
 
-    返回: (成功, diff内容或错误信息)
+geri dönmek: (başarı, diffiçerik veya hata mesajı)
     """
     diff_path = Path(diff_file)
 
-    # 如果是文件路径且存在，读取文件
+    #Bu bir dosya yoluysa ve mevcutsa dosyayı okuyun
     if diff_path.exists() and diff_path.is_file():
         try:
             content = diff_path.read_text(encoding="utf-8")
             return True, content
         except Exception as e:
-            return False, f"读取文件失败: {e}"
+            return False, f"Dosya okunamadı: {e}"
 
-    # 否则尝试作为 git diff 参数执行
+    #Aksi halde şu şekilde deneyin:git diffParametre yürütme
     try:
         result = subprocess.run(
             ["git", "diff", diff_file],
@@ -137,39 +137,39 @@ def _read_local_diff(diff_file: str) -> tuple[bool, str]:
         )
         if result.returncode == 0:
             return True, result.stdout
-        # git diff 失败，返回错误信息
-        return False, f"git diff 失败: {result.stderr}"
+        # git diffBaşarısızlık, hata mesajı döndür
+        return False, f"git diffhata: {result.stderr}"
     except Exception as e:
-        return False, f"执行 git diff 失败: {e}"
+        return False, f"uygulamakgit diffhata: {e}"
 
 
 def _load_system_prompt() -> str:
-    """加载系统提示词"""
+    """Sistem istemi sözcüklerini yükle"""
     if SYSTEM_PROMPT_PATH.exists():
         return SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
-    # 兜底提示词
-    return """你是一位资深的代码审查专家。请审查代码变更，按严重程度（高/中/低）分类问题，并提供修复建议。"""
+    #ipucu kelimesi
+    return """Kıdemli bir kod inceleme uzmanısınız. Lütfen kod değişikliklerini önem derecesine göre sıralanmış şekilde inceleyin (yüksek/orta/Düşük) sorunu kategorilere ayırır ve düzeltme önerileri sunar."""
 
 
 async def _review_with_llm(diff_content: str, model_name: str = "deepseek") -> str:
     """
-    使用 LLM 分析 diff 内容
+kullanmakLLManaliz etmekdiffiçerik
 
-    返回: 审查报告
+geri dönmek:inceleme raporu
     """
     router = _init_router()
     system_prompt = _load_system_prompt()
 
-    # 构造消息
+    #Mesaj oluştur
     messages = [
         {"role": "system", "content": system_prompt},
         {
             "role": "user",
-            "content": f"请审查以下代码变更：\n\n```\n{diff_content}\n```",
+            "content": f"Lütfen aşağıdaki kod değişikliklerini inceleyin:\n\n```\n{diff_content}\n```",
         },
     ]
 
-    # 调用模型
+    #çağrı modeli
     try:
         response = await router.complete(
             messages=messages,
@@ -178,19 +178,19 @@ async def _review_with_llm(diff_content: str, model_name: str = "deepseek") -> s
         )
         return response.content
     except Exception as e:
-        return f"❌ LLM 调用失败: {type(e).__name__}: {e}"
+        return f"❌ LLMçağrı başarısız oldu: {type(e).__name__}: {e}"
 
 
 @app.command("pr")
 def review_pr(
     pr_url: str = typer.Argument(..., help="GitHub PR URL"),
-    model: str = typer.Option("deepseek", "--model", "-m", help="使用的模型"),
+    model: str = typer.Option("deepseek", "--model", "-m", help="Kullanılan model"),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="保存报告到文件"
+        None, "--output", "-o", help="Raporu dosyaya kaydet"
     ),
 ) -> None:
     """
-    审查 GitHub PR 内容
+gözden geçirmekGitHub PRiçerik
 
     Examples:
         omc review pr https://github.com/user/repo/pull/123
@@ -201,56 +201,56 @@ def review_pr(
 
     console.print(
         Panel.fit(
-            f"[bold cyan]🔍 代码审查[/bold cyan]\n"
+            f"[bold cyan]🔍kod incelemesi[/bold cyan]\n"
             f"PR: [yellow]{pr_url}[/yellow]\n"
-            f"模型: [dim]{model}[/dim]",
+            f"Modeli: [dim]{model}[/dim]",
             title="📋 PR Review",
         )
     )
 
-    # 获取 diff
-    console.print("\n[bold]📥 获取 PR diff...[/bold]")
+    #Elde etmekdiff
+    console.print("\n[bold]📥Elde etmekPR diff...[/bold]")
     success, diff = _fetch_pr_diff(pr_url)
     if not success:
         console.print(f"[red]❌ {diff}[/red]")
         raise typer.Exit(1)
 
     if not diff.strip():
-        console.print("[yellow]⚠️ PR 无变更内容[/yellow]")
+        console.print("[yellow]⚠️ PRDeğişiklik yok[/yellow]")
         raise typer.Exit(0)
 
-    console.print(f"[green]✓ 获取到 {len(diff.splitlines())} 行 diff[/green]")
+    console.print(f"[green]✓Elde etmek{len(diff.splitlines())}TAMAMdiff[/green]")
 
-    # 调用 LLM 分析
-    console.print("\n[bold]🤖 正在分析...[/bold]")
+    #AramaLLManaliz etmek
+    console.print("\n[bold]🤖Analiz ediliyor...[/bold]")
 
     try:
         report = asyncio.run(_review_with_llm(diff, model))
     except Exception as e:
-        console.print(f"[red]❌ 分析失败: {e}[/red]")
+        console.print(f"[red]❌Analiz başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
-    # 输出报告
+    #Çıktı raporu
     console.print("\n" + "=" * 80)
     console.print(report)
     console.print("=" * 80)
 
-    # 保存到文件
+    #dosyaya kaydet
     if output:
         output.write_text(report, encoding="utf-8")
-        console.print(f"\n[green]✓ 报告已保存到:[/green] [dim]{output}[/dim]")
+        console.print(f"\n[green]✓Rapor şuraya kaydedildi::[/green] [dim]{output}[/dim]")
 
 
 @app.command("diff")
 def review_diff(
-    diff_file: str = typer.Argument(..., help="diff 文件路径或 git diff 参数"),
-    model: str = typer.Option("deepseek", "--model", "-m", help="使用的模型"),
+    diff_file: str = typer.Argument(..., help="diffdosya yolu veyagit diffparametre"),
+    model: str = typer.Option("deepseek", "--model", "-m", help="Kullanılan model"),
     output: Optional[Path] = typer.Option(
-        None, "--output", "-o", help="保存报告到文件"
+        None, "--output", "-o", help="Raporu dosyaya kaydet"
     ),
 ) -> None:
     """
-    审查本地代码 diff
+Yerel kodu inceleyindiff
 
     Examples:
         omc review diff changes.diff
@@ -262,49 +262,49 @@ def review_diff(
 
     console.print(
         Panel.fit(
-            f"[bold cyan]🔍 代码审查[/bold cyan]\n"
+            f"[bold cyan]🔍kod incelemesi[/bold cyan]\n"
             f"Diff: [yellow]{diff_file}[/yellow]\n"
-            f"模型: [dim]{model}[/dim]",
+            f"Modeli: [dim]{model}[/dim]",
             title="📋 Diff Review",
         )
     )
 
-    # 读取 diff
-    console.print("\n[bold]📥 读取 diff...[/bold]")
+    #Okumakdiff
+    console.print("\n[bold]📥Okumakdiff...[/bold]")
     success, diff = _read_local_diff(diff_file)
     if not success:
         console.print(f"[red]❌ {diff}[/red]")
         raise typer.Exit(1)
 
     if not diff.strip():
-        console.print("[yellow]⚠️ 无变更内容[/yellow]")
+        console.print("[yellow]⚠️Değişiklik yok[/yellow]")
         raise typer.Exit(0)
 
-    console.print(f"[green]✓ 读取到 {len(diff.splitlines())} 行 diff[/green]")
+    console.print(f"[green]✓Okumak{len(diff.splitlines())}TAMAMdiff[/green]")
 
-    # 调用 LLM 分析
-    console.print("\n[bold]🤖 正在分析...[/bold]")
+    #AramaLLManaliz etmek
+    console.print("\n[bold]🤖Analiz ediliyor...[/bold]")
 
     try:
         report = asyncio.run(_review_with_llm(diff, model))
     except Exception as e:
-        console.print(f"[red]❌ 分析失败: {e}[/red]")
+        console.print(f"[red]❌Analiz başarısız oldu: {e}[/red]")
         raise typer.Exit(1)
 
-    # 输出报告
+    #Çıktı raporu
     console.print("\n" + "=" * 80)
     console.print(report)
     console.print("=" * 80)
 
-    # 保存到文件
+    #dosyaya kaydet
     if output:
         output.write_text(report, encoding="utf-8")
-        console.print(f"\n[green]✓ 报告已保存到:[/green] [dim]{output}[/dim]")
+        console.print(f"\n[green]✓Rapor şuraya kaydedildi::[/green] [dim]{output}[/dim]")
 
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context) -> None:
-    """默认显示帮助"""
+    """Yardımı varsayılan olarak göster"""
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
 

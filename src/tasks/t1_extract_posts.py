@@ -1,7 +1,7 @@
 """
-T1: 提取 Hacker News 首页帖子信息
+T1: cikar Hacker News ilksayfagonderialtbilgi
 
-从提供的网页内容中提取所有30条帖子的结构化信息。
+saglaragsayfaicerikicindecikarvar30ogregonderialtyapibilgi. 
 """
 
 from dataclasses import dataclass
@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Post:
-    """表示 Hacker News 上的一条帖子"""
+    """tablogoster Hacker News ustbirogregonderialt"""
 
     rank: int
     title: str
@@ -23,13 +23,13 @@ class Post:
 
 def extract_posts(raw_content: str) -> list[Post]:
     """
-    从原始网页内容中提取帖子列表。
+    hamagsayfaicerikicindecikargonderialtliste. 
 
     Args:
-        raw_content: 从 Hacker News 首页抓取的文本内容。
+        raw_content:  Hacker News ilksayfayakalaalmetinicerik. 
 
     Returns:
-        包含所有帖子的列表。
+        icerirvargonderialtliste. 
     """
     posts: list[Post] = []
     lines = raw_content.strip().split("\n")
@@ -48,13 +48,13 @@ def extract_posts(raw_content: str) -> list[Post]:
         if not line:
             continue
 
-        # 匹配帖子条目，格式: "序号. 标题 ( 来源 )"
-        # 例如: "1. Valve releases Steam Controller CAD files under Creative Commons license ( digitalfoundry.net )"
+        # eslestirgonderialtogrehedef, format: "sirano. baslik ( kaynak )"
+        # ornekornegin: "1. Valve releases Steam Controller CAD files under Creative Commons license ( digitalfoundry.net )"
         import re
 
         match = re.match(r"^(\d+)\.\s+(.+?)\s+\((.+?)\)\s*$", line)
         if match:
-            # 如果已有上一个帖子，保存
+            # egervarustbirgonderialt, kaydet
             if current_title:
                 posts.append(
                     Post(
@@ -69,7 +69,7 @@ def extract_posts(raw_content: str) -> list[Post]:
                     )
                 )
 
-            # 新帖子的基本信息
+            # yenigonderialttemelbilgi
             current_rank = int(match.group(1))
             current_title = match.group(2).strip()
             current_source = match.group(3).strip()
@@ -80,8 +80,8 @@ def extract_posts(raw_content: str) -> list[Post]:
             current_url = ""
             continue
 
-        # 匹配点赞数、作者、时间、评论数行
-        # 格式: "1505 points by haunter 20 hours ago | hide | 496 comments"
+        # eslestirnoktabegenisayi, yazar, zamanarasinda, yorumsayisatir
+        # format: "1505 points by haunter 20 hours ago | hide | 496 comments"
         points_match = re.match(
             r"^(\d+)\s+points\s+by\s+(\S+)\s+(.+?)\s+\|\s+hide\s+\|\s+(\d+)\s+comments$",
             line,
@@ -93,7 +93,7 @@ def extract_posts(raw_content: str) -> list[Post]:
             current_comments = int(points_match.group(4))
             continue
 
-    # 保存最后一条帖子
+    # kaydetensonrabirogregonderialt
     if current_title:
         posts.append(
             Post(
@@ -112,18 +112,18 @@ def extract_posts(raw_content: str) -> list[Post]:
 
 
 def print_posts(posts: list[Post]) -> None:
-    """打印帖子列表"""
-    print(f"共提取 {len(posts)} 条帖子:\n")
+    """yazdirgonderialtliste"""
+    print(f"ortakcikar {len(posts)} ogregonderialt:\n")
     for post in posts:
         print(f"{post.rank}. {post.title}")
         print(
-            f"   来源: {post.source} | 点赞: {post.points} | 作者: {post.author} | {post.time_ago} | 评论: {post.comments}"
+            f"   kaynak: {post.source} | noktabegeni: {post.points} | yazar: {post.author} | {post.time_ago} | yorum: {post.comments}"
         )
         print()
 
 
 if __name__ == "__main__":
-    # 测试提取
+    # testcikar
     test_content = """1. Valve releases Steam Controller CAD files under Creative Commons license ( digitalfoundry.net )
 1505 points by haunter 20 hours ago | hide | 496 comments"""
 

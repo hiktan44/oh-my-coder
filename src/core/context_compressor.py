@@ -1,10 +1,10 @@
 """
-上下文压缩优化 — 智能压缩静态知识，保留动态推理
+baglamsikistiriyi - akilliedebilirsikistirstatik bilgi, korudinamikakil yurutme
 
-核心策略：
-1. 识别静态知识（文件内容、文档、配置）→ 压缩为摘要
-2. 保留动态推理（思维链、决策过程、错误修复）→ 完整保留
-3. 分级压缩：根据消息类型和重要性应用不同压缩策略
+cekirdekstrateji: 
+1. tanistatik bilgi (dosyaicerik, dokumantasyon, yapilandirma) → sikistiricinalintiister
+2. korudinamikakil yurutme (dusunce zinciri, kararsurec, hataduzeltme) → tamkoru
+3. puanseviyesikistir: goremesajtipvetekraristeruygulamahayiraynisikistirstrateji
 """
 
 from __future__ import annotations
@@ -16,59 +16,59 @@ from typing import Any, Optional
 
 
 class MessageType(Enum):
-    """消息类型分类"""
+    """mesajtippuansinif"""
 
-    STATIC_KNOWLEDGE = "static"  # 静态知识：文件内容、文档、配置
-    DYNAMIC_REASONING = "dynamic"  # 动态推理：思维链、分析过程
-    TOOL_EXECUTION = "tool"  # 工具执行：命令输出、搜索结果
-    ERROR = "error"  # 错误信息
-    SYSTEM = "system"  # 系统消息
-    USER = "user"  # 用户输入
-    ASSISTANT = "assistant"  # 助手回复
+    STATIC_KNOWLEDGE = "static"  # statik bilgi: dosyaicerik, dokumantasyon, yapilandirma
+    DYNAMIC_REASONING = "dynamic"  # dinamikakil yurutme: dusunce zinciri, analizsurec
+    TOOL_EXECUTION = "tool"  # aracyurut: komutcikti, arasonuc
+    ERROR = "error"  # hata mesaji
+    SYSTEM = "system"  # sistemmesaj
+    USER = "user"  # kullanicigirdi
+    ASSISTANT = "assistant"  # yardimcigeritekrar
 
 
 class CompressionLevel(Enum):
-    """压缩级别"""
+    """sikistirseviye"""
 
-    NONE = 0  # 不压缩（保留完整）
-    LIGHT = 1  # 轻度压缩（保留关键信息）
-    MEDIUM = 2  # 中度压缩（生成摘要）
-    HEAVY = 3  # 重度压缩（仅保留元数据）
+    NONE = 0  # hayirsikistir (korutam) 
+    LIGHT = 1  # hafifderecesikistir (koruanahtarbilgi) 
+    MEDIUM = 2  # icindederecesikistir (olusturalintiister) 
+    HEAVY = 3  # tekrarderecesikistir (sadecekoruogresayigore) 
 
 
 @dataclass
 class CompressionRule:
-    """压缩规则"""
+    """sikistirkural"""
 
     message_type: MessageType
     level: CompressionLevel
-    priority: int  # 优先级，数字越小越重要
+    priority: int  # oncelikseviye, sayiharfasirikucukasiritekrarister
     description: str
 
 
-# 默认压缩规则：动态推理 > 用户输入 > 系统消息 > 工具执行 > 静态知识 > 错误
+# varsayilansikistirkural: dinamikakil yurutme > kullanicigirdi > sistemmesaj > aracyurut > statik bilgi > hata
 DEFAULT_RULES = [
     CompressionRule(
-        MessageType.DYNAMIC_REASONING, CompressionLevel.NONE, 1, "保留完整推理过程"
+        MessageType.DYNAMIC_REASONING, CompressionLevel.NONE, 1, "korutamakil yurutmesurec"
     ),
-    CompressionRule(MessageType.USER, CompressionLevel.NONE, 2, "保留用户输入"),
-    CompressionRule(MessageType.SYSTEM, CompressionLevel.LIGHT, 3, "轻度压缩系统消息"),
+    CompressionRule(MessageType.USER, CompressionLevel.NONE, 2, "korukullanicigirdi"),
+    CompressionRule(MessageType.SYSTEM, CompressionLevel.LIGHT, 3, "hafifderecesikistirsistemmesaj"),
     CompressionRule(
-        MessageType.ASSISTANT, CompressionLevel.LIGHT, 4, "轻度压缩助手回复"
-    ),
-    CompressionRule(
-        MessageType.TOOL_EXECUTION, CompressionLevel.MEDIUM, 5, "中度压缩工具输出"
+        MessageType.ASSISTANT, CompressionLevel.LIGHT, 4, "hafifderecesikistiryardimcigeritekrar"
     ),
     CompressionRule(
-        MessageType.STATIC_KNOWLEDGE, CompressionLevel.HEAVY, 6, "重度压缩静态知识"
+        MessageType.TOOL_EXECUTION, CompressionLevel.MEDIUM, 5, "icindederecesikistiraraccikti"
     ),
-    CompressionRule(MessageType.ERROR, CompressionLevel.MEDIUM, 7, "中度压缩历史错误"),
+    CompressionRule(
+        MessageType.STATIC_KNOWLEDGE, CompressionLevel.HEAVY, 6, "tekrarderecesikistirstatik bilgi"
+    ),
+    CompressionRule(MessageType.ERROR, CompressionLevel.MEDIUM, 7, "icindederecesikistirgecmishata"),
 ]
 
 
 @dataclass
 class CompressedMessage:
-    """压缩后的消息"""
+    """sikistirsonramesaj"""
 
     original_role: str
     original_content: str
@@ -80,12 +80,12 @@ class CompressedMessage:
 
 
 class ContextCompressor:
-    """上下文压缩器
+    """baglamsikistir
 
-    智能识别消息类型，应用差异化压缩策略：
-    - 静态知识（文件内容、文档）→ 提取关键信息，删除冗余
-    - 动态推理（思维链、分析）→ 完整保留
-    - 工具执行（命令输出）→ 保留结果，省略过程
+    akilliedebilirtanimesajtip, uygulamafarkfarklisikistirstrateji: 
+    - statik bilgi (dosyaicerik, dokumantasyon) → cikaranahtarbilgi, silfazlakalan
+    - dinamikakil yurutme (dusunce zinciri, analiz) → tamkoru
+    - aracyurut (komutcikti) → korusonuc, atlasurec
     """
 
     def __init__(self, rules: Optional[list[CompressionRule]] = None):
@@ -93,38 +93,38 @@ class ContextCompressor:
         self.rules_map = {r.message_type: r for r in self.rules}
 
     def classify_message(self, role: str, content: str) -> MessageType:
-        """分类消息类型"""
-        # 系统消息
+        """puansinifmesajtip"""
+        # sistemmesaj
         if role == "system":
             return MessageType.SYSTEM
 
-        # 用户消息
+        # kullanicimesaj
         if role == "user":
             return MessageType.USER
 
-        # 错误消息
+        # hatamesaj
         if self._is_error(content):
             return MessageType.ERROR
 
-        # 动态推理（思维链、分析过程）
+        # dinamikakil yurutme (dusunce zinciri, analizsurec) 
         if self._is_reasoning(content):
             return MessageType.DYNAMIC_REASONING
 
-        # 静态知识（文件内容、文档、配置）
+        # statik bilgi (dosyaicerik, dokumantasyon, yapilandirma) 
         if self._is_static_knowledge(content):
             return MessageType.STATIC_KNOWLEDGE
 
-        # 工具执行
+        # aracyurut
         if role == "tool" or self._is_tool_execution(content):
             return MessageType.TOOL_EXECUTION
 
-        # 默认
+        # varsayilan
         return MessageType.ASSISTANT
 
     def compress(
         self, role: str, content: str, tokens_before: int
     ) -> CompressedMessage:
-        """压缩单条消息"""
+        """sikistirtekilogremesaj"""
         msg_type = self.classify_message(role, content)
         rule = self.rules_map.get(msg_type, DEFAULT_RULES[-1])
 
@@ -154,14 +154,14 @@ class ContextCompressor:
         messages: list[dict[str, Any]],
         token_counter: Optional[Any] = None,
     ) -> tuple[list[dict[str, Any]], CompressionSummary]:
-        """压缩整个会话
+        """sikistirtamyapacakkonusma
 
         Args:
-            messages: 消息列表，每条是 {"role": str, "content": str}
-            token_counter: token 计数器函数
+            messages: mesajliste, herogredir {"role": str, "content": str}
+            token_counter: token hesapsayifonksiyon
 
         Returns:
-            (压缩后的消息列表, 压缩摘要)
+            (sikistirsonramesajliste, sikistiralintiister)
         """
         compressed_messages = []
         total_saved = 0
@@ -171,7 +171,7 @@ class ContextCompressor:
             role = msg.get("role", "")
             content = msg.get("content", "")
 
-            # 估算 token 数
+            # tahmin token sayi
             tokens_before = (
                 len(content) // 4 if token_counter is None else token_counter(content)
             )
@@ -198,10 +198,10 @@ class ContextCompressor:
 
         return compressed_messages, summary
 
-    # ===== 内部方法 =====
+    # ===== icindekisimyontem =====
 
     def _is_error(self, content: str) -> bool:
-        """判断是否为错误消息"""
+        """karar verolup olmadigiicinhatamesaj"""
         error_patterns = [
             r"error:",
             r"exception:",
@@ -214,43 +214,43 @@ class ContextCompressor:
         return any(re.search(p, content_lower) for p in error_patterns)
 
     def _is_reasoning(self, content: str) -> bool:
-        """判断是否为动态推理（思维链）"""
+        """karar verolup olmadigiicindinamikakil yurutme (dusunce zinciri) """
         reasoning_patterns = [
-            r"让我思考一下",
-            r"分析.*原因",
-            r"推理.*过程",
-            r"决策.*依据",
-            r"选择.*因为",
-            r"比较.*优劣",
-            r"评估.*方案",
-            r"思考.*步骤",
-            r"^\d+\.\s+(首先|然后|接下来|最后)",
+            r"izin verbendusuncesinabiralt",
+            r"analiz.*asilneden",
+            r"akil yurutme.*surec",
+            r"karar.*bagligore",
+            r"secsec.*nedenicin",
+            r"kiyaskiyas.*iyikotu",
+            r"degerlendir.*plan",
+            r"dusuncesina.*adim",
+            r"^\d+\.\s+(ilkonce|sonra|baglanaltgel|ensonra)",
             r"(planning|reasoning|thinking|analysis)",
         ]
         return any(re.search(p, content, re.IGNORECASE) for p in reasoning_patterns)
 
     def _is_static_knowledge(self, content: str) -> bool:
-        """判断是否为静态知识"""
+        """karar verolup olmadigiicinstatik bilgi"""
         static_patterns = [
-            r"^\s*```\w+",  # 代码块
-            r"^\s*#+\s+",  # Markdown 标题
-            r"^\s*[-*]\s+",  # 列表
-            r"文件内容",
-            r"文档说明",
-            r"配置参数",
+            r"^\s*```\w+",  # kodblok
+            r"^\s*#+\s+",  # Markdown baslik
+            r"^\s*[-*]\s+",  # liste
+            r"dosyaicerik",
+            r"dokumantasyonaciklama",
+            r"yapilandirmaparametre",
             r"^\s*\{",  # JSON
             r"^\s*<",  # XML/HTML
         ]
         return any(re.search(p, content) for p in static_patterns)
 
     def _is_tool_execution(self, content: str) -> bool:
-        """判断是否为工具执行结果"""
+        """karar verolup olmadigiicinaracyurutme sonucu"""
         tool_patterns = [
-            r"^\s*\$\s+",  # 命令行
-            r"^\s*>",  # 命令输出
-            r"执行结果",
-            r"输出内容",
-            r"^\s*\[\d{4}-\d{2}-\d{2}",  # 时间戳日志
+            r"^\s*\$\s+",  # komutsatir
+            r"^\s*>",  # komutcikti
+            r"yurutme sonucu",
+            r"ciktiicerik",
+            r"^\s*\[\d{4}-\d{2}-\d{2}",  # zamanarasindadamgalog
         ]
         return any(re.search(p, content) for p in tool_patterns)
 
@@ -260,22 +260,22 @@ class ContextCompressor:
         level: CompressionLevel,
         tokens_before: int,
     ) -> tuple[str, int]:
-        """应用压缩策略"""
+        """uygulamasikistirstrateji"""
         if level == CompressionLevel.LIGHT:
-            # 轻度：删除多余空行，合并连续空格
+            # hafifderece: silcokkalanbossatir, birlestirvebagladevambos
             compressed = re.sub(r"\n{3,}", "\n\n", content)
             compressed = re.sub(r" {2,}", " ", compressed)
             saved = tokens_before - len(compressed) // 4
             return compressed, max(0, saved)
 
         elif level == CompressionLevel.MEDIUM:
-            # 中度：提取关键信息，生成摘要
+            # icindederece: cikaranahtarbilgi, olusturalintiister
             compressed = self._extract_key_info(content)
             saved = tokens_before - len(compressed) // 4
             return compressed, max(0, saved)
 
         elif level == CompressionLevel.HEAVY:
-            # 重度：仅保留元数据和关键结果
+            # tekrarderece: sadecekoruogresayigoreveanahtarsonuc
             compressed = self._extract_metadata(content)
             saved = tokens_before - len(compressed) // 4
             return compressed, max(0, saved)
@@ -283,27 +283,27 @@ class ContextCompressor:
         return content, 0
 
     def _extract_key_info(self, content: str) -> str:
-        """提取关键信息（中度压缩）"""
+        """cikaranahtarbilgi (icindederecesikistir) """
         lines = content.split("\n")
         key_lines = []
 
         for line in lines:
-            # 保留包含关键信息的行
+            # koruiceriranahtarbilgisatir
             if any(
                 kw in line.lower()
                 for kw in [
-                    "结果",
-                    "成功",
-                    "失败",
-                    "错误",
-                    "警告",
+                    "sonuc",
+                    "basarili",
+                    "basarisiz",
+                    "hata",
+                    "uyari",
                     "result",
                     "success",
                     "fail",
                     "error",
                     "warning",
-                    "总结",
-                    "结论",
+                    "toplam",
+                    "tartis",
                     "summary",
                     "conclusion",
                 ]
@@ -311,31 +311,31 @@ class ContextCompressor:
                 key_lines.append(line)
 
         if key_lines:
-            return "[摘要] " + " | ".join(key_lines[:5])
+            return "[alintiister] " + " | ".join(key_lines[:5])
         return content[:200] + "..." if len(content) > 200 else content
 
     def _extract_metadata(self, content: str) -> str:
-        """提取元数据（重度压缩）"""
-        # 统计信息
+        """cikarogresayigore (tekrarderecesikistir) """
+        # istatistikbilgi
         lines = content.split("\n")
         code_blocks = len(re.findall(r"```", content)) // 2
         urls = len(re.findall(r"https?://\S+", content))
 
-        meta = f"[压缩内容: {len(lines)}行"
+        meta = f"[sikistiricerik: {len(lines)}satir"
         if code_blocks > 0:
-            meta += f", {code_blocks}个代码块"
+            meta += f", {code_blocks}kodblok"
         if urls > 0:
-            meta += f", {urls}个链接"
+            meta += f", {urls}baglanti"
         meta += "]"
 
-        # 保留第一行（通常是标题/摘要）
+        # koruincibirsatir (sikdirbaslik/alintiister) 
         first_line = lines[0][:100] if lines else ""
         return f"{meta}\n{first_line}..."
 
 
 @dataclass
 class CompressionSummary:
-    """压缩摘要"""
+    """sikistiralintiister"""
 
     total_messages: int
     total_tokens_saved: int

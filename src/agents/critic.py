@@ -1,13 +1,13 @@
 """
-Critic Agent - 批评家智能体
+Critic Agent - eleştirmen ajanı
 
-职责：
-1. 计划和设计的缺口分析
-2. 多角度审查
-3. 发现潜在问题
-4. 提出改进建议
+Sorumluluklar:
+1. Planlama ve tasarım için boşluk analizi
+2. çok açılı inceleme
+3. Potansiyel sorunları keşfedin
+4. İyileştirmeler için önerilerde bulunun
 
-模型层级：HIGH（深度推理，对应 opus）
+Modeli seviyesi:HIGH(Derin muhakeme, buna karşılık gelir opus)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class CriticAgent(BaseAgent):
-    """批评家 Agent - 多角度审查和缺口分析"""
+    """eleştirmen Agent - Çok açılı inceleme ve boşluk analizi"""
 
     name = "critic"
-    description = "批评家智能体 - 计划审查和缺口分析"
+    description = "eleştirmen ajanı - Program incelemesi ve boşluk analizi"
     lane = AgentLane.COORDINATION
     default_tier = "high"
     icon = "🎯"
@@ -34,69 +34,69 @@ class CriticAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个犀利但建设性的批评家。
+        return """Keskin ama yapıcı bir eleştirmensiniz.
 
-## 角色
-你的职责是从多个角度审查计划和设计，发现缺口和潜在问题。
+## Rol
+Sizin sorumluluğunuz, boşlukları ve potansiyel sorunları belirlemek için planları ve tasarımları birden fazla perspektiften incelemek olacaktır.
 
-## 审查角度
-1. **完整性** - 是否有遗漏？
-2. **可行性** - 是否可实现？
-3. **一致性** - 是否有矛盾？
-4. **可维护性** - 未来是否好维护？
-5. **可扩展性** - 是否容易扩展？
-6. **性能** - 是否有性能问题？
-7. **安全** - 是否有安全隐患？
+## sansür açısı
+1. **bütünlük** - Herhangi bir eksiklik var mı?
+2. **fizibilite** - Bu başarılabilir mi?
+3. **tutarlılık** - Herhangi bir çatışma var mı?
+4. **sürdürülebilirlik** - Gelecekte bakımı kolay olacak mı?
+5. **Ölçeklenebilirlik** - Genişletmek kolay mı?
+6. **performans** - Herhangi bir performans sorunu var mı?
+7. **Emniyet** - Herhangi bir güvenlik riski var mı?
 
-## 批评原则
-1. **建设性** - 不仅指出问题，还要给出建议
-2. **具体** - 指出具体位置和原因
-3. **优先级** - 区分严重问题和次要问题
-4. **可操作** - 建议要具体可执行
+## kritik prensip
+1. **yapıcı** - Sadece sorunları belirtmekle kalmayıp öneriler de verin
+2. **özel** - Belirli bir yeri ve nedenini belirtin
+3. **öncelik** - Ciddi ve küçük sorunlar arasında ayrım yapın
+4. **Çalıştırılabilir** - Öneriler spesifik ve uygulanabilir olmalıdır
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 总体评价
+### 1. Genel derecelendirme
 ⭐⭐⭐☆☆ (3/5)
 
-一句话总结
+Bir cümlelik özet
 
-### 2. 关键问题 (CRITICAL)
-- 🔴 **[完整性]** 缺少 XXX 处理
-  - 影响: ...
-  - 建议: ...
+### 2. anahtar sorular (CRITICAL)
+- 🔴 **[bütünlük]** Eksiklik XXX uğraşmak
+  - Etkilemek: ...
+  - telkin: ...
 
-### 3. 潜在问题 (WARNING)
-- 🟡 **[性能]** XXX 可能成为瓶颈
-  - 原因: ...
-  - 建议: ...
+### 3. potansiyel sorunlar (WARNING)
+- 🟡 **[performans]** XXX darboğaz haline gelebilir
+  - sebep: ...
+  - telkin: ...
 
-### 4. 改进建议 (IMPROVEMENT)
-- 🟢 **[可维护性]** 建议重构 XXX
-  - 建议: ...
+### 4. İyileştirme önerileri (IMPROVEMENT)
+- 🟢 **[sürdürülebilirlik]** Yeniden düzenlemeyi öner XXX
+  - telkin: ...
 
-### 5. 缺口分析
-| 维度 | 状态 | 说明 |
+### 5. boşluk analizi
+| Boyutlar | durum | göstermek |
 |------|------|------|
-| 完整性 | ⚠️ | 缺少错误处理 |
-| 可行性 | ✅ | 技术方案可行 |
-| 性能 | ⚠️ | 需要优化 |
-| 安全 | ✅ | 无明显问题 |
+| bütünlük | ⚠️ | Eksik hata işleme |
+| fizibilite | ✅ | Teknik çözüm mümkün |
+| performans | ⚠️ | Optimizasyona ihtiyaç var |
+| Emniyet | ✅ | Belirgin bir sorun yok |
 
-### 6. 推荐改进顺序
-1. [CRITICAL] 修复 XXX
-2. [WARNING] 优化 YYY
-3. [IMPROVEMENT] 重构 ZZZ
+### 6. Önerilen iyileştirme sırası
+1. [CRITICAL] tamirat XXX
+2. [WARNING] optimizasyon YYY
+3. [IMPROVEMENT] Yeniden düzenleme ZZZ
 
-### 7. 下一步建议
+### 7. Sonraki adımlar için öneriler
 - ...
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行批评审查"""
-        # 收集前序输出
+        """Kritik inceleme gerçekleştirin"""
+        # Ön sipariş çıktısını topla
         context_parts = []
 
         for agent_name in ["planner", "architect"]:
@@ -108,18 +108,18 @@ class CriticAgent(BaseAgent):
         if context_parts:
             prompt.append({"role": "user", "content": "\n\n".join(context_parts)})
 
-        # 批评提示
+        # Eleştiri ipuçları
         critic_hint = """
 
-请从多个角度审查：
-1. 是否有遗漏的关键点？
-2. 是否有矛盾或不一致的地方？
-3. 是否有潜在的风险？
-4. 是否有更好的实现方式？
+Lütfen birden çok açıdan inceleyin:
+1. Gözden kaçan önemli noktalar var mı?
+2. Herhangi bir çelişki veya tutarsızlık var mı?
+3. Herhangi bir potansiyel risk var mı?
+4. Bunu uygulamanın daha iyi bir yolu var mı?
 """
         prompt.append({"role": "user", "content": critic_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -133,12 +133,12 @@ class CriticAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "根据批评意见调整计划",
-                "重新审查架构设计",
+                "Eleştirilere yanıt olarak planları ayarlayın",
+                "Mimari tasarımı yeniden inceleyin",
             ],
         )

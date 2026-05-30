@@ -1,13 +1,13 @@
 """
-Tracer Agent - 因果追踪智能体
+Tracer Agent - Nedensel izleme ajanı
 
-职责：
-1. 证据驱动的因果追踪
-2. 竞争假设分析
-3. 问题根因定位
-4. 调用链分析
+Sorumluluklar:
+1. Kanıta dayalı nedensel izleme
+2. Rekabetçi What-If Analizi
+3. Sorunun temel nedeninin konumu
+4. Çağrı zinciri analizi
 
-模型层级：MEDIUM（平衡，对应 sonnet）
+Modeli seviyesi:MEDIUM(denge, yazışma sonnet)
 """
 
 from dataclasses import dataclass
@@ -25,7 +25,7 @@ from .base import (
 
 @dataclass
 class Hypothesis:
-    """假设"""
+    """hipotez"""
 
     description: str
     evidence_for: list[str]
@@ -35,10 +35,10 @@ class Hypothesis:
 
 @register_agent
 class TracerAgent(BaseAgent):
-    """追踪 Agent - 因果分析和根因定位"""
+    """izlemek Agent - Sebep-sonuç analizi ve kök neden tespiti"""
 
     name = "tracer"
-    description = "追踪智能体 - 证据驱动的因果分析"
+    description = "takip temsilcisi - Kanıta dayalı nedensel analiz"
     lane = AgentLane.BUILD_ANALYSIS
     default_tier = "medium"
     icon = "🔍"
@@ -46,84 +46,84 @@ class TracerAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个问题分析专家，擅长追踪问题的根因。
+        return """Uzman bir sorun analizcisisiniz ve bir sorunun temel nedenini bulma konusunda iyisiniz.
 
-## 角色
-你的职责是通过证据驱动的分析，找到问题的真正原因。
+## Rol
+İşiniz kanıta dayalı analiz yoluyla sorunun gerçek nedenini bulmaktır.
 
-## 能力
-1. 因果追踪 - 分析事件序列
-2. 假设验证 - 提出并验证假设
-3. 证据收集 - 从代码和日志中找证据
-4. 根因定位 - 找到问题的起点
+## yetenek
+1. Sebep ve sonuç takibi - Olay dizisini analiz edin
+2. Hipotez doğrulama - Hipotezleri formüle edin ve test edin
+3. kanıt toplama - Kod ve günlüklerden kanıt bulun
+4. Kök neden konumu - Sorunun başlangıç ​​noktasını bulun
 
-## 分析方法
-1. **观察** - 看到什么现象？
-2. **假设** - 可能的原因是什么？
-3. **验证** - 如何验证这个假设？
-4. **结论** - 根因是什么？
+## Analitik yöntemler
+1. **gözlemlemek** - Ne gördün?
+2. **hipotez** - Olası nedenler nelerdir?
+3. **doğrulamak** - Bu hipotez nasıl test edilir?
+4. **Sonuç olarak** - Temel sebep nedir?
 
-## 分析原则
-1. **证据驱动** - 不猜测，基于事实
-2. **竞争假设** - 考虑多种可能性
-3. **奥卡姆剃刀** - 最简单的解释往往是对的
-4. **完整链路** - 从现象到根因的完整路径
+## Analiz ilkeleri
+1. **kanıta dayalı** - Tahmin yok, gerçeklere dayanıyor
+2. **rakip hipotezler** - Birden fazla olasılığı göz önünde bulundurun
+3. **Occam'ın usturası** - En basit açıklama çoğu zaman doğru olanıdır
+4. **tam bağlantı** - Olgudan temel nedene giden tam yol
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 问题现象
+### 1. Sorun olgusu
 ```
-错误信息
-堆栈跟踪
+hata mesajı
+yığın izleme
 ```
 
-### 2. 竞争假设分析
+### 2. Rekabetçi What-If Analizi
 
-| 假设 | 支持证据 | 反对证据 | 置信度 |
+| hipotez | destekleyici kanıtlar | Aleyhte kanıt | Kendinden emin |
 |------|----------|----------|--------|
 | H1: ... | ... | ... | 0.8 |
 | H2: ... | ... | ... | 0.3 |
 
-### 3. 证据链
+### 3. kanıt zinciri
 ```
-现象A
-  ↓ 因为
-代码B
-  ↓ 因为
-配置C
-  ↓ 因为
-根因D
+fenomenA
+  ↓ Çünkü
+kodB
+  ↓ Çünkü
+YapılandırmaC
+  ↓ Çünkü
+ana nedenD
 ```
 
-### 4. 根因分析
-**根本原因**: ...
+### 4. kök neden analizi
+**ana neden**: ...
 
-**直接原因**: ...
+**doğrudan sebep**: ...
 
-**促成因素**: ...
+**Katkıda bulunan faktörler**: ...
 
-### 5. 验证步骤
+### 5. Doğrulama adımları
 ```bash
-# 验证步骤1
-# 验证步骤2
+# Doğrulama adımları1
+# Doğrulama adımları2
 ```
 
-### 6. 修复建议
+### 6. Onarım önerileri
 - ...
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行因果追踪"""
-        # 添加错误信息
+        """Sebep ve sonuç takibi gerçekleştirin"""
+        # Hata mesajı ekle
         error_info = context.metadata.get("error")
         if error_info:
             prompt.append(
-                {"role": "user", "content": f"## 问题现象\n```\n{error_info}\n```"}
+                {"role": "user", "content": f"## Sorun olgusu\n```\n{error_info}\n```"}
             )
 
-        # 添加相关代码
+        # İlgili kodu ekleyin
         if context.relevant_files:
             code_parts = []
             for file_path in context.relevant_files[:5]:
@@ -140,22 +140,22 @@ class TracerAgent(BaseAgent):
                 prompt.append(
                     {
                         "role": "user",
-                        "content": "## 相关代码\n" + "\n\n".join(code_parts),
+                        "content": "## İlgili kod\n" + "\n\n".join(code_parts),
                     }
                 )
 
-        # 追踪提示
+        # Takip İpuçları
         trace_hint = """
 
-请分析问题根因：
-1. 可能的原因有哪些？（竞争假设）
-2. 每个假设有什么支持/反对证据？
-3. 最可能的根因是什么？
-4. 如何验证你的结论？
+Lütfen sorunun temel nedenini analiz edin:
+1. Olası nedenler nelerdir? (Rakip hipotez)
+2. Her hipotez için hangi destek var?/Kanıtlara karşı mı?
+3. En olası temel neden nedir?
+4. Sonucunuzu nasıl doğrulayabilirsiniz?
 """
         prompt.append({"role": "user", "content": trace_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -168,13 +168,13 @@ class TracerAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "根据分析结果修复问题",
-                "添加测试防止复发",
+                "Analiz sonuçlarına göre sorunları düzeltme",
+                "Tekrarlamayı önlemek için test ekleyin",
             ],
             next_agent="debugger",
         )

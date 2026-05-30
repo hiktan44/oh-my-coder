@@ -4,9 +4,9 @@ from __future__ import annotations
 
 
 """
-Model Discovery - 动态模型发现系统
+Model Discovery - dinamikmodelkesfetsistem
 
-从各厂商 API 拉取可用模型列表，检测新模型
+heruretici API cekolabilirkullanmodelliste, algilamayenimodel
 """
 
 
@@ -21,14 +21,14 @@ import httpx
 
 
 class ModelDiscovery:
-    """动态模型发现：从各厂商 API 拉取可用模型列表"""
+    """dinamikmodelkesfet: heruretici API cekolabilirkullanmodelliste"""
 
-    # 各厂商的 /models 端点配置
+    # heruretici /models uc noktayapilandirma
     PROVIDER_APIS = {
         "deepseek": {
             "url": "https://api.deepseek.com/models",
             "key_env": "DEEPSEEK_API_KEY",
-            "format": "openai",  # OpenAI 兼容格式
+            "format": "openai",  # OpenAI uyumluformat
         },
         "glm": {
             "url": "https://open.bigmodel.cn/api/paas/v4/models",
@@ -51,14 +51,14 @@ class ModelDiscovery:
             "format": "openai",
         },
         "wenxin": {
-            # 百度文心没有标准 /models 端点，跳过动态发现
+            # yuzderecemetinkalpyokvarstandart /models uc nokta, atladinamikkesfet
             "skip": True,
-            "reason": "百度文心没有标准 /models 端点",
+            "reason": "yuzderecemetinkalpyokvarstandart /models uc nokta",
         },
         "hunyuan": {
-            # 腾讯混元没有标准 /models 端点，跳过
+            # Tencent Hunyuanyokvarstandart /models uc nokta, atla
             "skip": True,
-            "reason": "腾讯混元没有标准 /models 端点",
+            "reason": "Tencent Hunyuanyokvarstandart /models uc nokta",
         },
         "minimax": {
             "url": "https://api.minimax.chat/v1/models",
@@ -66,14 +66,14 @@ class ModelDiscovery:
             "format": "openai",
         },
         "tiangong": {
-            # 天工没有标准 /models 端点，跳过
+            # Tiangongyokvarstandart /models uc nokta, atla
             "skip": True,
-            "reason": "天工没有标准 /models 端点",
+            "reason": "Tiangongyokvarstandart /models uc nokta",
         },
         "spark": {
-            # 讯飞星火没有标准 /models 端点，跳过
+            # iFlytek Sparkyokvarstandart /models uc nokta, atla
             "skip": True,
-            "reason": "讯飞星火没有标准 /models 端点",
+            "reason": "iFlytek Sparkyokvarstandart /models uc nokta",
         },
         "baichuan": {
             "url": "https://api.baichuan-ai.com/v1/models",
@@ -86,23 +86,23 @@ class ModelDiscovery:
             "format": "openai",
         },
         "anthropic": {
-            # Anthropic 没有 /models 端点，跳过
+            # Anthropic yokvar /models uc nokta, atla
             "skip": True,
-            "reason": "Anthropic 没有标准 /models 端点",
+            "reason": "Anthropic yokvarstandart /models uc nokta",
         },
         "google": {
-            # Google 使用不同的 API 格式，暂时跳过
+            # Google kullanhayirayni API format, geçicizamanatla
             "skip": True,
-            "reason": "Google API 格式不兼容",
+            "reason": "Google API formathayiruyumlu",
         },
         "mimo": {
-            # 小米 MiMo 没有标准 /models 端点，跳过
+            # kucukmetre MiMo yokvarstandart /models uc nokta, atla
             "skip": True,
-            "reason": "小米 MiMo 没有标准 /models 端点",
+            "reason": "kucukmetre MiMo yokvarstandart /models uc nokta",
         },
     }
 
-    # 缓存文件路径
+    # onbellekdosyayol
     CACHE_FILE = Path.home() / ".omc" / "discovered_models.json"
     CACHE_TTL_HOURS = 24
 
@@ -113,17 +113,17 @@ class ModelDiscovery:
         self, provider: str, config: dict, timeout: int = 5
     ) -> list[dict]:
         """
-        获取单个厂商的模型列表
+        altekilureticimodelliste
 
         Args:
-            provider: 厂商 ID
-            config: 厂商配置
-            timeout: 请求超时时间（秒）
+            provider: uretici ID
+            config: ureticiyapilandirma
+            timeout: istekasirizamanzamanarasinda (saniye) 
 
         Returns:
-            模型列表，失败返回空列表
+            modelliste, basarisizdonusbosliste
         """
-        # 检查是否跳过
+        # kontrololup olmadigiatla
         if config.get("skip"):
             return []
 
@@ -134,7 +134,7 @@ class ModelDiscovery:
         if not url or not key_env:
             return []
 
-        # 检查 API Key
+        # kontrol API Key
         api_key = os.getenv(key_env)
         if not api_key:
             return []
@@ -146,14 +146,14 @@ class ModelDiscovery:
             data = response.json()
 
 
-            # 解析 OpenAI 兼容格式
+            # ayristir OpenAI uyumluformat
             if api_format == "openai":
                 models = data.get("data", [])
-                # 过滤掉非对话模型（如 embedding, tts 等）
+                # filtreledusolmayanicinkonusmamodel (ornegin embedding, tts vb.) 
                 chat_models = []
                 for m in models:
                     model_id = m.get("id", "")
-                    # 简单启发式：排除明显非对话的模型
+                    # basittekilbaslatgondertarz: harir tutbelirginolmayanicinkonusmamodel
                     skip_keywords = [
                         "embedding",
                         "tts",
@@ -186,14 +186,14 @@ class ModelDiscovery:
 
     def discover_all(self, timeout: int = 5) -> dict[str, list[dict]]:
         """
-        并发调用所有支持动态发现的厂商 API
+        vegondercagrivardestekdinamikkesfeturetici API
 
         Args:
-            timeout: 每个请求的超时时间（秒）
+            timeout: heristekasirizamanzamanarasinda (saniye) 
 
         Returns:
             {provider: [model_info, ...]}
-            超时/无 key/报错 的 provider 返回空列表，不影响其他
+            asirizaman/yok key/raporyanlis  provider donusbosliste, hayiretkionuno
         """
         results = {}
 
@@ -218,10 +218,10 @@ class ModelDiscovery:
 
     def get_cached(self) -> Optional[dict]:
         """
-        读取本地缓存
+        okuyerelonbellek
 
         Returns:
-            缓存数据或 None（如果缓存不存在或已过期）
+            onbelleksayigoreveya None (egeronbellekmevcut degilveyadonem) 
         """
         if not self.cache_file.exists():
             return None
@@ -234,13 +234,13 @@ class ModelDiscovery:
             if not cached_at:
                 return None
 
-            # 解析缓存时间
+            # ayristironbellekzamanarasinda
             try:
                 cache_time = datetime.fromisoformat(cached_at)
                 expiry_time = cache_time + timedelta(hours=self.CACHE_TTL_HOURS)
 
                 if datetime.now() > expiry_time:
-                    return None  # 缓存已过期
+                    return None  # onbellekdonem
 
                 return data
             except (ValueError, TypeError):
@@ -251,10 +251,10 @@ class ModelDiscovery:
 
     def save_cache(self, data: dict) -> None:
         """
-        保存到本地缓存
+        kaydetkadaryerelonbellek
 
         Args:
-            data: 要缓存的数据
+            data: isteronbelleksayigore
         """
         self.cache_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -272,20 +272,20 @@ class ModelDiscovery:
         builtin_models: list[dict],
     ) -> dict[str, Any]:
         """
-        对比发现的模型 vs 内置模型
+        icinkiyaskesfetmodel vs icindeayarmodel
 
         Args:
-            discovered: discover_all() 返回的结果
-            builtin_models: 内置模型列表（如 BUILTIN_CATWALK_MODELS）
+            discovered: discover_all() donussonuc
+            builtin_models: icindeayarmodelliste (ornegin BUILTIN_CATWALK_MODELS) 
 
         Returns:
             {
-                "new_models": [...],      # 厂商有但内置没有的（新模型！）
-                "removed_models": [...],  # 内置有但厂商没返回的（可能下线）
-                "unchanged": [...],       # 一致的
+                "new_models": [...],      # ureticivarancakicindeayaryokvar (yenimodel! ) 
+                "removed_models": [...],  # icindeayarvarancakureticiyokdonus (olabiliredebiliraltsatir) 
+                "unchanged": [...],       # bir
             }
         """
-        # 构建内置模型 ID 集合
+        # olusturicindeayarmodel ID setbirlestir
         builtin_model_ids = set()
         builtin_by_provider: dict[str, set[str]] = {}
 
@@ -298,7 +298,7 @@ class ModelDiscovery:
                     builtin_by_provider[provider] = set()
                 builtin_by_provider[provider].add(model_id)
 
-        # 对比结果
+        # icinkiyassonuc
         new_models = []
         removed_models = []
         unchanged = []
@@ -328,7 +328,7 @@ class ModelDiscovery:
                         }
                     )
 
-        # 检查可能下线的模型（内置有但厂商没返回）
+        # kontrololabiliredebiliraltsatirmodel (icindeayarvarancakureticiyokdonus) 
         discovered_ids = set()
         for provider, models in discovered.items():
             for m in models:
@@ -340,7 +340,7 @@ class ModelDiscovery:
             model_id = m.get("model", "")
             full_id = f"{provider}:{model_id}"
 
-            # 如果该厂商有返回数据，但内置模型不在返回列表中
+            # egerbuureticivardonussayigore, ancakicindeayarmodelhayiricindedonuslisteicinde
             if discovered.get(provider):
                 if full_id not in discovered_ids and model_id not in {
                     mm.get("id", "") for mm in discovered.get(provider, [])
@@ -361,38 +361,38 @@ class ModelDiscovery:
 
     def sync(self, force: bool = False, timeout: int = 5) -> dict[str, Any]:
         """
-        执行同步检查
+        yurutesitlekontrol
 
         Args:
-            force: 是否强制刷新（忽略缓存）
-            timeout: 请求超时时间
+            force: olup olmadigizorunluyenileyeni (yoksayonbellek) 
+            timeout: istekasirizamanzamanarasinda
 
         Returns:
-            同步结果，包含状态信息
+            esitlesonuc, icerirdurumbilgi
         """
         if not force:
             cached = self.get_cached()
             if cached:
                 return {
                     "status": "cached",
-                    "message": "使用缓存数据",
+                    "message": "kullanonbelleksayigore",
                     "data": cached.get("providers", {}),
                     "cached_at": cached.get("cached_at"),
                 }
 
-        # 执行发现
+        # yurutkesfet
         discovered = self.discover_all(timeout=timeout)
 
-        # 保存缓存
+        # kaydetonbellek
         self.save_cache(discovered)
 
-        # 统计结果
+        # istatistiksonuc
         total_models = sum(len(models) for models in discovered.values())
         active_providers = [p for p, m in discovered.items() if m]
 
         return {
             "status": "success",
-            "message": f"发现 {total_models} 个模型来自 {len(active_providers)} 个厂商",
+            "message": f"kesfet {total_models} modelgelkendi {len(active_providers)} uretici",
             "data": discovered,
             "providers": {
                 provider: len(models) for provider, models in discovered.items()
@@ -405,26 +405,26 @@ def get_discovery_summary(
     discovery: Optional[ModelDiscovery] = None,
 ) -> dict[str, Any]:
     """
-    获取发现摘要（用于 omc model list 末尾提示）
+    alkesfetalintiister (kullande omc model list sonipucu) 
 
     Args:
-        builtin_models: 内置模型列表
-        discovery: ModelDiscovery 实例（可选）
+        builtin_models: icindeayarmodelliste
+        discovery: ModelDiscovery ornek (olabilirsec) 
 
     Returns:
-        摘要信息
+        alintiisterbilgi
     """
     if discovery is None:
         discovery = ModelDiscovery()
 
-    # 尝试获取缓存或执行发现
+    # denealonbellekveyayurutkesfet
     cached = discovery.get_cached()
 
     if cached:
         discovered = cached.get("providers", {})
         is_cached = True
     else:
-        # 后台静默发现（不阻塞）
+        # sonraplatformsessizkesfet (hayirblokla) 
         discovered = discovery.discover_all(timeout=3)
         if discovered:
             discovery.save_cache(discovered)
@@ -433,7 +433,7 @@ def get_discovery_summary(
     if not discovered:
         return {"has_new": False, "new_models": [], "is_cached": False}
 
-    # 对比
+    # icinkiyas
     comparison = discovery.compare_with_builtin(discovered, builtin_models)
     new_models = comparison.get("new_models", [])
 
@@ -446,7 +446,7 @@ def get_discovery_summary(
 
 
 if __name__ == "__main__":
-    # 测试代码
+    # testkod
     discovery = ModelDiscovery()
     result = discovery.sync(force=True)
     print(json.dumps(result, ensure_ascii=False, indent=2))

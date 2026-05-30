@@ -4,13 +4,13 @@ from __future__ import annotations
 
 
 """
-Skill 注册中心 - 统一管理和执行 Skill
+Skill kayiticindekalp - biryonetveyurut Skill
 
-设计：
-- Skill 是接收 (code, context) 返回 SkillResult 的 Python 函数
-- 内置 Skill：/review、/test、/doc
-- 用户自定义 Skill：~/.omc/skills/*.py，自动加载
-- 支持 CLI 调用：omc skill list / omc skill run <name>
+tasarim: 
+- Skill dirbaglanal (code, context) donus SkillResult  Python fonksiyon
+- icindeayar Skill: /review, /test, /doc
+- kullaniciozel Skill: ~/.omc/skills/*.py, otomatikyukle
+- destek CLI cagri: omc skill list / omc skill run <name>
 """
 
 
@@ -30,12 +30,12 @@ logger = logging.getLogger(__name__)
 console = Console()
 
 
-# ─── 数据结构 ────────────────────────────────────────────────────────────────
+# ─── sayigoreyapi ────────────────────────────────────────────────────────────────
 
 
 @dataclass
 class Skill:
-    """Skill 定义"""
+    """Skill tanim"""
 
     name: str
     description: str
@@ -44,7 +44,7 @@ class Skill:
     file_path: Optional[Path] = None
 
     def __post_init__(self) -> None:
-        # 自动从函数 docstring 填充 description
+        # otomatikfonksiyon docstring doldurdoldur description
         if not self.description and self.func.__doc__:
             first_line = self.func.__doc__.strip().split("\n")[0]
             self.description = first_line.strip()
@@ -52,7 +52,7 @@ class Skill:
 
 @dataclass
 class SkillResult:
-    """Skill 执行结果"""
+    """Skill yurutme sonucu"""
 
     success: bool
     output: str = ""
@@ -70,11 +70,11 @@ class SkillResult:
         }
 
 
-# ─── 内置 Skill 实现 ─────────────────────────────────────────────────────────
+# ─── icindeayar Skill uygula ─────────────────────────────────────────────────────────
 
 
 def _review_skill(code: str, context: dict[str, Any]) -> SkillResult:
-    """代码审查 Skill"""
+    """kodinceleme Skill"""
     import time
 
     start = time.perf_counter()
@@ -82,25 +82,25 @@ def _review_skill(code: str, context: dict[str, Any]) -> SkillResult:
     issues: list[str] = []
     suggestions: list[str] = []
 
-    # 基础代码质量检查
+    # temeltemelkodkalitemiktarkontrol
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
-        # TODO 注释检查（当前仅检查行长度，TODO 标记需单独规则）
+        # TODO yorumkontrol (mevcutsadecekontrolsatiruzunlukderece, TODO isaretgerektekiltekkural) 
         if len(stripped) > 120 and not stripped.startswith("#"):
-            issues.append(f"L{i}: 行过长 ({len(stripped)} chars)")
+            issues.append(f"L{i}: satiruzunluk ({len(stripped)} chars)")
 
         if stripped.endswith(",") and i < len(lines):
             next_line = lines[i].strip()
             if not next_line:
-                issues.append(f"L{i}: 可能缺少换行")
+                issues.append(f"L{i}: olabiliredebilireksikazdegissatir")
 
-        # 检测明显的安全问题
+        # algilamabelirginguvenliksorun
         if "eval(" in stripped:
-            issues.append(f"L{i}: 使用 eval() 可能导致代码注入")
+            issues.append(f"L{i}: kullan eval() olabiliredebilirneden olurkodenjekte")
         if "shell=True" in stripped and "subprocess" in stripped:
-            issues.append(f"L{i}: subprocess shell=True 可能导致命令注入")
+            issues.append(f"L{i}: subprocess shell=True olabiliredebilirneden olurkomutenjekte")
 
-    # 检测重复代码块（简化版）
+    # algilamatekrartekrarkodblok (basitsurum) 
     line_hashes: dict[str, list[int]] = {}
     for i, line in enumerate(lines, 1):
         h = hash(line.strip())
@@ -112,24 +112,24 @@ def _review_skill(code: str, context: dict[str, Any]) -> SkillResult:
     duplicates = {h: idx for h, idx in line_hashes.items() if len(idx) >= 3}
     suggestions.extend(
         [
-            f"连续相似行 L{idx_list[0]}-{idx_list[-1]}: 考虑提取为函数"
+            f"bagladevambenzersatir L{idx_list[0]}-{idx_list[-1]}: dusuncikaricinfonksiyon"
             for idx_list in duplicates.values()
         ]
     )
 
-    suggestions.append(f"代码总行数: {len(lines)}")
-    suggestions.append(f"审查时间: {(time.perf_counter() - start) * 1000:.1f}ms")
+    suggestions.append(f"kodtoplamsatirsayi: {len(lines)}")
+    suggestions.append(f"incelemezamanarasinda: {(time.perf_counter() - start) * 1000:.1f}ms")
 
     return SkillResult(
         success=True,
-        output=f"发现 {len(issues)} 个问题，{len(suggestions)} 条建议",
+        output=f"kesfet {len(issues)} sorun, {len(suggestions)} ogreoneri",
         metadata={"issues": issues, "suggestions": suggestions},
         duration_ms=(time.perf_counter() - start) * 1000,
     )
 
 
 def _test_skill(code: str, context: dict[str, Any]) -> SkillResult:
-    """测试生成 Skill"""
+    """testolustur Skill"""
     import time
 
     start = time.perf_counter()
@@ -137,7 +137,7 @@ def _test_skill(code: str, context: dict[str, Any]) -> SkillResult:
     lines = code.splitlines()
     functions: list[str] = []
 
-    # 检测函数定义
+    # algilamafonksiyontanim
     for _i, line in enumerate(lines, 1):
         stripped = line.strip()
         if stripped.startswith(("def test_", "async def test_")):
@@ -145,7 +145,7 @@ def _test_skill(code: str, context: dict[str, Any]) -> SkillResult:
         elif (stripped.startswith(("def ", "async def "))) and not stripped.startswith(
             "def __"
         ):
-            # 提取函数名
+            # cikarfonksiyonisim
             import re
 
             m = re.match(r"(?:async\s+)?def\s+(\w+)", stripped)
@@ -155,14 +155,14 @@ def _test_skill(code: str, context: dict[str, Any]) -> SkillResult:
                 test_cases.append(
                     f"def test_{fname}():\n"
                     f'    """Test {fname}"""'
-                    f"\n    # {{ 实现测试逻辑 }}\n    pass\n"
+                    f"\n    # {{ uygulatestmantik }}\n    pass\n"
                 )
 
-    # 生成测试框架
+    # olusturtestiskelet
     test_content = (
         '"`python"\n'
-        + "# 自动生成的测试文件\n"
-        + "# 运行: python -m pytest tests/\n\n"
+        + "# otomatikolusturtestdosya\n"
+        + "# satir: python -m pytest tests/\n\n"
         + "import pytest\n"
         + "from pathlib import Path\n\n"
     )
@@ -183,7 +183,7 @@ def _test_skill(code: str, context: dict[str, Any]) -> SkillResult:
 
 
 def _doc_skill(code: str, context: dict[str, Any]) -> SkillResult:
-    """文档生成 Skill"""
+    """dokumantasyonolustur Skill"""
     import time
 
     start = time.perf_counter()
@@ -195,9 +195,9 @@ def _doc_skill(code: str, context: dict[str, Any]) -> SkillResult:
     file_path = context.get("file_path", "")
 
     doc_parts.append(f"# {Path(file_path).stem if file_path else module_name}\n")
-    doc_parts.append("> 自动生成的模块文档\n")
+    doc_parts.append("> otomatikolusturmoduldokumantasyon\n")
 
-    # 收集 docstring
+    # alset docstring
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
         if stripped.startswith(('"""', "'''")):
@@ -207,14 +207,14 @@ def _doc_skill(code: str, context: dict[str, Any]) -> SkillResult:
             else:
                 in_docstring = False
                 if current_doc:
-                    doc_parts.append("\n## 模块说明\n")
+                    doc_parts.append("\n## modulaciklama\n")
                     doc_parts.append("\n".join(current_doc) + "\n")
                     current_doc = []
 
         elif in_docstring and stripped:
             current_doc.append(f"{i}: {stripped}")
 
-    # 收集函数签名
+    # alsetfonksiyonimzaisim
     funcs: list[str] = []
     for _i, line in enumerate(lines, 1):
         stripped = line.strip()
@@ -230,11 +230,11 @@ def _doc_skill(code: str, context: dict[str, Any]) -> SkillResult:
                 funcs.append(f"- `{fname}({params})`")
 
     if funcs:
-        doc_parts.append("\n## 公开 API\n\n")
+        doc_parts.append("\n## ortakac API\n\n")
         doc_parts.append("\n".join(funcs) + "\n")
 
     doc_parts.append(
-        f"\n<!-- 自动生成于 {datetime.now().strftime('%Y-%m-%d %H:%M')} -->\n"
+        f"\n<!-- otomatikolusturde {datetime.now().strftime('%Y-%m-%d %H:%M')} -->\n"
     )
 
     duration_ms = (time.perf_counter() - start) * 1000
@@ -250,7 +250,7 @@ def _doc_skill(code: str, context: dict[str, Any]) -> SkillResult:
 
 
 class SkillRegistry:
-    """Skill 注册和管理中心"""
+    """Skill kayitveyoneticindekalp"""
 
     def __init__(self) -> None:
         self._skills: dict[str, Skill] = {}
@@ -259,47 +259,47 @@ class SkillRegistry:
         self._init_builtins()
 
     def _init_builtins(self) -> None:
-        """注册内置 Skill"""
+        """kayiticindeayar Skill"""
         builtins = [
             Skill(
                 name="review",
-                description="代码审查 - 检查代码质量和安全问题",
+                description="kodinceleme - kontrolkodkalitemiktarveguvenliksorun",
                 func=_review_skill,
             ),
             Skill(
                 name="test",
-                description="生成测试 - 为代码生成 pytest 测试用例",
+                description="olusturtest - icinkod uretimi pytest test durumu",
                 func=_test_skill,
             ),
             Skill(
                 name="doc",
-                description="生成文档 - 为模块生成 Markdown 文档",
+                description="olusturdokumantasyon - icinmodulolustur Markdown dokumantasyon",
                 func=_doc_skill,
             ),
         ]
         for skill in builtins:
             self.register(skill)
 
-    # ─── 注册/查询 ───────────────────────────────────────────────────────────
+    # ─── kayit/sorgu ───────────────────────────────────────────────────────────
 
     def register(self, skill: Skill) -> None:
-        """注册一个 Skill"""
+        """kayitbir Skill"""
         self._skills[skill.name] = skill
         logger.debug("Registered skill: %s (source=%s)", skill.name, skill.source)
 
     def unregister(self, name: str) -> bool:
-        """注销一个 Skill"""
+        """yorumiptalbir Skill"""
         if name in self._skills:
             del self._skills[name]
             return True
         return False
 
     def get(self, name: str) -> Optional[Skill]:
-        """获取 Skill"""
+        """al Skill"""
         return self._skills.get(name)
 
     def list_all(self) -> list[Skill]:
-        """列出所有 Skill（内置优先）"""
+        """tumunu listelevar Skill (icindeayaroncelik) """
         return list(self._skills.values())
 
     def list_builtin(self) -> list[Skill]:
@@ -308,17 +308,17 @@ class SkillRegistry:
     def list_custom(self) -> list[Skill]:
         return [s for s in self._skills.values() if s.source == "custom"]
 
-    # ─── 加载自定义 Skill ────────────────────────────────────────────────────
+    # ─── yukleozel Skill ────────────────────────────────────────────────────
 
     def set_custom_dir(self, path: Path) -> None:
-        """设置自定义 Skill 目录"""
+        """ayarlaayarozel Skill dizin"""
         self._custom_skills_dir = path
-        self._loaded_custom = False  # 重置，下次执行时重新加载
+        self._loaded_custom = False  # tekrarayar, altkezyurutzamantekraryeniyukle
 
     def load_custom_skills(self) -> int:
-        """从自定义目录加载 Skill"""
+        """ozeldizinyukle Skill"""
         if self._custom_skills_dir is None:
-            # 默认 ~/.omc/skills/
+            # varsayilan ~/.omc/skills/
             self._custom_skills_dir = Path.home() / ".omc" / "skills"
 
         skill_dir = self._custom_skills_dir
@@ -328,7 +328,7 @@ class SkillRegistry:
 
         count = 0
         for py_file in skill_dir.glob("*.py"):
-            # 跳过 __init__.py
+            # atla __init__.py
             if py_file.name.startswith("__"):
                 continue
             try:
@@ -342,7 +342,7 @@ class SkillRegistry:
         return count
 
     def _load_skill_from_file(self, file_path: Path) -> None:
-        """从 Python 文件加载单个 Skill"""
+        """ Python dosyayukletekil Skill"""
         module_name = f"omc_custom_skill_{file_path.stem}"
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None or spec.loader is None:
@@ -352,19 +352,19 @@ class SkillRegistry:
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
 
-        # 查找 skill_xxx 函数或 SKILL 常量
+        # ara skill_xxx fonksiyonveya SKILL sikmiktar
         if hasattr(module, "SKILL") and isinstance(module.SKILL, Skill):
             skill = module.SKILL
             skill.source = "custom"
             skill.file_path = file_path
             self.register(skill)
         else:
-            # 收集所有 skill_ 开头的函数
+            # alsetvar skill_ acbasfonksiyon
             for attr_name in dir(module):
                 if attr_name.startswith("skill_"):
                     func = getattr(module, attr_name)
                     if callable(func):
-                        skill_name = attr_name[6:]  # 去掉 skill_ 前缀
+                        skill_name = attr_name[6:]  # kaldir skill_ onceek
                         skill = Skill(
                             name=skill_name,
                             description=func.__doc__ or attr_name,
@@ -374,13 +374,13 @@ class SkillRegistry:
                         )
                         self.register(skill)
 
-    # ─── 执行 ────────────────────────────────────────────────────────────────
+    # ─── yurut ────────────────────────────────────────────────────────────────
 
     def run(
         self, name: str, code: str = "", context: Optional[dict[str, Any]] = None
     ) -> SkillResult:
-        """执行指定 Skill"""
-        # 确保自定义 Skill 已加载
+        """yurutbelirt Skill"""
+        # saglarozel Skill yukle
         if not self._loaded_custom:
             self.load_custom_skills()
 
@@ -404,15 +404,15 @@ class SkillRegistry:
     def run_interactive(
         self, skill_name: str, code: str = "", context: Optional[dict[str, Any]] = None
     ) -> SkillResult:
-        """交互模式执行 Skill（支持 /name 语法）"""
-        # 去掉开头的 /
+        """etkilesimmodyurut Skill (destek /name dilyontem) """
+        # kaldiracbas /
         name = skill_name.lstrip("/")
         return self.run(name, code, context)
 
-    # ─── 显示 ────────────────────────────────────────────────────────────────
+    # ─── goster ────────────────────────────────────────────────────────────────
 
     def display_list(self) -> None:
-        """以表格形式显示所有 Skill"""
+        """iletablosekiltarzgostervar Skill"""
         table = Table(title="Available Skills")
         table.add_column("Name", style="cyan bold")
         table.add_column("Source", style="dim")
@@ -428,15 +428,15 @@ class SkillRegistry:
         console.print(table)
 
 
-# ─── 全局单例 ────────────────────────────────────────────────────────────────
+# ─── globaltekilornek ────────────────────────────────────────────────────────────────
 _default_registry: Optional[SkillRegistry] = None
 
 
 def get_registry() -> SkillRegistry:
-    """获取全局 Skill 注册表（延迟初始化）"""
+    """alglobal Skill kayittablo (gecikmebaslat) """
     global _default_registry
     if _default_registry is None:
         _default_registry = SkillRegistry()
-        # 尝试加载用户自定义 Skill
+        # deneyuklekullaniciozel Skill
         _default_registry.load_custom_skills()
     return _default_registry

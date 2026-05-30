@@ -1,13 +1,13 @@
 """
-Git Master Agent - Git 操作智能体
+Git Master Agent - Git Temsilciyi çalıştır
 
-职责：
-1. Git 操作执行
-2. 提交管理
-3. 分支管理
-4. 历史管理
+Sorumluluklar:
+1. Git İşlem yürütme
+2. Yönetimi gönder
+3. şube yönetimi
+4. geçmiş yönetimi
 
-模型层级：MEDIUM（平衡，对应 sonnet）
+Modeli seviyesi:MEDIUM(denge, yazışma sonnet)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class GitMasterAgent(BaseAgent):
-    """Git 操作 Agent - 版本控制管理"""
+    """Git işletmek Agent - Sürüm kontrol yönetimi"""
 
     name = "git-master"
-    description = "Git 操作智能体 - 版本控制和提交管理"
+    description = "Git Temsilciyi çalıştır - Sürüm kontrolü ve taahhüt yönetimi"
     lane = AgentLane.DOMAIN
     default_tier = "medium"
     icon = "🔀"
@@ -34,24 +34,24 @@ class GitMasterAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个 Git 版本控制专家。
+        return """sen bir Git Sürüm kontrol uzmanı.
 
-## 角色
-你的职责是执行 Git 操作，管理代码版本。
+## Rol
+senin işin yürütmek Git Operasyonlar, kod versiyonlarının yönetilmesi.
 
-## 能力
-1. 提交管理 - commit, amend, message
-2. 分支管理 - branch, merge, rebase
-3. 历史管理 - log, diff, blame
-4. 远程操作 - push, pull, fetch
+## yetenek
+1. Yönetimi gönder - commit, amend, message
+2. şube yönetimi - branch, merge, rebase
+3. geçmiş yönetimi - log, diff, blame
+4. uzaktan çalıştırma - push, pull, fetch
 
-## Git 最佳实践
-1. **原子提交** - 每个提交只做一件事
-2. **语义化消息** - feat/fix/docs/refactor/test
-3. **频繁提交** - 小步快跑
-4. **写好消息** - 标题简短，正文详细
+## Git en iyi uygulamalar
+1. **Atomik taahhüt** - Her taahhüt yalnızca bir şey yapar
+2. **anlamsal mesaj** - feat/fix/docs/refactor/test
+3. **Sık sık gönder** - Hızlı koş
+4. **iyi haberler yaz** - Başlığı kısa, metni ayrıntılı tutun
 
-## Commit 消息格式
+## Commit Mesaj formatı
 ```
 <type>(<scope>): <subject>
 
@@ -60,17 +60,17 @@ class GitMasterAgent(BaseAgent):
 <footer>
 ```
 
-类型：
-- feat: 新功能
-- fix: Bug 修复
-- docs: 文档更新
-- refactor: 代码重构
-- test: 测试相关
-- chore: 构建/工具
+tip:
+- feat: yeni özellikler
+- fix: Bug tamirat
+- docs: Dokümantasyon güncellemeleri
+- refactor: kodu yeniden düzenleme
+- test: Testle ilgili
+- chore: inşa etmek/alet
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 当前状态
+### 1. Mevcut durum
 ```
 On branch main
 Changes to be committed:
@@ -83,36 +83,36 @@ Untracked files:
   src/zzz.py
 ```
 
-### 2. 推荐操作
+### 2. Önerilen eylem
 ```bash
-# 添加修改
+# Değişiklik ekle
 git add src/xxx.py
 
-# 提交
-git commit -m "feat(core): 添加新功能"
+# göndermek
+git commit -m "feat(core): Yeni özellikler ekleyin"
 
-# 推送
+# İtmek
 git push origin main
 ```
 
-### 3. 提交历史
+### 3. Kaydetme geçmişi
 ```
-abc123 feat(core): 添加新功能
-def456 fix: 修复 Bug
+abc123 feat(core): Yeni özellikler ekleyin
+def456 fix: tamirat Bug
 ...
 ```
 
-### 4. 分支策略建议
+### 4. Şube stratejisi önerileri
 - ...
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行 Git 操作"""
+        """uygulamak Git işletmek"""
         import subprocess
 
-        # 获取 Git 状态
+        # elde etmek Git durum
         try:
             status_result = subprocess.run(
                 ["git", "status", "--short"],
@@ -122,9 +122,9 @@ def456 fix: 修复 Bug
             )
             status = status_result.stdout
         except Exception:
-            status = "无法获取 Git 状态"
+            status = "Alınamıyor Git durum"
 
-        # 获取最近的提交
+        # En son taahhüdü alın
         try:
             log_result = subprocess.run(
                 ["git", "log", "--oneline", "-10"],
@@ -134,30 +134,30 @@ def456 fix: 修复 Bug
             )
             recent_commits = log_result.stdout
         except Exception:
-            recent_commits = "无法获取提交历史"
+            recent_commits = "Taahhüt geçmişi alınamıyor"
 
         prompt.append(
             {
                 "role": "user",
-                "content": f"""## 当前 Git 状态
+                "content": f"""## akım Git durum
 ```
 {status}
 ```
 
-## 最近提交
+## Yakın zamanda gönderildi
 ```
 {recent_commits}
 ```
 
-请分析状态并给出 Git 操作建议：
-1. 应该提交哪些文件？
-2. 如何编写提交消息？
-3. 是否需要创建分支？
+Lütfen durumu analiz edin ve verin Git Operasyon önerileri:
+1. Hangi belgeler sunulmalıdır?
+2. Taahhüt mesajı nasıl yazılır?
+3. Şube oluşturmam gerekiyor mu?
 """,
             }
         )
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -170,12 +170,12 @@ def456 fix: 修复 Bug
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "执行推荐的 Git 命令",
-                "推送到远程仓库",
+                "önerilenleri uygula Git Emir",
+                "Uzak depoya aktar",
             ],
         )

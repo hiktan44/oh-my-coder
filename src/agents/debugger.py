@@ -1,13 +1,13 @@
 """
-Debugger Agent - 调试智能体
+Debugger Agent - Hata ayıklama aracıları
 
-职责：
-1. 根因分析
-2. 构建错误解决
-3. 运行时错误修复
-4. 日志分析
+Sorumluluklar:
+1. kök neden analizi
+2. Hata çözümlemesi oluşturma
+3. Çalışma zamanı hatası düzeltmeleri
+4. Günlük analizi
 
-模型层级：MEDIUM（平衡，对应 sonnet）
+Modeli seviyesi:MEDIUM(denge, yazışma sonnet)
 """
 
 from ..core.router import TaskType
@@ -23,10 +23,10 @@ from .base import (
 
 @register_agent
 class DebuggerAgent(BaseAgent):
-    """调试 Agent - 定位和修复 Bug"""
+    """hata ayıklama Agent - Bulun ve onarın Bug"""
 
     name = "debugger"
-    description = "调试智能体 - 根因分析和错误修复"
+    description = "Hata ayıklama aracıları - Kök neden analizi ve hata düzeltme"
     lane = AgentLane.BUILD_ANALYSIS
     default_tier = "medium"
     icon = "🐛"
@@ -34,72 +34,72 @@ class DebuggerAgent(BaseAgent):
 
     @property
     def system_prompt(self) -> str:
-        return """你是一个经验丰富的调试专家。
+        return """Deneyimli bir hata ayıklama uzmanısınız.
 
-## 角色
-你的职责是快速定位问题根因并提供修复方案。
+## Rol
+Göreviniz sorunun temel nedenini hızlı bir şekilde belirlemek ve bir düzeltme sağlamaktır.
 
-## 调试方法
-1. **复现问题** - 明确错误现象
-2. **收集信息** - 错误日志、堆栈跟踪
-3. **定位根因** - 分析代码逻辑
-4. **验证修复** - 确保问题解决
+## Hata ayıklama yöntemi
+1. **Üreme sorunu** - Hata belirtilerini tanımlayın
+2. **Bilgi topla** - Hata günlükleri, yığın izleri
+3. **Temel nedeni bulun** - Kod mantığını analiz edin
+4. **Düzeltmeyi doğrula** - Sorunun çözüldüğünden emin olun
 
-## 调试原则
-1. **证据驱动** - 基于事实而非猜测
-2. **最小修改** - 只改必要的部分
-3. **验证充分** - 确保修复有效
-4. **防止复发** - 添加测试用例
+## Hata ayıklama ilkeleri
+1. **kanıta dayalı** - Spekülasyon yerine gerçeklere dayalı
+2. **Minimum değişiklik** - Yalnızca gerekli parçaları değiştirin
+3. **Tamamen doğrulandı** - Düzeltmenin çalıştığından emin olun
+4. **Tekrarı önleyin** - Test senaryosu ekle
 
-## 输出格式
+## Çıkış formatı
 
-### 1. 问题分析
-**错误现象**:
+### 1. Sorun analizi
+**Hata fenomeni**:
 ```
-错误信息
+hata mesajı
 ```
 
-**根因分析**:
+**kök neden analizi**:
 1. ...
 2. ...
 3. ...
 
-### 2. 定位问题
-- 文件: `path/to/file.py`
-- 函数: `function_name`
-- 行号: XX
+### 2. Konumlandırma sorunu
+- belge: `path/to/file.py`
+- işlev: `function_name`
+- Satır numarası: XX
 
-### 3. 修复方案
+### 3. Düzeltmek
 ```python
-# 修复前
-问题代码
+# onarımdan önce
+sorun kodu
 
-# 修复后
-修复后代码
+# Onarımdan sonra
+onarımdan sonra kod
 ```
 
-### 4. 验证步骤
-1. 运行测试: `pytest tests/test_xxx.py`
-2. 检查日志: ...
+### 4. Doğrulama adımları
+1. Testleri çalıştır: `pytest tests/test_xxx.py`
+2. Günlükleri kontrol edin: ...
 
-### 5. 预防措施
-- 添加单元测试
-- 增加错误处理
-- 改进日志记录
+### 5. Önlemler
+- Birim testleri ekle
+- Hata işleme ekle
+- Günlüğe kaydetmeyi iyileştirin
 """
 
     async def _run(
         self, context: AgentContext, prompt: list[dict[str, str]], **kwargs
     ) -> str:
-        """执行调试"""
-        # 添加错误信息
+        """Hata ayıklamayı gerçekleştir"""
+        # Hata mesajı ekle
         error_info = context.metadata.get("error")
         if error_info:
             prompt.append(
-                {"role": "user", "content": f"## 错误信息\n```\n{error_info}\n```"}
+                {"role": "user", "content": f"## hata mesajı\n```\n{error_info}\n```"}
             )
 
-        # 读取相关代码
+        # İlgili kodu okuyun
         if context.relevant_files:
             code_parts = []
             for file_path in context.relevant_files[:5]:
@@ -116,22 +116,22 @@ class DebuggerAgent(BaseAgent):
                 prompt.append(
                     {
                         "role": "user",
-                        "content": "## 相关代码\n" + "\n\n".join(code_parts),
+                        "content": "## İlgili kod\n" + "\n\n".join(code_parts),
                     }
                 )
 
-        # 调试提示
+        # Hata ayıklama ipuçları
         debug_hint = """
 
-请分析问题并提供修复方案：
-1. 根因是什么？
-2. 如何修复？
-3. 如何验证修复有效？
-4. 如何防止再次发生？
+Lütfen sorunu analiz edin ve bir çözüm sağlayın:
+1. Temel sebep nedir?
+2. Nasıl düzeltilir?
+3. Düzeltmenin çalıştığı nasıl doğrulanır?
+4. Bunun tekrar yaşanması nasıl önlenir?
 """
         prompt.append({"role": "user", "content": debug_hint})
 
-        # 调用模型
+        # çağrı modeli
         from ..models.base import Message
 
         messages = [Message(role=msg["role"], content=msg["content"]) for msg in prompt]
@@ -144,13 +144,13 @@ class DebuggerAgent(BaseAgent):
         return response.content
 
     def _post_process(self, result: str, context: AgentContext) -> AgentOutput:
-        """后处理"""
+        """İşlem sonrası"""
         return AgentOutput(agent_name=self.name,
             status=AgentStatus.COMPLETED,
             result=result,
             recommendations=[
-                "应用修复方案",
-                "运行测试验证",
+                "Düzeltmeyi uygula",
+                "Doğrulamak için testleri çalıştırın",
             ],
             next_agent="verifier",
         )

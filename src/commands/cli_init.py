@@ -1,18 +1,18 @@
 # mypy: disable-error-code="abstract, arg-type, assignment, attr-defined, call-arg, call-overload, dict-item, func-returns-value, import-untyped, index, misc, no-any-return, no-redef, operator, override, return, return-value, syntax, union-attr, var-annotated"
 """
 
-Init CLI - 交互式初始化引导
+Init CLI -Etkileşimli başlatma önyüklemesi
 
-命令：
-- omc init  # 交互式引导新用户完成首次配置
+Emir:
+- omc init  #Yeni kullanıcılara ilk kez yapılandırma yoluyla etkileşimli olarak rehberlik edin
 
-流程：
-1. 欢迎界面
-2. 选择模型
-3. 输入 API Key
-4. 设置工作目录
-5. 配置验证
-6. 完成提示
+işlem:
+1.Hoş geldiniz arayüzü
+2.Modeli seçin
+3.girmekAPI Key
+4.Çalışma dizinini ayarla
+5.Yapılandırma doğrulaması
+6.Tamamlama istemi
 """
 
 from __future__ import annotations
@@ -31,38 +31,38 @@ console = Console()
 
 app = typer.Typer(
     name="init",
-    help="交互式初始化引导 - 帮助新用户完成首次配置",
+    help="Etkileşimli başlatma önyüklemesi-Düşünce zinciri başladı",
     add_completion=False,
 )
 
-# 配置文件路径
+#Yapılandırma dosyası yolu
 CONFIG_DIR = Path.home() / ".omc"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
-# 支持的模型列表（参考 cli_model.py）
+#Desteklenen modellerin listesi (referanscli_model.py)
 SUPPORTED_MODELS = {
     "deepseek": {
         "name": "DeepSeek",
         "tier": "low",
-        "note": "高性价比，推荐",
+        "note": "Yüksek maliyet performansı, önerilir",
         "api_key_env": "DEEPSEEK_API_KEY",
     },
     "glm": {
-        "name": "智谱 GLM",
+        "name": "Bilgelik spektrumuGLM",
         "tier": "low",
-        "note": "GLM-4.7-Flash 免费使用",
+        "note": "GLM-4.7-Flashkullanımı ücretsiz",
         "api_key_env": "ZHIPUAI_API_KEY",
     },
     "wenxin": {
-        "name": "文心一言",
+        "name": "Wenxinyiyan",
         "tier": "medium",
-        "note": "百度",
+        "note": "Baidu",
         "api_key_env": "ERNIE_API_KEY",
     },
     "tongyi": {
-        "name": "通义千问",
+        "name": "Tongyi",
         "tier": "medium",
-        "note": "阿里",
+        "note": "Ali",
         "api_key_env": "DASHSCOPE_API_KEY",
     },
     "minimax": {
@@ -74,63 +74,63 @@ SUPPORTED_MODELS = {
     "kimi": {
         "name": "Kimi",
         "tier": "medium",
-        "note": "月之暗面",
+        "note": "ayın karanlık yüzü",
         "api_key_env": "KIMI_API_KEY",
     },
     "hunyuan": {
-        "name": "腾讯混元",
+        "name": "Tencent Hunyuan",
         "tier": "medium",
-        "note": "腾讯",
+        "note": "Tencent",
         "api_key_env": "HUNYUAN_API_KEY",
     },
     "doubao": {
-        "name": "字节豆包",
+        "name": "Doubao (ByteDance)",
         "tier": "medium",
-        "note": "字节跳动",
+        "note": "ByteDance",
         "api_key_env": "DOUBAO_API_KEY",
     },
     "tiangong": {
-        "name": "天工 AI",
+        "name": "TiangongAI",
         "tier": "medium",
         "note": "",
         "api_key_env": "TIANGONG_API_KEY",
     },
     "spark": {
-        "name": "讯飞星火",
+        "name": "Yalnızca onarım önerilerinin gösterilip gösterilmeyeceği",
         "tier": "medium",
         "note": "",
         "api_key_env": "SPARK_API_KEY",
     },
     "baichuan": {
-        "name": "百川智能",
+        "name": "Baichuan İstihbaratı",
         "tier": "medium",
         "note": "",
         "api_key_env": "BAICHUAN_API_KEY",
     },
     "mimo": {
-        "name": "小米 MiMo",
+        "name": "DarıMiMo",
         "tier": "medium",
-        "note": "小米",
+        "note": "Darı",
         "api_key_env": "MIMO_API_KEY",
     },
 }
 
-# 版本号（从 cli.py 同步）
+#sürüm numarası (dancli.pysenkron)
 __version__ = "0.2.0"
 
 
 # =============================================================================
-# 工具函数
+#Fayda fonksiyonu
 # =============================================================================
 
 
 def _ensure_config_dir() -> None:
-    """确保配置目录存在"""
+    """Yapılandırma dizininin mevcut olduğundan emin olun"""
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _load_config() -> dict:
-    """加载配置文件"""
+    """Yapılandırma dosyasını yükle"""
     if CONFIG_FILE.exists():
         try:
             with open(CONFIG_FILE, encoding="utf-8") as f:
@@ -141,14 +141,14 @@ def _load_config() -> dict:
 
 
 def _save_config(config: dict) -> None:
-    """保存配置文件"""
+    """Yapılandırma dosyasını kaydet"""
     _ensure_config_dir()
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
 
 def _mask_api_key(key: str) -> str:
-    """脱敏显示 API Key"""
+    """Duyarsızlaştırılmış ekranAPI Key"""
     if not key:
         return ""
     if len(key) <= 8:
@@ -157,14 +157,14 @@ def _mask_api_key(key: str) -> str:
 
 
 def _tier_style(tier: str) -> str:
-    """根据 tier 返回颜色"""
+    """buna göretierDönüş rengi"""
     return {"free": "green", "low": "cyan", "medium": "yellow", "high": "red"}.get(
         tier, "white"
     )
 
 
 # =============================================================================
-# 主命令
+#ana komut
 # =============================================================================
 
 
@@ -173,52 +173,52 @@ def init_wizard(
     ctx: typer.Context,
 ) -> None:
     """
-    交互式初始化引导 - 帮助新用户完成首次配置
+Etkileşimli başlatma önyüklemesi-Düşünce zinciri başladı
 
-    流程：
-    1. 欢迎界面
-    2. 选择默认模型
-    3. 输入 API Key
-    4. 设置工作目录
-    5. 确认配置
-    6. 完成
+işlem:
+    1.Hoş geldiniz arayüzü
+    2.Varsayılan modeli seçin
+    3.girmekAPI Key
+    4.Çalışma dizinini ayarla
+    5.Yapılandırmayı onaylayın
+    6.Sona ermek
     """
     if ctx.invoked_subcommand is not None:
         return
 
     # ============================================================
-    # 步骤 1: 欢迎界面
+    #1. Adım:Hoş geldiniz arayüzü
     # ============================================================
     console.print()
     console.print(
         Panel.fit(
-            f"[bold cyan]🎉 欢迎使用 Oh My Coder![/bold cyan]\n\n"
-            f"[dim]版本: v{__version__}[/dim]\n"
-            f"[dim]多智能体 AI 编程助手[/dim]\n\n"
-            f"[yellow]让我们开始配置您的开发环境吧！[/yellow]",
-            title="🚀 初始化向导",
+            f"[bold cyan]🎉Hoş geldinOh My Coder![/bold cyan]\n\n"
+            f"[dim]Sürüm: v{__version__}[/dim]\n"
+            f"[dim]çoklu ajanAIProgramlama Asistanı[/dim]\n\n"
+            f"[yellow]Geliştirme ortamınızı yapılandırmaya başlayalım![/yellow]",
+            title="🚀Başlatma sihirbazı",
             border_style="cyan",
         )
     )
     console.print()
 
     # ============================================================
-    # 步骤 2: 选择模型
+    #2. Adım:Modeli seçin
     # ============================================================
-    console.print("[bold]📋 步骤 1/4: 选择默认模型[/bold]")
-    console.print("[dim]请选择您要使用的 AI 模型作为默认模型[/dim]")
+    console.print("[bold]📋1. Adım/4:Varsayılan modeli seçin[/bold]")
+    console.print("[dim]Lütfen kullanmak istediğinizi seçinAIvarsayılan model olarak model[/dim]")
     console.print()
 
-    # 显示模型列表
-    table = Table(title="可用模型", show_header=True)
+    #Model listesini göster
+    table = Table(title="Mevcut modeller", show_header=True)
     table.add_column("#", style="dim", width=3)
-    table.add_column("模型 ID", style="cyan")
-    table.add_column("名称", style="green")
-    table.add_column("层级", style="yellow")
-    table.add_column("推荐", style="magenta")
-    table.add_column("备注", style="dim")
+    table.add_column("ModeliID", style="cyan")
+    table.add_column("isim", style="green")
+    table.add_column("Hiyerarşi", style="yellow")
+    table.add_column("tavsiye etmek", style="magenta")
+    table.add_column("Açıklama", style="dim")
 
-    # 按推荐程度排序：free > low > medium
+    #Tavsiyeye göre sırala:free > low > medium
     tier_order = {"free": 0, "low": 1, "medium": 2, "high": 3}
     sorted_models = sorted(
         SUPPORTED_MODELS.items(),
@@ -228,7 +228,7 @@ def init_wizard(
     for i, (model_id, info) in enumerate(sorted_models, 1):
         tier = info["tier"]
         tier_color = _tier_style(tier)
-        recommend = "⭐ 推荐" if tier in ("free", "low") else ""
+        recommend = "⭐tavsiye etmek" if tier in ("free", "low") else ""
         table.add_row(
             str(i),
             model_id,
@@ -241,13 +241,13 @@ def init_wizard(
     console.print(table)
     console.print()
 
-    # 用户选择模型
+    #Kullanıcı seçim modeli
     model_choices = [str(i) for i in range(1, len(sorted_models) + 1)]
     model_id_choices = [m[0] for m in sorted_models]
 
     while True:
         choice = Prompt.ask(
-            "[bold]请输入序号选择模型[/bold]",
+            "[bold]Modeli seçmek için lütfen seri numarasını girin[/bold]",
             default="1",
         )
         if choice in model_choices:
@@ -257,127 +257,127 @@ def init_wizard(
             break
         else:
             console.print(
-                f"[red]无效选择: {choice}，请输入 1-{len(sorted_models)}[/red]"
+                f"[red]Geçersiz seçim: {choice}, lütfen 1 girin-{len(sorted_models)}[/red]"
             )
 
     console.print()
     console.print(
-        f"[green]✓ 已选择: {selected_model_info['name']} ({selected_model_id})[/green]"
+        f"[green]✓Seçildi: {selected_model_info['name']} ({selected_model_id})[/green]"
     )
     console.print()
 
     # ============================================================
-    # 步骤 3: 输入 API Key
+    #3. Adım:girmekAPI Key
     # ============================================================
-    console.print("[bold]🔑 步骤 2/4: 配置 API Key[/bold]")
+    console.print("[bold]🔑2. Adım/4:YapılandırmaAPI Key[/bold]")
 
-    # 检查环境变量中是否已有 API Key
+    #Ortam değişkenlerinin zaten mevcut olup olmadığını kontrol edinAPI Key
     api_key_env = selected_model_info["api_key_env"]
     existing_key = os.getenv(api_key_env)
 
     if existing_key:
-        console.print(f"[dim]检测到环境变量 {api_key_env} 已设置[/dim]")
+        console.print(f"[dim]Ortam değişkeni algılandı{api_key_env}Zaten ayarlandı[/dim]")
         use_existing = Confirm.ask(
-            "是否使用现有的 API Key？",
+            "Mevcut olanın kullanılıp kullanılmayacağıAPI Key?",
             default=True,
         )
         if use_existing:
             api_key = existing_key
             console.print(
-                f"[green]✓ 使用现有 API Key: {_mask_api_key(api_key)}[/green]"
+                f"[green]✓Mevcut olanı kullanAPI Key: {_mask_api_key(api_key)}[/green]"
             )
         else:
             api_key = Prompt.ask(
-                f"请输入新的 {selected_model_info['name']} API Key",
+                f"Lütfen yeni girin{selected_model_info['name']} API Key",
                 password=True,
             )
     else:
-        console.print(f"[dim]请输入 {selected_model_info['name']} 的 API Key[/dim]")
-        console.print("[dim]提示: API Key 不会显示在屏幕上[/dim]")
+        console.print(f"[dim]Lütfen girin{selected_model_info['name']}ile ilgiliAPI Key[/dim]")
+        console.print("[dim]ipucu: API Keyekranda görüntülenmeyecek[/dim]")
         api_key = Prompt.ask(
             "API Key",
             password=True,
         )
 
     if not api_key:
-        console.print("[yellow]⚠ 未输入 API Key，配置将保存但不包含密钥[/yellow]")
+        console.print("[yellow]⚠GirilmediAPI Key, konfigürasyon anahtar olmadan kaydedilecektir[/yellow]")
         api_key = ""
 
     console.print()
 
     # ============================================================
-    # 步骤 4: 设置工作目录
+    #4. Adım:Çalışma dizinini ayarla
     # ============================================================
-    console.print("[bold]📁 步骤 3/4: 设置工作目录[/bold]")
-    console.print("[dim]工作目录是 Oh My Coder 默认的项目路径[/dim]")
+    console.print("[bold]📁3. Adım/4:Çalışma dizinini ayarla[/bold]")
+    console.print("[dim]Çalışma diziniOh My CoderVarsayılan proje yolu[/dim]")
 
     current_dir = str(Path.cwd())
     work_dir = Prompt.ask(
-        "请输入工作目录路径",
+        "Lütfen çalışma dizini yolunu girin",
         default=current_dir,
     )
 
-    # 验证路径
+    #Yolu doğrula
     work_path = Path(work_dir).expanduser().resolve()
     if not work_path.exists():
         create_dir = Confirm.ask(
-            f"目录 {work_path} 不存在，是否创建？",
+            f"İçindekiler{work_path}Mevcut değil mi, yaratılsın mı?",
             default=True,
         )
         if create_dir:
             try:
                 work_path.mkdir(parents=True, exist_ok=True)
-                console.print(f"[green]✓ 已创建目录: {work_path}[/green]")
+                console.print(f"[green]✓Dizin oluşturuldu: {work_path}[/green]")
             except Exception as e:
-                console.print(f"[red]✗ 创建目录失败: {e}[/red]")
+                console.print(f"[red]✗Dizin oluşturulamadı: {e}[/red]")
                 work_path = Path.cwd()
-                console.print(f"[yellow]使用当前目录: {work_path}[/yellow]")
+                console.print(f"[yellow]geçerli dizini kullan: {work_path}[/yellow]")
     else:
-        console.print(f"[green]✓ 工作目录: {work_path}[/green]")
+        console.print(f"[green]✓çalışma dizini: {work_path}[/green]")
 
     console.print()
 
     # ============================================================
-    # 步骤 5: 配置验证
+    #Adım 5:Yapılandırma doğrulaması
     # ============================================================
-    console.print("[bold]✅ 步骤 4/4: 确认配置[/bold]")
+    console.print("[bold]✅4. Adım/4:Yapılandırmayı onaylayın[/bold]")
     console.print()
 
-    # 汇总显示
-    summary_table = Table(title="配置汇总", show_header=False)
-    summary_table.add_column("项目", style="cyan")
-    summary_table.add_column("值", style="green")
+    #Lütfen bir eylem seçin
+    summary_table = Table(title="Yapılandırma özeti", show_header=False)
+    summary_table.add_column("proje", style="cyan")
+    summary_table.add_column("değer", style="green")
 
     summary_table.add_row(
-        "默认模型", f"{selected_model_info['name']} ({selected_model_id})"
+        "Varsayılan model", f"{selected_model_info['name']} ({selected_model_id})"
     )
     summary_table.add_row(
-        "API Key", _mask_api_key(api_key) if api_key else "[yellow]未设置[/yellow]"
+        "API Key", _mask_api_key(api_key) if api_key else "[yellow]ayarlanmamış[/yellow]"
     )
-    summary_table.add_row("工作目录", str(work_path))
-    summary_table.add_row("配置文件", str(CONFIG_FILE))
+    summary_table.add_row("çalışma dizini", str(work_path))
+    summary_table.add_row("Yenilemeye zorla", str(CONFIG_FILE))
 
     console.print(summary_table)
     console.print()
 
-    # 确认
+    #onaylamak
     confirm = Confirm.ask(
-        "[bold]确认保存以上配置？[/bold]",
+        "[bold]Yukarıdaki yapılandırmayı kaydettiğinizden emin misiniz?[/bold]",
         default=True,
     )
 
     if not confirm:
-        console.print("[yellow]❌ 配置已取消[/yellow]")
+        console.print("[yellow]❌Yapılandırma iptal edildi[/yellow]")
         raise typer.Exit(0)
 
     # ============================================================
-    # 保存配置
+    #Yapılandırmayı kaydet
     # ============================================================
     config = _load_config()
     config["default_model"] = selected_model_id
     config["work_dir"] = str(work_path)
 
-    # 保存 API Key 到配置（如果用户输入了新的）
+    #kaydetmekAPI anahtarı yapılandırmasıa (kullanıcı yeni bir tane girmişse)
     if api_key and api_key != existing_key:
         api_keys = config.get("api_keys", {})
         api_keys[selected_model_id] = api_key
@@ -385,25 +385,25 @@ def init_wizard(
 
     _save_config(config)
 
-    # 同时设置环境变量（当前会话生效）
+    #Ayrıca ortam değişkenlerini de ayarlayın (mevcut oturum için etkilidir)
     if api_key:
         os.environ[api_key_env] = api_key
 
     # ============================================================
-    # 步骤 6: 完成提示
+    #Adım 6:Tamamlama istemi
     # ============================================================
     console.print()
     console.print(
         Panel.fit(
-            "[bold green]✅ 配置完成！[/bold green]\n\n"
-            f"[dim]配置已保存到: {CONFIG_FILE}[/dim]\n\n"
-            "[bold]🚀 下一步:[/bold]\n"
-            "  [cyan]omc agent list[/cyan]     查看可用 Agent\n"
-            "  [cyan]omc model list[/cyan]      查看所有模型\n"
-            '  [cyan]omc run "<task>"[/cyan]   执行任务\n'
-            "  [cyan]omc --help[/cyan]          查看所有命令\n\n"
-            "[dim]提示: 使用 [cyan]omc model switch <name>[/cyan] 可随时切换模型[/dim]",
-            title="🎉 初始化完成",
+            "[bold green]✅Yapılandırma tamamlandı![/bold green]\n\n"
+            f"[dim]Yapılandırma şuraya kaydedildi:: {CONFIG_FILE}[/dim]\n\n"
+            "[bold]🚀Sonraki adım:[/bold]\n"
+            "  [cyan]omc agent list[/cyan]Mevcut olanı görüntüleAgent\n"
+            "  [cyan]omc model list[/cyan]Tüm modelleri görüntüle\n"
+            '  [cyan]omc run "<task>"[/cyan]görevleri gerçekleştirmek\n'
+            "  [cyan]omc --help[/cyan]Tüm komutları görüntüle\n\n"
+            "[dim]ipucu:kullanmak[cyan]omc model switch <name>[/cyan]İstediğiniz zaman modelleri değiştirebilir[/dim]",
+            title="🎉Başlatma tamamlandı",
             border_style="green",
         )
     )
@@ -412,55 +412,55 @@ def init_wizard(
 
 @app.command("reset")
 def reset_config() -> None:
-    """重置配置（删除配置文件）"""
+    """Yapılandırmayı sıfırla (yapılandırma dosyasını sil)"""
     if not CONFIG_FILE.exists():
-        console.print("[yellow]配置文件不存在，无需重置[/yellow]")
+        console.print("[yellow]Yapılandırma dosyası mevcut değil, sıfırlamaya gerek yok[/yellow]")
         return
 
     confirm = Confirm.ask(
-        f"[bold red]确定要删除配置文件 {CONFIG_FILE}？[/bold red]",
+        f"[bold red]Yapılandırma dosyasını silmek istediğinizden emin misiniz?{CONFIG_FILE}?[/bold red]",
         default=False,
     )
 
     if confirm:
         CONFIG_FILE.unlink()
-        console.print(f"[green]✓ 已删除配置文件: {CONFIG_FILE}[/green]")
-        console.print("[dim]运行 [cyan]omc init[/cyan] 重新配置[/dim]")
+        console.print(f"[green]✓Profil silindi: {CONFIG_FILE}[/green]")
+        console.print("[dim]koşmak[cyan]omc init[/cyan]Yeniden yapılandır[/dim]")
     else:
-        console.print("[dim]已取消[/dim]")
+        console.print("[dim]İptal edildi[/dim]")
 
 
 @app.command("show")
 def show_config() -> None:
-    """显示当前配置"""
+    """Geçerli yapılandırmayı göster"""
     if not CONFIG_FILE.exists():
-        console.print("[yellow]配置文件不存在，请先运行 [cyan]omc init[/cyan][/yellow]")
+        console.print("[yellow]Yapılandırma dosyası mevcut değil, lütfen önce çalıştırın[cyan]omc init[/cyan][/yellow]")
         raise typer.Exit(1)
 
     config = _load_config()
     if not config:
-        console.print("[yellow]配置文件为空，请先运行 [cyan]omc init[/cyan][/yellow]")
+        console.print("[yellow]Yapılandırma dosyası boş, lütfen önce çalıştırın[cyan]omc init[/cyan][/yellow]")
         raise typer.Exit(1)
 
     console.print()
-    console.print(f"[bold cyan]配置文件: {CONFIG_FILE}[/bold cyan]")
+    console.print(f"[bold cyan]Yenilemeye zorla: {CONFIG_FILE}[/bold cyan]")
     console.print()
 
     table = Table(show_header=False)
-    table.add_column("项目", style="cyan")
-    table.add_column("值", style="green")
+    table.add_column("proje", style="cyan")
+    table.add_column("değer", style="green")
 
-    # 显示主要配置项
+    #Ana yapılandırma öğelerini göster
     if "default_model" in config:
         model_id = config["default_model"]
         model_info = SUPPORTED_MODELS.get(model_id, {})
         model_name = model_info.get("name", model_id)
-        table.add_row("默认模型", f"{model_name} ({model_id})")
+        table.add_row("Varsayılan model", f"{model_name} ({model_id})")
 
     if "work_dir" in config:
-        table.add_row("工作目录", config["work_dir"])
+        table.add_row("çalışma dizini", config["work_dir"])
 
-    # API Keys（脱敏显示）
+    # API Keys(duyarsızlaştırılmış ekran)
     if "api_keys" in config:
         for model_id, key in config["api_keys"].items():
             table.add_row(f"{model_id} API Key", _mask_api_key(key))
