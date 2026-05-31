@@ -133,6 +133,8 @@ class RouterConfig:
     hunyuan_api_key: Optional[str] = None
     doubao_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None  # Google Gemini (ücretli)
+    mimo_api_key: Optional[str] = None  # Xiaomi MiMo (Token Plan: tp-... key prefix)
+    mimo_base_url: Optional[str] = None  # MiMo Plan URL override (ör. token-plan-sgp.xiaomimimo.com/v1)
 
     # Ollama yerel model yapılandırması
     ollama_base_url: Optional[str] = None
@@ -171,6 +173,8 @@ class RouterConfig:
         self.hunyuan_api_key = self.hunyuan_api_key or _env("HUNYUAN_API_KEY")
         self.doubao_api_key = self.doubao_api_key or _env("DOUBAO_API_KEY")
         self.gemini_api_key = self.gemini_api_key or _env("GEMINI_API_KEY")
+        self.mimo_api_key = self.mimo_api_key or _env("MIMO_API_KEY") or _env("XIAOMI_MIMO_API_KEY")
+        self.mimo_base_url = self.mimo_base_url or _env("MIMO_BASE_URL")
 
         # 3) Ollama yapilandirma
         self.ollama_base_url = self.ollama_base_url or os.getenv(
@@ -266,8 +270,8 @@ class RouterConfig:
             _key_map = {
                 "deepseek": "deepseek_api_key",
                 "glm": "glm_api_key",
-                "minimax": "minimax_api_key",  # mimo ayricaeslekadar minimax
-                "mimo": "minimax_api_key",
+                "minimax": "minimax_api_key",
+                "mimo": "mimo_api_key",
                 "kimi": "kimi_api_key",
                 "doubao": "doubao_api_key",
                 "tongyi": "tongyi_api_key",
@@ -495,6 +499,23 @@ class ModelRouter:
                 logger.info("Zhipu GLM model başlatıldı")
             except Exception as e:
                 logger.warning(f"Zhipu GLM başlatma başarısız: {mask_api_key(str(e))}")
+
+        # Xiaomi MiMo (Token Plan veya standart)
+        if self.config.mimo_api_key:
+            try:
+                from ..models.mimo import MimoModel
+
+                for tier in ["low", "medium", "high"]:
+                    cfg = ModelConfig(
+                        api_key=self.config.mimo_api_key,
+                        base_url=self.config.mimo_base_url,
+                    )
+                    self._models.setdefault("mimo", {})[tier] = MimoModel(
+                        cfg, ModelTier(tier)
+                    )
+                logger.info("Xiaomi MiMo modeli başlatıldı")
+            except Exception as e:
+                logger.warning(f"MiMo başlatma hatası: {mask_api_key(str(e))}")
 
         # Google Gemini (ücretli)
         if self.config.gemini_api_key:
