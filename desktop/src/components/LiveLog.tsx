@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useT } from '../lib/i18n';
 
 interface LogEntry {
   level: 'info' | 'warn' | 'error' | 'success';
@@ -27,6 +28,7 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 export function LiveLog({ logs, maxHeight = 200 }: LiveLogProps) {
+  const { t } = useT();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [dotFrame, setDotFrame] = useState(0);
   const isRunningRef = useRef(false);
@@ -66,9 +68,9 @@ export function LiveLog({ logs, maxHeight = 200 }: LiveLogProps) {
     <div className="live-log">
       <div className="live-log__header">
         <span className="live-log__label">
-          {isRunning ? '实时日志' : '执行日志'}
+          {isRunning ? t('log.realtime') : t('log.execution')}
         </span>
-        <span className="live-log__count">{logs.length} 条</span>
+        <span className="live-log__count">{t('log.entries', { count: logs.length })}</span>
       </div>
       <div
         ref={scrollRef}

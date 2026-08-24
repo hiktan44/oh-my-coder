@@ -2,6 +2,7 @@
 // Triggered by click or Cmd+M, shows grouped model list with tier icons
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useT } from '../lib/i18n';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface Model {
@@ -33,21 +34,24 @@ const TIER_COLOR: Record<string, string> = {
   high: '#f59e0b',
 };
 
-// ── Provider labels ────────────────────────────────────────────────────────────
-const PROVIDER_LABELS: Record<string, string> = {
-  deepseek: 'DeepSeek',
-  glm: '智谱 GLM',
-  doubao: '字节豆包',
-  kimi: 'Kimi',
-  tongyi: '通义千问',
-  wenxin: '文心一言',
-  hunyuan: '腾讯混元',
-  minimax: 'MiniMax',
-  baichuan: '百川智能',
-  openai: 'OpenAI',
-  anthropic: 'Anthropic',
-  google: 'Google',
-};
+// ── Provider labels (will be replaced with translation function) ────────────────────
+function getProviderLabel(key: string, lang: string): string {
+  const labels: Record<string, { tr: string; en: string }> = {
+    deepseek: { tr: 'DeepSeek', en: 'DeepSeek' },
+    glm: { tr: 'Zhipu GLM', en: 'Zhipu GLM' },
+    doubao: { tr: 'ByteDance Doubao', en: 'ByteDance Doubao' },
+    kimi: { tr: 'Kimi', en: 'Kimi' },
+    tongyi: { tr: 'Tongyi Qianwen', en: 'Tongyi Qianwen' },
+    wenxin: { tr: 'Wenxin Yiyan', en: 'Wenxin Yiyan' },
+    hunyuan: { tr: 'Tencent Hunyuan', en: 'Tencent Hunyuan' },
+    minimax: { tr: 'MiniMax', en: 'MiniMax' },
+    baichuan: { tr: 'Baichuan AI', en: 'Baichuan AI' },
+    openai: { tr: 'OpenAI', en: 'OpenAI' },
+    anthropic: { tr: 'Anthropic', en: 'Anthropic' },
+    google: { tr: 'Google', en: 'Google' },
+  };
+  return labels[key]?.[lang === 'tr' ? 'tr' : 'en'] || key;
+}
 
 function getProviderKey(model: Model): string {
   const id = model.id.toLowerCase();
@@ -65,16 +69,16 @@ interface ProviderGroup {
   models: Model[];
 }
 
-function groupByProvider(models: Model[]): ProviderGroup[] {
+function groupByProvider(models: Model[], lang: string): ProviderGroup[] {
   const map = new Map<string, ProviderGroup>();
-  const knownOrder = Object.keys(PROVIDER_LABELS);
+  const knownOrder = ['deepseek', 'glm', 'doubao', 'kimi', 'tongyi', 'wenxin', 'hunyuan', 'minimax', 'baichuan', 'openai', 'anthropic', 'google'];
 
   for (const m of models) {
     const key = getProviderKey(m);
     if (!map.has(key)) {
       map.set(key, {
         key,
-        label: PROVIDER_LABELS[key] || key,
+        label: getProviderLabel(key, lang),
         models: [],
       });
     }
@@ -101,6 +105,7 @@ export function ModelSelector({
   onOpenChange,
   trigger,
 }: ModelSelectorProps) {
+  const { lang } = useT();
   const ref = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
@@ -167,7 +172,7 @@ export function ModelSelector({
 
   // Filter models by search
   const query = search.toLowerCase().trim();
-  const groups = groupByProvider(models);
+  const groups = groupByProvider(models, lang);
   const filteredGroups = query
     ? groups
         .map((g) => ({
@@ -196,7 +201,7 @@ export function ModelSelector({
               ref={searchRef}
               type="text"
               className="model-selector__search"
-              placeholder="Search models..."
+              placeholder={t('model.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
@@ -217,7 +222,7 @@ export function ModelSelector({
           <div className="model-selector__shortcut-hint">
             <kbd>⌘</kbd>
             <kbd>M</kbd>
-            <span style={{ marginLeft: 4 }}>toggle</span>
+            <span style={{ marginLeft: 4 }}>{t('model.toggle')}</span>
           </div>
 
           {/* Model list */}
@@ -237,7 +242,7 @@ export function ModelSelector({
                   textAlign: 'center',
                 }}
               >
-                No models found
+                {t('model.noModelsFound')}
               </div>
             )}
             {filteredGroups.map((group) => {

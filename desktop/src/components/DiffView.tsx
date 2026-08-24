@@ -2,6 +2,7 @@
 // Reference: Cline-style inline diff acceptance
 
 import { useState, useMemo } from 'react';
+import { useT } from '../lib/i18n';
 
 export interface DiffLine {
   type: 'add' | 'delete' | 'context';
@@ -90,6 +91,7 @@ function getFileExtension(path: string): string {
 }
 
 export default function DiffView({ diff, onAccept, onReject }: DiffViewProps) {
+  const { t, lang } = useT();
   const [accepted, setAccepted] = useState<'pending' | 'accepted' | 'rejected'>('pending');
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -170,10 +172,10 @@ export default function DiffView({ diff, onAccept, onReject }: DiffViewProps) {
       {accepted === 'pending' && (
         <div className="diff-view__actions">
           <button className="diff-btn diff-btn--accept" onClick={handleAccept}>
-            ✓ Accept
+            ✓ {t('diff.accept')}
           </button>
           <button className="diff-btn diff-btn--reject" onClick={handleReject}>
-            ✕ Reject
+            ✕ {t('diff.reject')}
           </button>
         </div>
       )}
@@ -181,7 +183,7 @@ export default function DiffView({ diff, onAccept, onReject }: DiffViewProps) {
       {/* Status indicator */}
       {accepted !== 'pending' && (
         <div className={`diff-view__status diff-view__status--${accepted}`}>
-          {accepted === 'accepted' ? '✓ 已接受' : '✕ 已拒绝'}
+          {accepted === 'accepted' ? '✓ ' + t('diff.accepted') : '✕ ' + t('diff.rejected')}
         </div>
       )}
     </div>

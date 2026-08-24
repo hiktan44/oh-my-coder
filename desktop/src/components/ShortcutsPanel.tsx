@@ -2,6 +2,7 @@
 // Reference: OpenCode-style categorized shortcuts with search and click-to-execute
 
 import { useEffect, useRef, useState, useMemo } from 'react';
+import { useT } from '../lib/i18n';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 export interface ShortcutItem {
@@ -22,32 +23,62 @@ interface ShortcutsPanelProps {
   onExecute?: (shortcut: ShortcutItem) => void;
 }
 
-// ── Category Labels ───────────────────────────────────────────────────────────
-const CATEGORY_LABELS: Record<string, { label: string; icon: string }> = {
-  global: { label: '全局', icon: '⌘' },
-  editor: { label: '编辑器', icon: '✎' },
-  chat: { label: '聊天', icon: '💬' },
-};
+// ── Category Labels (will be replaced with translation function) ─────────────────
+function getCategoryLabel(category: string, lang: string): { label: string; icon: string } {
+  const labels: Record<string, { tr: { label: string; icon: string }; en: { label: string; icon: string } }> = {
+    global: {
+      tr: { label: 'Genel', icon: '⌘' },
+      en: { label: 'Global', icon: '⌘' }
+    },
+    editor: {
+      tr: { label: 'Editör', icon: '✎' },
+      en: { label: 'Editor', icon: '✎' }
+    },
+    chat: {
+      tr: { label: 'Sohbet', icon: '💬' },
+      en: { label: 'Chat', icon: '💬' }
+    },
+  };
+  return labels[category]?.[lang === 'tr' ? 'tr' : 'en'] || { label: category, icon: '⌘' };
+}
 
-// ── All Registered Shortcuts ──────────────────────────────────────────────────
-const ALL_SHORTCUTS: ShortcutItem[] = [
+function getShortcutDescription(id: string, lang: string): string {
+  const descriptions: Record<string, { tr: string; en: string }> = {
+    'new-chat': { tr: 'Yeni Sohbet', en: 'New Chat' },
+    'settings': { tr: 'Ayarları Aç', en: 'Open Settings' },
+    'shortcuts': { tr: 'Kısayolları Göster', en: 'Show Shortcuts' },
+    'escape': { tr: 'Paneli Kapat/İptal', en: 'Close Panel/Cancel' },
+    'focus-input': { tr: 'Giriş Kutusuna Odaklan', en: 'Focus Input' },
+    'inline-edit': { tr: 'Satır İçi Düzenleme', en: 'Inline Edit' },
+    'submit': { tr: 'Mesaj Gönder', en: 'Send Message' },
+    'newline': { tr: 'Yeni Satır', en: 'Newline' },
+    'switch-model': { tr: 'Model Değiştir', en: 'Switch Model' },
+    'clear-chat': { tr: 'Sohbeti Temizle', en: 'Clear Chat' },
+    'history-prev': { tr: 'Önceki Geçmiş', en: 'Previous History' },
+    'history-next': { tr: 'Sonraki Geçmiş', en: 'Next History' },
+  };
+  return descriptions[id]?.[lang === 'tr' ? 'tr' : 'en'] || id;
+}
+
+// ── All Registered Shortcuts (base definitions, descriptions will be translated) ──
+const BASE_SHORTCUTS: Omit<ShortcutItem, 'description'>[] = [
   // Global
-  { id: 'new-chat', key: 'n', metaKey: true, description: '新建会话', category: 'global' },
-  { id: 'settings', key: ',', metaKey: true, description: '打开设置', category: 'global' },
-  { id: 'shortcuts', key: '/', metaKey: true, description: '显示快捷键', category: 'global' },
-  { id: 'escape', key: 'Escape', description: '关闭面板/取消操作', category: 'global' },
-  
+  { id: 'new-chat', key: 'n', metaKey: true, category: 'global' },
+  { id: 'settings', key: ',', metaKey: true, category: 'global' },
+  { id: 'shortcuts', key: '/', metaKey: true, category: 'global' },
+  { id: 'escape', key: 'Escape', category: 'global' },
+
   // Editor
-  { id: 'focus-input', key: 'i', metaKey: true, description: '聚焦输入框', category: 'editor' },
-  { id: 'inline-edit', key: 'e', metaKey: true, description: '行内编辑模式', category: 'editor' },
-  { id: 'submit', key: 'Enter', description: '发送消息', category: 'editor' },
-  { id: 'newline', key: 'Enter', shiftKey: true, description: '换行', category: 'editor' },
-  
+  { id: 'focus-input', key: 'i', metaKey: true, category: 'editor' },
+  { id: 'inline-edit', key: 'e', metaKey: true, category: 'editor' },
+  { id: 'submit', key: 'Enter', category: 'editor' },
+  { id: 'newline', key: 'Enter', shiftKey: true, category: 'editor' },
+
   // Chat
-  { id: 'switch-model', key: 'm', metaKey: true, description: '切换模型', category: 'chat' },
-  { id: 'clear-chat', key: 'l', metaKey: true, description: '清空对话', category: 'chat' },
-  { id: 'history-prev', key: 'ArrowUp', altKey: true, description: '上一条历史', category: 'chat' },
-  { id: 'history-next', key: 'ArrowDown', altKey: true, description: '下一条历史', category: 'chat' },
+  { id: 'switch-model', key: 'm', metaKey: true, category: 'chat' },
+  { id: 'clear-chat', key: 'l', metaKey: true, category: 'chat' },
+  { id: 'history-prev', key: 'ArrowUp', altKey: true, category: 'chat' },
+  { id: 'history-next', key: 'ArrowDown', altKey: true, category: 'chat' },
 ];
 
 // ── Format Key Combo ──────────────────────────────────────────────────────────
@@ -103,10 +134,19 @@ function KeyCombo({ shortcut, small }: { shortcut: ShortcutItem; small?: boolean
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export function ShortcutsPanel({ isOpen, onClose, onExecute }: ShortcutsPanelProps) {
+  const { t, lang } = useT();
   const overlayRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Generate shortcuts with translated descriptions
+  const ALL_SHORTCUTS: ShortcutItem[] = useMemo(() => {
+    return BASE_SHORTCUTS.map(shortcut => ({
+      ...shortcut,
+      description: getShortcutDescription(shortcut.id, lang)
+    }));
+  }, [lang]);
 
   // Focus search on open
   useEffect(() => {
@@ -121,12 +161,12 @@ export function ShortcutsPanel({ isOpen, onClose, onExecute }: ShortcutsPanelPro
   const filtered = useMemo(() => {
     if (!search.trim()) return ALL_SHORTCUTS;
     const q = search.toLowerCase();
-    return ALL_SHORTCUTS.filter(s => 
+    return ALL_SHORTCUTS.filter(s =>
       s.description.toLowerCase().includes(q) ||
       formatKeyCombo(s).toLowerCase().includes(q) ||
       s.category.toLowerCase().includes(q)
     );
-  }, [search]);
+  }, [search, ALL_SHORTCUTS]);
 
   // Group by category
   const grouped = useMemo(() => {
@@ -176,10 +216,10 @@ export function ShortcutsPanel({ isOpen, onClose, onExecute }: ShortcutsPanelPro
         {/* Header with search */}
         <div className="shortcuts-header">
           <div className="shortcuts-header__left">
-            <span className="shortcuts-title">键盘快捷键</span>
+            <span className="shortcuts-title">{t('shortcuts.title')}</span>
             <span className="shortcuts-count">{filtered.length}</span>
           </div>
-          <button className="shortcuts-close" onClick={onClose} aria-label="关闭">✕</button>
+          <button className="shortcuts-close" onClick={onClose} aria-label={t('common.close')}>✕</button>
         </div>
 
         {/* Search bar */}
@@ -189,7 +229,7 @@ export function ShortcutsPanel({ isOpen, onClose, onExecute }: ShortcutsPanelPro
             ref={inputRef}
             type="text"
             className="shortcuts-search__input"
-            placeholder="搜索快捷键..."
+            placeholder={t('shortcuts.search')}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -211,27 +251,29 @@ export function ShortcutsPanel({ isOpen, onClose, onExecute }: ShortcutsPanelPro
           {Object.keys(grouped).length === 0 ? (
             <div className="shortcuts-empty">
               <span className="shortcuts-empty__icon">🔍</span>
-              <span>未找到匹配的快捷键</span>
+              <span>{t('shortcuts.notFound')}</span>
             </div>
           ) : (
-            Object.entries(grouped).map(([category, items]) => (
-              <div key={category} className="shortcuts-section">
-                <div className="shortcuts-section__header">
-                  <span className="shortcuts-section__icon">
-                    {CATEGORY_LABELS[category]?.icon || '⌘'}
-                  </span>
-                  <span className="shortcuts-section__title">
-                    {CATEGORY_LABELS[category]?.label || category}
-                  </span>
-                  <span className="shortcuts-section__count">{items.length}</span>
-                </div>
+            Object.entries(grouped).map(([category, items]) => {
+              const catLabel = getCategoryLabel(category, lang);
+              return (
+                <div key={category} className="shortcuts-section">
+                  <div className="shortcuts-section__header">
+                    <span className="shortcuts-section__icon">
+                      {catLabel.icon}
+                    </span>
+                    <span className="shortcuts-section__title">
+                      {catLabel.label}
+                    </span>
+                    <span className="shortcuts-section__count">{items.length}</span>
+                  </div>
                 <div className="shortcuts-list">
                   {items.map(s => (
-                    <div 
+                    <div
                       key={s.id}
                       className={`shortcuts-item ${selectedId === s.id ? 'shortcuts-item--active' : ''}`}
                       onClick={() => handleExecute(s)}
-                      title="点击执行"
+                      title={t('shortcuts.execute')}
                     >
                       <span className="shortcuts-item__desc">{s.description}</span>
                       <KeyCombo shortcut={s} />
@@ -239,7 +281,8 @@ export function ShortcutsPanel({ isOpen, onClose, onExecute }: ShortcutsPanelPro
                   ))}
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
         
@@ -247,11 +290,11 @@ export function ShortcutsPanel({ isOpen, onClose, onExecute }: ShortcutsPanelPro
         <div className="shortcuts-footer">
           <span className="shortcuts-hint">
             <KeyCombo small shortcut={{ key: 'Enter', description: '', category: 'global' }} />
-            执行
+            {t('shortcuts.execute')}
           </span>
           <span className="shortcuts-hint">
             <KeyCombo small shortcut={{ key: 'Escape', description: '', category: 'global' }} />
-            关闭
+            {t('common.close')}
           </span>
         </div>
       </div>
@@ -260,6 +303,6 @@ export function ShortcutsPanel({ isOpen, onClose, onExecute }: ShortcutsPanelPro
 }
 
 // ── Exports ───────────────────────────────────────────────────────────────────
-export { ALL_SHORTCUTS as SHORTCUTS, formatKeyCombo };
+export { BASE_SHORTCUTS as SHORTCUTS, formatKeyCombo };
 export default ShortcutsPanel;
 

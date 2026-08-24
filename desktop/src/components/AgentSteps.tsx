@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useT } from '../lib/i18n';
 
 interface Step {
   agent: string;
@@ -20,6 +21,7 @@ const AGENT_COLORS: Record<string, string> = {
 };
 
 export function AgentSteps({ steps }: AgentStepsProps) {
+  const { t } = useT();
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   const toggleExpand = (idx: number) => {
@@ -36,8 +38,8 @@ export function AgentSteps({ steps }: AgentStepsProps) {
   return (
     <div className="agent-steps">
       <div className="agent-steps__header">
-        <span className="agent-steps__label">Agent 执行详情</span>
-        <span className="agent-steps__count">{steps.length} 步</span>
+        <span className="agent-steps__label">{t('agent.executionDetails')}</span>
+        <span className="agent-steps__count">{t('agent.steps', { count: steps.length })}</span>
       </div>
       <div className="agent-steps__list">
         {steps.map((step, idx) => {

@@ -1,0 +1,42 @@
+/* LangSwitch component styles */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #f9fafb;
+  transition: all 0.2s ease;
+}
+
+.lang-switch:hover {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.lang-switch:active {
+  transform: translateY(1px);
+}
+
+.lang-switch__current {
+  color: #d4a017;
+  font-weight: 600;
+}
+
+.lang-switch__arrow {
+  color: #9ca3af;
+  transition: transform 0.2s ease;
+}
+
+.lang-switch:hover .lang-switch__arrow {
+  transform: translateX(2px);
+}
+
+.lang-switch__target {
+  color: #6b7280;
+}

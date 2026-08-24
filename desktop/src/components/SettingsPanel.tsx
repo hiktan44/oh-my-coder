@@ -6,6 +6,7 @@
 // - Encryption: simple XOR + base64 for localStorage
 import React, { useState, useEffect, useCallback } from 'react';
 import { PRODUCTION_MODELS as FALLBACK_MODELS } from '../models/productionModels';
+import { useT } from '../lib/i18n';
 
 interface ModelInfo {
   id: string;
@@ -157,6 +158,7 @@ function TestConnection({
   onResult: (ok: boolean, msg: string) => void;
   onClearResult: () => void;
 }) {
+  const { t } = useT();
   const [testing, setTesting] = useState(false);
 
   // Clear result when config changes (API key or base URL modified)
@@ -168,17 +170,17 @@ function TestConnection({
 
   const handleTest = async () => {
     if (!config.api_key) {
-      onResult(false, 'API Key is required');
+      onResult(false, t('settings.apiKeyRequired'));
       return;
     }
     setTesting(true);
     try {
       const resp = await (window.omc as any).modelConfigTest?.(null, config);
       const ok = resp?.ok ?? config.api_key.length > 10;
-      const msg = resp?.msg ?? (ok ? 'Key format looks valid' : 'Key too short');
+      const msg = resp?.msg ?? (ok ? t('settings.connected') : t('settings.failed'));
       onResult(ok, msg);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Connection failed';
+      const msg = e instanceof Error ? e.message : t('settings.failed');
       onResult(false, msg);
     } finally {
       setTesting(false);
@@ -192,7 +194,7 @@ function TestConnection({
         onClick={handleTest}
         disabled={testing}
       >
-        {testing ? '⏳ Testing...' : testResult ? (testResult.ok ? '✓ Connected' : '✗ Failed') : '🔗 Test Connection'}
+        {testing ? '⏳ ' + t('settings.testing') : testResult ? (testResult.ok ? '✓ ' + t('settings.connected') : '✗ ' + t('settings.failed')) : '🔗 ' + t('settings.testConnection')}
       </button>
       {testResult && (
         <span className={`settings-test__msg ${testResult.ok ? 'ok' : 'err'}`}>{testResult.msg}</span>
@@ -219,6 +221,7 @@ function ModelDetailPanel({
   onTestResult: (ok: boolean, msg: string) => void;
   onClearTestResult: () => void;
 }) {
+  const { t } = useT();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showKey, setShowKey] = useState(false);
@@ -254,21 +257,21 @@ function ModelDetailPanel({
         <div className="settings-detail__meta">
           <span className="settings-detail__provider">{label}</span>
           <span className="settings-detail__id">{model.id}</span>
-          {isFree && <span className="settings-detail__free">Free Tier</span>}
+          {isFree && <span className="settings-detail__free">{t('settings.freeTier')}</span>}
         </div>
       </div>
 
       <div className="settings-detail__field">
         <label className="settings-detail__label">
-          API Key {isFree ? '(可选)' : ''}
-          <span className="settings-detail__free-hint">{isFree ? ' — 免费模型，可跳过' : ''}</span>
+          API Key {isFree ? `(${t('settings.optional')})` : ''}
+          <span className="settings-detail__free-hint">{isFree ? ` ${t('settings.freeSkip')}` : ''}</span>
         </label>
         <div className="settings-detail__input-row">
           <input
             type={showKey ? 'text' : 'password'}
             className="settings-detail__input"
             value={config.api_key ?? ''}
-            placeholder={isFree ? '可选（无 API Key 时走环境变量）' : 'sk-...'}
+            placeholder={isFree ? t('settings.noKeyEnv') : t('settings.skPlaceholder')}
             onChange={e => handleChange('api_key', e.target.value)}
             autoComplete="off"
             spellCheck={false}
@@ -276,7 +279,7 @@ function ModelDetailPanel({
           <button
             className={`settings-detail__toggle-vis ${showKey ? 'active' : ''}`}
             onClick={() => setShowKey(v => !v)}
-            title={showKey ? 'Hide API Key' : 'Show API Key'}
+            title={showKey ? t('settings.hideKey') : t('settings.showKey')}
           >
             {showKey ? '🙈' : '👁️'}
           </button>
@@ -285,8 +288,8 @@ function ModelDetailPanel({
 
       <div className="settings-detail__field">
         <label className="settings-detail__label">
-          Base URL
-          <span className="settings-detail__hint">（可选，默认使用官方地址）</span>
+          {t('settings.baseUrl')}
+          <span className="settings-detail__hint">{t('settings.baseUrlHint')}</span>
         </label>
         <input
           type="text"
@@ -301,9 +304,9 @@ function ModelDetailPanel({
       </div>
 
       <div className="settings-detail__register">
-        <span>需要 API Key？</span>
+        <span>{t('settings.needApiKey')}</span>
         <button className="settings-detail__link" onClick={() => (window.omc as any).openExternal(getRegisterUrl(provider))}>
-          前往注册 →
+          {t('settings.goRegister')}
         </button>
       </div>
 
@@ -315,11 +318,11 @@ function ModelDetailPanel({
       />
 
       <div className="settings-detail__actions">
-        <button className="settings-detail__reset" onClick={handleReset} title="Clear API Key and Base URL">
-          ↺ Reset
+        <button className="settings-detail__reset" onClick={handleReset} title={t('settings.clearKey')}>
+          ↺ {t('common.reset')}
         </button>
         <button className="settings-detail__save" onClick={handleSave} disabled={saving}>
-          {saving ? 'Saving...' : saved ? '✓ Saved' : '💾 Save Configuration'}
+          {saving ? '◐ ' + t('settings.saving') : saved ? '✓ ' + t('settings.saved') : '💾 ' + t('settings.saveConfig')}
         </button>
       </div>
     </div>
@@ -358,6 +361,7 @@ function getRegisterUrl(provider: string): string {
 
 // ── Main SettingsPanel ─────────────────────────────────────────────────────────
 export default function SettingsPanel({ onClose }: { onClose: () => void }) {
+  const { t } = useT();
   const [, setModels] = useState<ModelInfo[]>([]);
   const [configs, setConfigs] = useState<ModelConfig>({});
   const [groups, setGroups] = useState<ProviderGroup[]>([]);
@@ -539,24 +543,24 @@ export default function SettingsPanel({ onClose }: { onClose: () => void }) {
   return (
     <div className="settings-panel">
       <div className="settings-panel__header">
-        <span className="settings-panel__title">⚙ Model Settings</span>
+        <span className="settings-panel__title">⚙ {t('settings.models')}</span>
         <div className="settings-panel__actions">
           <div className="settings-dropdown">
             <button className="settings-action-btn" onClick={() => setExportDropdown(v => !v)}>
-              ↓ Export
+              ↓ {t('settings.export')}
             </button>
             {exportDropdown && (
               <div className="settings-dropdown__menu">
-                <button onClick={handleExport}>Export as JSON</button>
+                <button onClick={handleExport}>{t('settings.exportAsJson')}</button>
                 <label className="settings-dropdown__item">
-                  Import from JSON
+                  {t('settings.importFromJson')}
                   <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
                 </label>
               </div>
             )}
           </div>
-          <button className="settings-panel__reset-all" onClick={() => setShowResetConfirm(true)} title="Reset all settings to default">
-            ↺ Reset All
+          <button className="settings-panel__reset-all" onClick={() => setShowResetConfirm(true)} title={t('common.reset')}>
+            ↺ {t('settings.resetAll')}
           </button>
           <button className="settings-panel__close" onClick={onClose}>✕</button>
         </div>
@@ -572,16 +576,16 @@ export default function SettingsPanel({ onClose }: { onClose: () => void }) {
       {showResetConfirm && (
         <div className="settings-reset-confirm">
           <div className="settings-reset-confirm__content">
-            <div className="settings-reset-confirm__title">⚠️ Reset All Settings?</div>
+            <div className="settings-reset-confirm__title">{t('settings.resetAllSettings')}</div>
             <div className="settings-reset-confirm__desc">
-              This will clear all API keys and configuration. This action cannot be undone.
+              {t('settings.resetWarning')}
             </div>
             <div className="settings-reset-confirm__actions">
               <button className="settings-reset-confirm__cancel" onClick={() => setShowResetConfirm(false)}>
-                Cancel
+                {t('common.cancel')}
               </button>
               <button className="settings-reset-confirm__confirm" onClick={handleResetAll}>
-                Yes, Reset Everything
+                {t('settings.yesReset')}
               </button>
             </div>
           </div>
@@ -589,11 +593,11 @@ export default function SettingsPanel({ onClose }: { onClose: () => void }) {
       )}
 
       {loading ? (
-        <div className="settings-loading">Loading models...</div>
+        <div className="settings-loading">{t('settings.loading')}</div>
       ) : (
         <div className="settings-panel__body">
           <div className="settings-sidebar">
-            <div className="settings-sidebar__label">Models</div>
+            <div className="settings-sidebar__label">{t('settings.modelsLabel')}</div>
             {groups.map(group => (
               <div key={group.provider} className="settings-group">
                 <button className="settings-group__header" onClick={() => toggleGroup(group.provider)}>
@@ -639,7 +643,7 @@ export default function SettingsPanel({ onClose }: { onClose: () => void }) {
                 onClearTestResult={() => setTestResult(null)}
               />
             ) : (
-              <div className="settings-detail-empty">Select a model to configure</div>
+              <div className="settings-detail-empty">{t('settings.selectModel')}</div>
             )}
           </div>
         </div>

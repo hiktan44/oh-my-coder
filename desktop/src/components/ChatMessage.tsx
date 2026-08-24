@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import { ChatMessage } from '../hooks/useChatHistory';
 import { ToolCardElement, ToolCallData, createToolCard } from './ToolCard';
 import DiffView, { FileDiff, DiffLine } from './DiffView';
+import { useT } from '../lib/i18n';
 
 interface ToolCall {
   tool: string;
@@ -95,6 +96,7 @@ function parseDiffFromMessage(content: string): FileDiff | null {
 }
 
 export default function ChatMessageBubble({ msg, toolCalls, diff, onDiffAccept, onDiffReject }: ChatMessageProps) {
+  const { t } = useT();
   const isUser = msg.role === 'user';
   const [pendingDiff, setPendingDiff] = useState<FileDiff | null>(null);
 
@@ -149,17 +151,17 @@ export default function ChatMessageBubble({ msg, toolCalls, diff, onDiffAccept, 
                     return (
                       <div className="md-code-block">
                         <div className="md-code-header">
-                          <span className="md-code-lang">{className?.replace('language-', '') || 'code'}</span>
+                          <span className="md-code-lang">{className?.replace('language-', '') || t('code.code')}</span>
                           <button
                             className="md-code-copy"
                             onClick={() => {
                               navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
                             const btn = document.activeElement as HTMLButtonElement;
-                              btn.textContent = 'Copied!';
-                              setTimeout(() => btn.textContent = 'Copy', 1500);
+                              btn.textContent = t('code.copied');
+                              setTimeout(() => btn.textContent = t('code.copy'), 1500);
                             }}
                           >
-                            Copy
+                            {t('code.copy')}
                           </button>
                         </div>
                         <code className={className} {...props}>{children}</code>

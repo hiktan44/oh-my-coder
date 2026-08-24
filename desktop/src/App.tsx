@@ -15,6 +15,8 @@ import { VoiceInput } from './components/VoiceInput';
 import { TaskProgress } from './components/TaskProgress';
 import { AgentSteps } from './components/AgentSteps';
 import { LiveLog } from './components/LiveLog';
+import { LangSwitch } from './components/LangSwitch';
+import { useT } from './lib/i18n';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Model { id: string; name: string; provider: string; tier: string; context?: number; endpoint?: string; pricing?: Record<string, number>; features?: string[]; }
@@ -155,6 +157,7 @@ function ChatMessage({ msg, onDiffAccept, onDiffReject }: ChatMessageProps) {
 
 // ── Component: AgentStatusBar ─────────────────────────────────────────────────
 function AgentStatusBar({ agent, loading }: { agent: AgentState; loading: boolean }) {
+  const { t } = useT();
   const config = AGENT_CONFIG[agent.name];
   const isActive = loading && agent.name !== 'Idle';
 
@@ -162,7 +165,7 @@ function AgentStatusBar({ agent, loading }: { agent: AgentState; loading: boolea
     <div className="agent-status-bar">
       <div className="agent-status-bar__label">
         <span className="agent-status-bar__pulse" style={{ background: config.color }} />
-        多 Agent 协作
+        {t('agent.collaboration')}
       </div>
       <div className="agent-status-bar__agents">
         {(Object.keys(AGENT_CONFIG) as AgentName[]).filter(n => n !== 'Idle').map(name => {
@@ -193,6 +196,7 @@ function AgentStatusBar({ agent, loading }: { agent: AgentState; loading: boolea
 interface ApiKeyEntry { model: string; displayName?: string; apiKey: string; isCustom?: boolean; isFree?: boolean; }
 
 function ConfigPanel({ onClose, models }: { onClose: () => void; models: Model[] }) {
+  const { t } = useT();
   const [entries, setEntries] = useState<ApiKeyEntry[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [toast, setToast] = useState<{msg: string; type: 'success'|'error'} | null>(null);
@@ -264,30 +268,16 @@ function ConfigPanel({ onClose, models }: { onClose: () => void; models: Model[]
     onClose();
   };
 
-  const uiText = {
-    settings: 'Settings',
-    apiKeys: 'API Keys',
-    about: 'About',
-    addCustom: '+ Add Custom Model',
-    save: 'Save Configuration',
-    unsavedTitle: 'Unsaved Changes',
-    unsavedMsg: 'You have unsaved changes. Leave without saving?',
-    leave: 'Leave',
-    cancel: 'Cancel',
-    optional: 'optional',
-    modelName: 'Model name'
-  };
-
   return (
     <div className="config-panel">
       <div className="config-panel__header">
-        <span className="config-panel__title">⚙ {uiText.settings}</span>
+        <span className="config-panel__title">⚙ {t('settings.title')}</span>
         <button className="config-panel__close" onClick={handleClose}>✕</button>
       </div>
-      
+
       <div className="config-panel__body">
         <div className="config-section">
-          <div className="config-section__label">{uiText.apiKeys}</div>
+          <div className="config-section__label">{t('settings.apiKeys')}</div>
           
           {entries.map((entry, idx) => (
             <div className="config-entry" key={`${entry.model}-${idx}`}>
@@ -297,7 +287,7 @@ function ConfigPanel({ onClose, models }: { onClose: () => void; models: Model[]
                     type="text"
                     className="config-entry__model-input"
                     value={entry.model}
-                    placeholder={uiText.modelName}
+                    placeholder={t('model.selector')}
                     onChange={e => updateCustomModel(idx, e.target.value)}
                   />
                 ) : (
@@ -318,19 +308,19 @@ function ConfigPanel({ onClose, models }: { onClose: () => void; models: Model[]
                 type="password"
                 className="config-entry__input"
                 value={entry.apiKey}
-                placeholder={entry.isFree ? uiText.optional : 'sk-...'}
+                placeholder={entry.isFree ? t('api.optional') : 'sk-...'}
                 onChange={e => updateEntry(idx, e.target.value)}
               />
             </div>
           ))}
           
           <button className="config-add-btn" onClick={addCustomEntry}>
-            {uiText.addCustom}
+            {t('api.addCustom')}
           </button>
         </div>
-        
+
         <div className="config-section">
-          <div className="config-section__label">{uiText.about}</div>
+          <div className="config-section__label">{t('settings.about')}</div>
           <div className="config-about">
             <div className="config-about__row"><span>Oh My Coder</span><span>v0.1.0</span></div>
             <div className="config-about__row"><span>Platform</span><span>{navigator.platform}</span></div>
@@ -342,7 +332,7 @@ function ConfigPanel({ onClose, models }: { onClose: () => void; models: Model[]
           className={`config-save-btn${hasUnsavedChanges ? ' unsaved' : ''}`}
           onClick={handleSave}
         >
-          💾 {uiText.save}
+          💾 {t('api.saveConfig')}
         </button>
       </div>
       
@@ -355,11 +345,11 @@ function ConfigPanel({ onClose, models }: { onClose: () => void; models: Model[]
       {confirmClose && (
         <div className="config-confirm-overlay">
           <div className="config-confirm">
-            <div className="config-confirm__title">{uiText.unsavedTitle}</div>
-            <div className="config-confirm__msg">{uiText.unsavedMsg}</div>
+            <div className="config-confirm__title">{t('settings.unsavedChanges')}</div>
+            <div className="config-confirm__msg">{t('settings.unsavedMsg')}</div>
             <div className="config-confirm__actions">
-              <button className="config-confirm__leave" onClick={onClose}>{uiText.leave}</button>
-              <button className="config-confirm__cancel" onClick={() => setConfirmClose(false)}>{uiText.cancel}</button>
+              <button className="config-confirm__leave" onClick={onClose}>{t('settings.leave')}</button>
+              <button className="config-confirm__cancel" onClick={() => setConfirmClose(false)}>{t('common.cancel')}</button>
             </div>
           </div>
         </div>
@@ -370,6 +360,7 @@ function ConfigPanel({ onClose, models }: { onClose: () => void; models: Model[]
 
 // ── Main App ────────────────────────────────────────────────────────────────────
 export default function App() {
+  const { t, lang, setLang } = useT();
   const [models, setModels] = useState<Model[]>([]);
   const [currentModel, setCurrentModel] = useState<string>('');
   const [input, setInput] = useState('');
@@ -377,7 +368,7 @@ export default function App() {
   const [showConfig, setShowConfig] = useState(false);
   const [serverStatus, setServerStatus] = useState<'stopped' | 'starting' | 'running'>('stopped');
   const [tab, setTab] = useState<'chat' | 'models'>('chat');
-  const [agentState, setAgentState] = useState<AgentState>({ name: 'Idle', status: '待机中', color: '#71717a', icon: '💤' });
+  const [agentState, setAgentState] = useState<AgentState>({ name: 'Idle', status: lang === 'tr' ? 'Beklemede' : 'Waiting', color: '#71717a', icon: '💤' });
 
   // Theme state
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -1015,7 +1006,7 @@ export default function App() {
                 <button className="sidebar__new-chat" onClick={() => createSession(currentModel)}>+ New Chat</button>
                 <div className="sidebar__session-list">
                   {sessions.length === 0 ? (
-                    <div className="sidebar__sessions-empty">暂无历史对话</div>
+                    <div className="sidebar__sessions-empty">{t('history.noResults')}</div>
                   ) : sessions.map(s => (
                     <div
                       key={s.id}
@@ -1029,7 +1020,7 @@ export default function App() {
                       <button
                         className="sidebar__session-delete"
                         onClick={(e) => { e.stopPropagation(); handleHistoryDelete(s.id); }}
-                        title="删除"
+                        title={t('common.delete')}
                       >✕</button>
                     </div>
                   ))}
@@ -1040,10 +1031,10 @@ export default function App() {
             {/* Settings */}
             <div className="sidebar__footer">
               <button className="sidebar__settings" onClick={() => setShowConfig(true)}>
-                ⚙ Settings
+                ⚙ {t('nav.settings')}
               </button>
               <button className="sidebar__shortcuts" onClick={() => setShortcutsPanelOpen(true)}>
-                ⌨ 快捷键
+                ⌨ {t('shortcuts.title')}
               </button>
             </div>
       </aside>
@@ -1077,6 +1068,7 @@ export default function App() {
           >
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
+          <LangSwitch />
         </div>
 
         {/* Agent Status Bar */}
@@ -1086,7 +1078,7 @@ export default function App() {
         {loading && !isTaskMode && (
           <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, color: '#a1a1aa', fontSize: 13 }}>
             <span className="spinner" style={{ width: 14, height: 14, border: '2px solid #3f3f46', borderTopColor: '#f59e0b', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }}></span>
-            思考中...
+            {t('chat.thinking')}
           </div>
         )}
 
@@ -1152,9 +1144,9 @@ export default function App() {
               className="input-area__task"
               onClick={handleSendTask}
               disabled={loading || !input.trim()}
-              title="运行任务 (⌘+Enter)"
+              title={t('task.execute') + ' (⌘+Enter)'}
             >
-              🚀 运行任务
+              🚀 {t('task.execute')}
             </button>
             {loading && isTaskMode && (
               <button
@@ -1164,18 +1156,18 @@ export default function App() {
                     await window.omc?.taskKill();
                   } catch {}
                   setLoading(false);
-                  setLiveLogs(prev => [...prev, { timestamp: Date.now(), message: '🛑 任务已停止', isError: false }]);
+                  setLiveLogs(prev => [...prev, { timestamp: Date.now(), message: '🛑 ' + t('task.stopped'), isError: false }]);
                 }}
-                title="停止任务"
+                title={t('task.cancel')}
               >
-                ⏹ 停止
+                ⏹ {t('task.cancel')}
               </button>
             )}
             <button className="input-area__send" onClick={handleSend} disabled={loading || !input.trim()}>
               {loading ? '◐' : '↑'}
             </button>
           </div>
-          <div className="input-area__hint">↑ 发送（聊天）· 🚀 运行任务（⌘+Enter）· {currentModel}</div>
+          <div className="input-area__hint">↑ {t('chat.send')} · 🚀 {t('task.execute')}（⌘+Enter）· {currentModel}</div>
         </div>
       </main>
 

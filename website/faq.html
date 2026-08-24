@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>常见问题 - Oh My Coder</title>
     <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="i18n.css">
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -242,27 +243,27 @@
     <header class="header">
         <div class="header-content">
             <a href="index.html" class="logo">⚡ Oh My Coder</a>
-            <a href="index.html" class="back-link">← 返回首页</a>
+            <a href="index.html" class="back-link" data-i18n="header.back">← 返回首页</a>
         </div>
     </header>
 
     <div class="container">
-        <h1 class="page-title">常见问题</h1>
-        <p class="page-subtitle">快速找到答案，开始使用 Oh My Coder</p>
+        <h1 class="page-title" data-i18n="faq.title">常见问题</h1>
+        <p class="page-subtitle" data-i18n="faq.subtitle">快速找到答案，开始使用 Oh My Coder</p>
 
         <!-- Category Tabs -->
         <div class="category-tabs">
-            <button class="tab-btn active" onclick="filterCategory('all')">全部</button>
-            <button class="tab-btn" onclick="filterCategory('install')">安装配置</button>
-            <button class="tab-btn" onclick="filterCategory('usage')">使用教程</button>
-            <button class="tab-btn" onclick="filterCategory('model')">模型选择</button>
-            <button class="tab-btn" onclick="filterCategory('trouble')">故障排查</button>
-            <button class="tab-btn" onclick="filterCategory('advanced')">高级功能</button>
+            <button class="tab-btn active" onclick="filterCategory('all')" data-i18n="faq.tab.all">全部</button>
+            <button class="tab-btn" onclick="filterCategory('install')" data-i18n="faq.tab.install">安装配置</button>
+            <button class="tab-btn" onclick="filterCategory('usage')" data-i18n="faq.tab.usage">使用教程</button>
+            <button class="tab-btn" onclick="filterCategory('model')" data-i18n="faq.tab.model">模型选择</button>
+            <button class="tab-btn" onclick="filterCategory('trouble')" data-i18n="faq.tab.trouble">故障排查</button>
+            <button class="tab-btn" onclick="filterCategory('advanced')" data-i18n="faq.tab.advanced">高级功能</button>
         </div>
 
         <!-- 安装配置 -->
         <div class="faq-category" data-category="install">
-            <h2 class="category-title">📦 安装配置</h2>
+            <h2 class="category-title" data-i18n="faq.category.install">📦 安装配置</h2>
 
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFaq(this)">
@@ -403,7 +404,7 @@ source ~/.zshrc</code></pre>
 
         <!-- 使用教程 -->
         <div class="faq-category" data-category="usage">
-            <h2 class="category-title">🚀 使用教程</h2>
+            <h2 class="category-title" data-i18n="faq.category.usage">🚀 使用教程</h2>
 
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFaq(this)">
@@ -538,7 +539,7 @@ omc run "第二步：添加单元测试"</code></pre>
 
         <!-- 模型选择 -->
         <div class="faq-category" data-category="model">
-            <h2 class="category-title">🤖 模型选择</h2>
+            <h2 class="category-title" data-i18n="faq.category.model">🤖 模型选择</h2>
 
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFaq(this)">
@@ -633,7 +634,7 @@ export KIMI_API_KEY=sk_zzz</code></pre>
 
         <!-- 故障排查 -->
         <div class="faq-category" data-category="trouble">
-            <h2 class="category-title">🔧 故障排查</h2>
+            <h2 class="category-title" data-i18n="faq.category.trouble">🔧 故障排查</h2>
 
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFaq(this)">
@@ -731,7 +732,7 @@ omc status</code></pre>
 
         <!-- 高级功能 -->
         <div class="faq-category" data-category="advanced">
-            <h2 class="category-title">⚡ 高级功能</h2>
+            <h2 class="category-title" data-i18n="faq.category.advanced">⚡ 高级功能</h2>
 
             <div class="faq-item">
                 <div class="faq-question" onclick="toggleFaq(this)">
@@ -859,18 +860,24 @@ save_summary(summary, format="txt")   # 纯文本</code></pre>
     </div>
 
     <footer class="footer">
-        <p>还没找到答案？</p>
-        <p style="margin-top: 0.5rem;">
-            📖 <a href="https://github.com/VOBC/oh-my-coder/tree/main/docs">查看完整文档</a> · 
-            🐛 <a href="https://github.com/VOBC/oh-my-coder/issues">提交 Issue</a> · 
+        <p data-i18n="faq.footer.notfound">还没找到答案？</p>
+        <p style="margin-top: 0.5rem;" data-i18n-html="faq.footer.links">
+            📖 <a href="https://github.com/VOBC/oh-my-coder/tree/main/docs">查看完整文档</a> ·
+            🐛 <a href="https://github.com/VOBC/oh-my-coder/issues">提交 Issue</a> ·
             💬 <a href="https://github.com/VOBC/oh-my-coder/discussions">参与讨论</a>
         </p>
-        <p style="margin-top: 1.5rem; font-size: 0.875rem;">
+        <p style="margin-top: 1.5rem; font-size: 0.875rem;" data-i18n="footer.text">
             开源项目 · <a href="https://github.com/vobc/oh-my-coder">GitHub</a> · MIT 协议
         </p>
     </footer>
 
     <script>
+        // Load i18n script
+        var script = document.createElement('script');
+        script.src = 'i18n.js';
+        script.async = true;
+        document.head.appendChild(script);
+
         // Toggle FAQ
         function toggleFaq(element) {
             const item = element.parentElement;

@@ -1,6 +1,7 @@
 'use strict';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useT } from '../lib/i18n';
 
 // ---------------------------------------------------------------------------
 // VoiceInput Component
@@ -17,6 +18,7 @@ export const VoiceInput = ({
   onResult,
   disabled = false,
 }: VoiceInputProps) => {
+  const { t } = useT();
   const [isListening, setIsListening] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [interimText, setInterimText] = useState('');
@@ -113,7 +115,7 @@ export const VoiceInput = ({
 
   const toggleListening = useCallback(() => {
     if (!isSupported) {
-      setErrorMsg('当前环境不支持录音');
+      setErrorMsg(t('voice.notSupported'));
       return;
     }
 
@@ -137,19 +139,19 @@ export const VoiceInput = ({
       const wavBytes = encodeWAV(merged, 16000);
 
       setIsTranscribing(true);
-      setInterimText('识别中...');
+      setInterimText(t('voice.processing'));
 
       window.omc.whisper.transcribe(Array.from(wavBytes))
         .then((result: { ok: boolean; text: string; error?: string }) => {
           if (result.ok && result.text) {
             onResult(result.text);
           } else {
-            setErrorMsg(result.error || '语音识别失败');
+            setErrorMsg(result.error || t('voice.recognitionFailed'));
           }
         })
         .catch((err: unknown) => {
           console.error('[VoiceInput] Transcribe error:', err);
-          setErrorMsg('语音识别失败，请重试');
+          setErrorMsg(t('voice.recognitionFailedRetry'));
         })
         .finally(() => {
           setIsTranscribing(false);
@@ -191,18 +193,18 @@ export const VoiceInput = ({
       .catch((err: unknown) => {
         console.error('[VoiceInput] getUserMedia error:', err);
         if (err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
-          setErrorMsg('请在系统设置中允许麦克风权限');
+          setErrorMsg(t('voice.allowPermission'));
         } else {
-          setErrorMsg('无法访问麦克风');
+          setErrorMsg(t('voice.noAccess'));
         }
       });
   }, [isListening, isSupported, onResult]);
 
   const btnTitle = isListening
-    ? '点击停止'
+    ? t('voice.clickToStop')
     : isTranscribing
-    ? '识别中...'
-    : '语音输入';
+    ? t('voice.recognizing')
+    : t('voice.voiceInput');
 
   return (
     <div className="voice-input">

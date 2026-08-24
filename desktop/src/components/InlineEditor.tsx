@@ -1,5 +1,6 @@
 // src/components/InlineEditor.tsx — Cmd+K inline editing modal (Cursor-style)
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useT } from '../lib/i18n';
 
 interface InlineEditorProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface InlineEditorProps {
 export default function InlineEditor({
   isOpen, onClose, targetLabel, onAccept, onReject, modelId,
 }: InlineEditorProps) {
+  const { t } = useT();
   const [intent, setIntent] = useState('');
   const [loading, setLoading] = useState(false);
   const [diff, setDiff] = useState('');
@@ -63,7 +65,7 @@ export default function InlineEditor({
         <div className="inline-editor__header">
           <div className="inline-editor__header-left">
             <span className="inline-editor__kbd">⌘K</span>
-            <span className="inline-editor__title">Inline Edit</span>
+            <span className="inline-editor__title">{t('editor.inlineEdit')}</span>
             {targetLabel && (
               <span className="inline-editor__target">{targetLabel}</span>
             )}
@@ -79,7 +81,7 @@ export default function InlineEditor({
             value={intent}
             onChange={e => setIntent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Describe what you want to change… (⌘↵ to submit)"
+            placeholder={t('editor.intentPlaceholder')}
             rows={3}
           />
           <button
@@ -95,13 +97,13 @@ export default function InlineEditor({
         {diff && (
           <div className="inline-editor__diff">
             <div className="inline-editor__diff-toolbar">
-              <span className="inline-editor__diff-label">Preview</span>
+              <span className="inline-editor__diff-label">{t('editor.preview')}</span>
               <div className="inline-editor__diff-actions">
                 <button className="inline-editor__btn inline-editor__btn--accept" onClick={() => onAccept(diff)}>
-                  ✓ Accept
+                  ✓ {t('diff.accept')}
                 </button>
                 <button className="inline-editor__btn inline-editor__btn--reject" onClick={() => { setDiff(''); onReject(); }}>
-                  ✗ Reject
+                  ✗ {t('diff.reject')}
                 </button>
               </div>
             </div>
@@ -110,7 +112,7 @@ export default function InlineEditor({
         )}
 
         <div className="inline-editor__hint">
-          ⌘↵ to submit · Esc to close · Accept/Reject to apply
+          {t('editor.hint')}
         </div>
       </div>
     </div>

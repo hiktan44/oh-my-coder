@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="i18n.css">
     <style>
         :root {
             --bg-primary: #ffffff;
@@ -852,16 +853,16 @@
                 <span>Oh My <span class="brand-highlight">Coder</span></span>
             </a>
             <div class="navbar-links">
-                <a href="#security">安全合规</a>
-                <a href="#features">核心特性</a>
-                <a href="#agents">Agent 工作流</a>
-                <a href="#screenshots">界面预览</a>
-                <a href="#quickstart">快速开始</a>
-                <a href="#faq">常见问题</a>
-                <a href="blog.html">博客</a>
+                <a href="#security" data-i18n="nav.security">安全合规</a>
+                <a href="#features" data-i18n="nav.features">核心特性</a>
+                <a href="#agents" data-i18n="nav.agents">Agent 工作流</a>
+                <a href="#screenshots" data-i18n="nav.screenshots">界面预览</a>
+                <a href="#quickstart" data-i18n="nav.quickstart">快速开始</a>
+                <a href="#faq" data-i18n="nav.faq">常见问题</a>
+                <a href="blog.html" data-i18n="nav.blog">博客</a>
             </div>
             <div class="navbar-actions">
-                <a href="https://github.com/VOBC/oh-my-coder" target="_blank" class="btn-github">
+                <a href="https://github.com/VOBC/oh-my-coder" target="_blank" class="btn-github" data-i18n="nav.github">
                     <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
                     GitHub
                 </a>
@@ -872,20 +873,20 @@
 
     <!-- Hero -->
     <section class="hero">
-        <div class="hero-badge">🛡️ 国产替代方案 · 本地运行 · 数据不出境</div>
+        <div class="hero-badge" data-i18n="hero.badge">🛡️ 国产替代方案 · 本地运行 · 数据不出境</div>
         <h1>
-            国产首个<br>
-            <span class="highlight">多 Agent 协作编程框架</span>
+            <span data-i18n="hero.title1">国产首个</span><br>
+            <span class="highlight" data-i18n="hero.title2">多 Agent 协作编程框架</span>
         </h1>
         <p class="hero-subtitle">
-            <strong>31 个专业 Agent</strong> · <strong>12 家国产大模型</strong> · <strong>完全本地运行</strong><br>
-            代码不上传云端，数据不出境，中小企业合规首选
+            <span data-i18n-html="hero.subtitle1"><strong>31 个专业 Agent</strong> · <strong>12 家国产大模型</strong> · <strong>完全本地运行</strong></span><br>
+            <span data-i18n="hero.subtitle2">代码不上传云端，数据不出境，中小企业合规首选</span>
         </p>
         <div class="hero-buttons">
-            <a href="#quickstart" class="btn btn-primary">
+            <a href="#quickstart" class="btn btn-primary" data-i18n="hero.btn.start">
                 <span>⚡</span> 3 分钟上手
             </a>
-            <a href="https://github.com/vobc/oh-my-coder" class="btn btn-secondary" target="_blank">
+            <a href="https://github.com/vobc/oh-my-coder" class="btn btn-secondary" target="_blank" data-i18n="hero.btn.github">
                 <span>⭐</span> GitHub Star
             </a>
         </div>
@@ -894,22 +895,22 @@
         <div class="stats-bar">
             <div class="stat-item">
                 <div class="stat-number">31</div>
-                <div class="stat-label">专业 Agent</div>
+                <div class="stat-label" data-i18n="stat.agents">专业 Agent</div>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
                 <div class="stat-number">12+</div>
-                <div class="stat-label">国产模型</div>
+                <div class="stat-label" data-i18n="stat.models">国产模型</div>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
                 <div class="stat-number">0</div>
-                <div class="stat-label">元起步</div>
+                <div class="stat-label" data-i18n="stat.cost">元起步</div>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
                 <div class="stat-number">100%</div>
-                <div class="stat-label">本地运行</div>
+                <div class="stat-label" data-i18n="stat.local">本地运行</div>
             </div>
         </div>
 
@@ -1000,8 +1001,8 @@
 
     <!-- Features -->
     <section class="features" id="features">
-        <h2 class="section-title">核心特性</h2>
-        <p class="section-subtitle">31 个专业 Agent + 5 大创新系统，覆盖完整开发流程</p>
+        <h2 class="section-title" data-i18n="features.title">核心特性</h2>
+        <p class="section-subtitle" data-i18n="features.subtitle">31 个专业 Agent + 5 大创新系统，覆盖完整开发流程</p>
         
         <div class="features-grid">
             <div class="feature-card">
@@ -1060,8 +1061,8 @@
     <!-- Agents -->
     <section class="agents-section" id="agents">
         <div class="agents-container">
-            <h2 class="section-title">Agent 工作流</h2>
-            <p class="section-subtitle">像团队一样协作，比一个人更高效</p>
+            <h2 class="section-title" data-i18n="agents.title">Agent 工作流</h2>
+            <p class="section-subtitle" data-i18n="agents.subtitle">像团队一样协作，比一个人更高效</p>
             
             <div class="agents-visual">
                 <div class="agent-node planner">
@@ -1565,34 +1566,34 @@
 
     <!-- FAQ Preview -->
     <section class="faq-preview" id="faq">
-        <h2 class="section-title">常见问题</h2>
-        <p class="section-subtitle">快速找到答案，开始使用</p>
+        <h2 class="section-title" data-i18n="faq.title">常见问题</h2>
+        <p class="section-subtitle" data-i18n="faq.subtitle">快速找到答案，开始使用</p>
 
         <div class="faq-grid">
             <a href="faq.html#install" class="faq-card">
                 <div class="faq-icon-large">📦</div>
-                <h3>安装配置</h3>
-                <p>如何安装、配置 API Key、验证安装</p>
+                <h3 data-i18n="faq.install.title">安装配置</h3>
+                <p data-i18n="faq.install.desc">如何安装、配置 API Key、验证安装</p>
             </a>
             <a href="faq.html#usage" class="faq-card">
                 <div class="faq-icon-large">🚀</div>
-                <h3>使用教程</h3>
-                <p>第一次使用、CLI vs Web、工作流选择</p>
+                <h3 data-i18n="faq.usage.title">使用教程</h3>
+                <p data-i18n="faq.usage.desc">第一次使用、CLI vs Web、工作流选择</p>
             </a>
             <a href="faq.html#model" class="faq-card">
                 <div class="faq-icon-large">🤖</div>
-                <h3>模型选择</h3>
-                <p>选哪个模型、多 Key 配置、Key 泄露处理</p>
+                <h3 data-i18n="faq.model.title">模型选择</h3>
+                <p data-i18n="faq.model.desc">选哪个模型、多 Key 配置、Key 泄露处理</p>
             </a>
             <a href="faq.html#trouble" class="faq-card">
                 <div class="faq-icon-large">🔧</div>
-                <h3>故障排查</h3>
-                <p>Key 未配置、超时、代码错误修复</p>
+                <h3 data-i18n="faq.trouble.title">故障排查</h3>
+                <p data-i18n="faq.trouble.desc">Key 未配置、超时、代码错误修复</p>
             </a>
         </div>
 
         <div style="text-align: center; margin-top: 2rem;">
-            <a href="faq.html" class="btn btn-secondary">查看全部 15+ 个问题 →</a>
+            <a href="faq.html" class="btn btn-secondary" data-i18n="faq.more">查看全部 15+ 个问题 →</a>
         </div>
     </section>
 
@@ -1614,8 +1615,8 @@
     </div>
 
     <footer>
-        <p>开源项目 · <a href="https://github.com/vobc/oh-my-coder">GitHub</a> · MIT 协议</p>
-        <p style="margin-top: 0.5rem; font-size: 0.875rem;">Made with ❤️ by VOBC</p>
+        <p data-i18n="footer.text">开源项目 · <a href="https://github.com/vobc/oh-my-coder">GitHub</a> · MIT 协议</p>
+        <p style="margin-top: 0.5rem; font-size: 0.875rem;" data-i18n="footer.author">Made with ❤️ by VOBC</p>
     </footer>
 
     <script>
@@ -1636,6 +1637,12 @@
         document.addEventListener('click', function() {
             document.querySelectorAll('.contact-btn').forEach(b => b.classList.remove('active'));
         });
+
+        // Load i18n script
+        var script = document.createElement('script');
+        script.src = 'i18n.js';
+        script.async = true;
+        document.head.appendChild(script);
 
         // Copy code
         function copyCode(btn) {

@@ -2,13 +2,7 @@
 // Spotlight-like input overlay for quick prompts
 
 import { useState, useEffect, useRef } from 'react';
-
-// UI strings (not in JSX)
-const UI_TEXTS = {
-  placeholder: 'Ask anything...',
-  hint: 'Press Enter to send',
-  escHint: 'Esc',
-};
+import { useT } from '../lib/i18n';
 
 interface InlineInputPanelProps {
   isOpen: boolean;
@@ -18,6 +12,7 @@ interface InlineInputPanelProps {
 }
 
 export function InlineInputPanel({ isOpen, onClose, onSend, currentModel }: InlineInputPanelProps) {
+  const { t } = useT();
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -85,7 +80,7 @@ export function InlineInputPanel({ isOpen, onClose, onSend, currentModel }: Inli
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={UI_TEXTS.placeholder}
+            placeholder={t('inline.placeholder')}
             autoComplete="off"
             spellCheck={false}
           />
@@ -101,8 +96,8 @@ export function InlineInputPanel({ isOpen, onClose, onSend, currentModel }: Inli
         <div className="inline-input-footer">
           <span className="inline-input-model">{currentModel}</span>
           <span className="inline-input-hint">
-            <kbd>Enter</kbd> {UI_TEXTS.hint}
-            <kbd className="inline-input-esc">{UI_TEXTS.escHint}</kbd> close
+            <kbd>Enter</kbd> {t('inline.sendHint')}
+            <kbd className="inline-input-esc">Esc</kbd> {t('inline.closeHint')}
           </span>
         </div>
       </div>
