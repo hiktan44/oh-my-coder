@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -249,15 +249,16 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/" class="nav-link">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link">历史</a>
-                <a href="/coverage" class="nav-link">覆盖率</a>
-                <a href="/docs" class="nav-link">文档</a>
-                <a href="/settings" class="nav-link active">设置</a>
+                <a href="/" class="nav-link" data-i18n="nav_home">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link" data-i18n="nav_dashboard">Kontrol Paneli</a>
+                <a href="/history" class="nav-link" data-i18n="nav_history">Geçmiş</a>
+                <a href="/coverage" class="nav-link" data-i18n="nav_coverage">Kapsam</a>
+                <a href="/docs" class="nav-link" data-i18n="nav_docs">Dokümantasyon</a>
+                <a href="/settings" class="nav-link active" data-i18n="nav_settings">Ayarlar</a>
             </div>
             <div class="nav-actions">
-                <div class="nav-toggle" id="themeToggle" title="切换主题">☀️</div>
+                <div class="nav-toggle" id="langToggle" title="TR/EN Language Toggle">EN</div>
+                <div class="nav-toggle" id="themeToggle" title="Tema Değiştir">☀️</div>
                 <button class="nav-hamburger" id="navHamburger">☰</button>
             </div>
         </div>
@@ -266,18 +267,18 @@
     <div class="settings-layout">
         <!-- Sidebar -->
         <aside class="settings-sidebar">
-            <button class="settings-nav-item active" data-panel="models">🖥️ 模型选择</button>
-            <button class="settings-nav-item" data-panel="apikeys">🔑 API Keys</button>
-            <button class="settings-nav-item" data-panel="preferences">⚙️ 偏好设置</button>
-            <button class="settings-nav-item" data-panel="workflows">🔄 工作流</button>
+            <button class="settings-nav-item active" data-panel="models" data-i18n="model_selection_panel">🖥️ Model Seçimi</button>
+            <button class="settings-nav-item" data-panel="apikeys" data-i18n="api_keys_panel">🔑 API Anahtarları</button>
+            <button class="settings-nav-item" data-panel="preferences" data-i18n="preferences_panel">⚙️ Tercihler</button>
+            <button class="settings-nav-item" data-panel="workflows" data-i18n="workflows_panel">🔄 İş Akışları</button>
         </aside>
 
         <!-- Content -->
         <main class="settings-content">
             <!-- Models Panel -->
             <div class="settings-panel active" id="panel-models">
-                <h1 class="page-title">模型选择</h1>
-                <p class="page-desc">选择适合你的模型，本地模型零成本且保护隐私。</p>
+                <h1 class="page-title" data-i18n="model_selection_panel">🖥️ Model Seçimi</h1>
+                <p class="page-desc" data-i18n="model_selection_desc">Size uygun modeli seçin, yerel modeller sıfır maliyetli ve gizlilik korumalıdır.</p>
 
                 <div class="ollama-status" id="ollamaStatus">
                     <div class="status-dot offline"></div>
@@ -862,8 +863,11 @@ steps:
 
 
     <footer class="footer">
-        <p>Made with ❤️ by Oh My Coder</p>
+        <p data-i18n="footer_credits">❤️ ile Oh My Coder tarafından yapıldı</p>
     </footer>
+
+    <!-- i18n.js for TR/EN language support -->
+    <script src="/static/i18n.js"></script>
 
     <script>
         // ─── Global State (must be before any function that uses them) ───

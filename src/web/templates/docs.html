@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -160,15 +160,16 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/" class="nav-link">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link">历史</a>
-                <a href="/coverage" class="nav-link">覆盖率</a>
-                <a href="/docs" class="nav-link active">文档</a>
-                <a href="/settings" class="nav-link">设置</a>
+                <a href="/" class="nav-link" data-i18n="nav_home">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link" data-i18n="nav_dashboard">Kontrol Paneli</a>
+                <a href="/history" class="nav-link" data-i18n="nav_history">Geçmiş</a>
+                <a href="/coverage" class="nav-link" data-i18n="nav_coverage">Kapsam</a>
+                <a href="/docs" class="nav-link active" data-i18n="nav_docs">Dokümantasyon</a>
+                <a href="/settings" class="nav-link" data-i18n="nav_settings">Ayarlar</a>
             </div>
             <div class="nav-actions">
-                <div class="nav-toggle" id="themeToggle" title="切换主题">☀️</div>
+                <div class="nav-toggle" id="langToggle" title="TR/EN Language Toggle">EN</div>
+                <div class="nav-toggle" id="themeToggle" title="Tema Değiştir">☀️</div>
                 <button class="nav-hamburger" id="navHamburger">☰</button>
             </div>
         </div>
@@ -177,24 +178,24 @@
     <div class="docs-layout">
         <!-- Sidebar -->
         <aside class="docs-sidebar">
-            <div class="docs-nav-title">快速开始</div>
-            <a href="#install" class="docs-nav-item active">安装</a>
-            <a href="#first-task" class="docs-nav-item">第一个任务</a>
-            <a href="#config" class="docs-nav-item">配置 API Key</a>
-            <div class="docs-nav-title" style="margin-top:24px;">核心概念</div>
-            <a href="#workflows" class="docs-nav-item">工作流</a>
-            <a href="#agents" class="docs-nav-item">Agent 体系</a>
-            <a href="#models" class="docs-nav-item">模型路由</a>
-            <div class="docs-nav-title" style="margin-top:24px;">进阶</div>
-            <a href="#cli" class="docs-nav-item">CLI 使用</a>
-            <a href="#plugins" class="docs-nav-item">插件系统</a>
-            <a href="#local-models" class="docs-nav-item">本地模型</a>
+            <div class="docs-nav-title" data-i18n="quick_start">Hızlı Başlangıç</div>
+            <a href="#install" class="docs-nav-item active" data-i18n="install">Kurulum</a>
+            <a href="#first-task" class="docs-nav-item" data-i18n="first_task">İlk Görev</a>
+            <a href="#config" class="docs-nav-item" data-i18n="config_api">API Key Yapılandırması</a>
+            <div class="docs-nav-title" style="margin-top:24px;" data-i18n="core_concepts">Temel Kavramlar</div>
+            <a href="#workflows" class="docs-nav-item" data-i18n="workflows">İş Akışları</a>
+            <a href="#agents" class="docs-nav-item" data-i18n="agent_system">Ajan Sistemi</a>
+            <a href="#models" class="docs-nav-item" data-i18n="model_routing">Model Yönlendirme</a>
+            <div class="docs-nav-title" style="margin-top:24px;" data-i18n="advanced">İleri Seviye</div>
+            <a href="#cli" class="docs-nav-item" data-i18n="cli_usage">CLI Kullanımı</a>
+            <a href="#plugins" class="docs-nav-item" data-i18n="plugin_system">Eklenti Sistemi</a>
+            <a href="#local-models" class="docs-nav-item" data-i18n="local_models">Yerel Modeller</a>
         </aside>
 
         <!-- Content -->
         <main class="docs-content">
-            <h1 class="page-title">📖 使用文档</h1>
-            <p class="page-desc">从安装到进阶，快速掌握 Oh My Coder 的全部能力。</p>
+            <h1 class="page-title" data-i18n="docs_title">📖 Kullanım Dokümantasyonu</h1>
+            <p class="page-desc" data-i18n="docs_desc">Kurulumdan ileri seviyeye kadar Oh My Coder'ın tüm yeteneklerini hızlıca öğrenin.</p>
 
             <!-- Install -->
             <section class="docs-section" id="install">
@@ -373,8 +374,11 @@
     </div>
 
     <footer class="footer">
-        <p>Made with ❤️ by Oh My Coder</p>
+        <p data-i18n="footer_credits">❤️ ile Oh My Coder tarafından yapıldı</p>
     </footer>
+
+    <!-- i18n.js for TR/EN language support -->
+    <script src="/static/i18n.js"></script>
 
     <script>
         // Theme

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -256,14 +256,15 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/" class="nav-link active">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link">历史</a>
-                <a href="/coverage" class="nav-link">覆盖率</a>
-                <a href="/docs" class="nav-link">文档</a>
-                <a href="/settings" class="nav-link">设置</a>
+                <a href="/" class="nav-link active" data-i18n="nav_home">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link" data-i18n="nav_dashboard">Kontrol Paneli</a>
+                <a href="/history" class="nav-link" data-i18n="nav_history">Geçmiş</a>
+                <a href="/coverage" class="nav-link" data-i18n="nav_coverage">Kapsam</a>
+                <a href="/docs" class="nav-link" data-i18n="nav_docs">Dokümantasyon</a>
+                <a href="/settings" class="nav-link" data-i18n="nav_settings">Ayarlar</a>
             </div>
             <div class="nav-actions">
+                <div class="nav-toggle" id="langToggle" title="TR/EN Language Toggle">EN</div>
                 <div class="nav-toggle" id="themeToggle" title="切换主题">☀️</div>
                 <button class="nav-hamburger" id="navHamburger">☰</button>
             </div>
@@ -275,15 +276,15 @@
         <section class="hero">
             <div class="hero-badge">
                 <span class="badge-dot"></span>
-                <span>Powered by GLM-4.7-Flash · 零成本智能编程</span>
+                <span data-i18n="hero_badge">GLM-4.7-Flash tarafından desteklenmektedir · Sıfır maliyetli akıllı kodlama</span>
             </div>
-            <h1 class="hero-title">让 AI 团队帮你写代码</h1>
-            <p class="hero-desc">多智能体协作，自动完成从需求分析到代码实现的完整流程。像指挥一个专业的工程团队一样，指挥多个 AI 智能体协作开发。</p>
+            <h1 class="hero-title" data-i18n="hero_title">Yapay Zeka Ekibi Kodunuzu Yazsın</h1>
+            <p class="hero-desc" data-i18n="hero_desc">Çoklu ajan işbirliği, gereksinim analizinden kod uygulamasına kadar eksiksiz süreci otomatikleştirir. Profesyonel bir mühendislik ekibini yönettiğiniz gibi, birden fazla yapay zeka ajanının işbirliği ile geliştirme yapın.</p>
         </section>
 
         <!-- Model List -->
         <section class="models-section">
-            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">🖥️ 可用模型</h3>
+            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;" data-i18n="available_models">Kullanılabilir Modeller</h3>
             <div class="models-grid" id="modelsGrid">
                 <!-- 动态加载 -->
             </div>
@@ -295,109 +296,109 @@
                 <div class="pipeline-icon waiting" id="step-explore" data-step="explore">
                     <span class="step-emoji">🔍</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">探索</span>
+                <span class="pipeline-label" data-i18n="step_explore">Keşfet</span>
             </div>
             <div class="pipeline-arrow" id="arrow-1">→</div>
             <div class="pipeline-step">
                 <div class="pipeline-icon waiting" id="step-analyst" data-step="analyst">
                     <span class="step-emoji">🧠</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">分析</span>
+                <span class="pipeline-label" data-i18n="step_analyze">Analiz</span>
             </div>
             <div class="pipeline-arrow" id="arrow-2">→</div>
             <div class="pipeline-step">
                 <div class="pipeline-icon waiting" id="step-architect" data-step="architect">
                     <span class="step-emoji">🏗️</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">设计</span>
+                <span class="pipeline-label" data-i18n="step_design">Tasarım</span>
             </div>
             <div class="pipeline-arrow" id="arrow-3">→</div>
             <div class="pipeline-step">
                 <div class="pipeline-icon waiting" id="step-executor" data-step="executor">
                     <span class="step-emoji">💻</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">实现</span>
+                <span class="pipeline-label" data-i18n="step_implementation">Uygulama</span>
             </div>
             <div class="pipeline-arrow" id="arrow-4">→</div>
             <div class="pipeline-step">
                 <div class="pipeline-icon waiting" id="step-verifier" data-step="verifier">
                     <span class="step-emoji">✅</span><div class="step-spinner"></div>
                 </div>
-                <span class="pipeline-label">验证</span>
+                <span class="pipeline-label" data-i18n="step_verify">Doğrula</span>
             </div>
         </div>
 
         <!-- Task Form -->
         <div class="task-card">
             <div class="task-header">
-                <h2>🚀 开始新任务</h2>
-                <p class="task-subtitle">描述你的需求，AI 团队将自动协作完成</p>
+                <h2 data-i18n="start_task_title">🚀 Yeni Görev Başlat</h2>
+                <p class="task-subtitle" data-i18n="start_task_desc">İhtiyaçlarınızı açıklayın, yapay zeka ekibi otomatik olarak işbirliği ile tamamlayacak</p>
             </div>
             <form id="taskForm">
                 <div class="form-group">
-                    <label for="taskInput" class="form-label">任务描述</label>
-                    <textarea id="taskInput" class="form-textarea" placeholder="例如：实现一个用户认证系统，包括注册、登录、JWT 令牌、密码重置等功能" rows="4" required></textarea>
-                    <div class="form-hint">💡 越详细的需求描述，AI 团队的理解和实现效果越好</div>
+                    <label for="taskInput" class="form-label" data-i18n="task_description">Görev Açıklaması</label>
+                    <textarea id="taskInput" class="form-textarea" placeholder="Örneğin: Bir kullanıcı kimlik doğrulama sistemi uygulayın, kayıt, giriş, JWT jetonu, şifre sıfırlama vb. işlevleri içerir" rows="4" required></textarea>
+                    <div class="form-hint" data-i18n="task_hint">💡 Daha detaylı gereksinim açıklaması, yapay zeka ekibinin anlayışı ve uygulama etkisi o kadar iyi olur</div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">分析目标</label>
+                        <label class="form-label" data-i18n="analysis_target">Analiz Hedefi</label>
                         <div class="target-tabs-row">
-                            <button type="button" id="tab-local" class="target-tab active" onclick="switchTargetTab('local')">📂 本地路径</button>
-                            <button type="button" id="tab-github" class="target-tab" onclick="switchTargetTab('github')">🔗 GitHub</button>
-                            <button type="button" id="tab-url" class="target-tab" onclick="switchTargetTab('url')">🌐 网页</button>
+                            <button type="button" id="tab-local" class="target-tab active" onclick="switchTargetTab('local')" data-i18n="target_local">📂 Yerel Yol</button>
+                            <button type="button" id="tab-github" class="target-tab" onclick="switchTargetTab('github')" data-i18n="target_github">🔗 GitHub</button>
+                            <button type="button" id="tab-url" class="target-tab" onclick="switchTargetTab('url')" data-i18n="target_url">🌐 Web Sayfası</button>
                         </div>
                         <div id="target-local" class="target-panel">
-                            <input type="text" id="projectPath" class="form-input" placeholder="输入本地文件夹路径，或点击下方快捷按钮">
+                            <input type="text" id="projectPath" class="form-input" placeholder="Yerel klasör yolunu girin veya aşağıdaki hızlı butona tıklayın">
                             <div class="quick-buttons-row">
-                                <button type="button" onclick="setPath('~/Desktop')" class="quick-btn">📁 桌面</button>
-                                <button type="button" onclick="setPath('~/Documents')" class="quick-btn">📄 文稿</button>
-                                <button type="button" onclick="setPath('~')" class="quick-btn">🏠 用户目录</button>
-                                <button type="button" onclick="setPath('.')" class="quick-btn">📂 当前目录</button>
+                                <button type="button" onclick="setPath('~/Desktop')" class="quick-btn" data-i18n="quick_desktop">📁 Masaüstü</button>
+                                <button type="button" onclick="setPath('~/Documents')" class="quick-btn" data-i18n="quick_documents">📄 Belgeler</button>
+                                <button type="button" onclick="setPath('~')" class="quick-btn" data-i18n="quick_home">🏠 Ana Dizin</button>
+                                <button type="button" onclick="setPath('.')" class="quick-btn" data-i18n="quick_current">📂 Mevcut Dizin</button>
                             </div>
-                            <div class="form-hint">你想让 AI 分析哪个代码文件夹？留空则分析当前目录</div>
+                            <div class="form-hint" data-i18n="path_hint">Yapay zekanın hangi kod klasörünü analiz etmesini istiyorsunuz? Boş bırakılırsa mevcut dizini analiz eder</div>
                         </div>
                         <div id="target-github" class="target-panel" style="display:none;">
-                            <input type="text" id="githubUrl" class="form-input" placeholder="https://github.com/用户名/仓库名">
-                            <div class="form-hint">粘贴 GitHub 仓库链接，AI 会自动克隆并分析代码</div>
+                            <input type="text" id="githubUrl" class="form-input" placeholder="https://github.com/kullaniciadi/depo">
+                            <div class="form-hint" data-i18n="github_hint">GitHub deposu bağlantısını yapıştırın, yapay zeka otomatik klonlar ve analiz eder</div>
                         </div>
                         <div id="target-url" class="target-panel" style="display:none;">
-                            <input type="text" id="webUrl" class="form-input" placeholder="https://example.com/page">
-                            <div class="form-hint">粘贴网页链接，AI 会抓取内容作为分析上下文</div>
+                            <input type="text" id="webUrl" class="form-input" placeholder="https://ornek.com/sayfa">
+                            <div class="form-hint" data-i18n="web_hint">Web sayfası bağlantısını yapıştırın, yapay zeka içeriği analiz bağlamı olarak alır</div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="modelSelect" class="form-label">模型选择</label>
+                        <label for="modelSelect" class="form-label" data-i18n="model_selection">Model Seçimi</label>
                         <select id="modelSelect" class="form-select">
-                            <option value="deepseek" selected>DeepSeek V4 (推荐·低成本)</option>
+                            <option value="deepseek" selected>DeepSeek V4 (Önerilen·Düşük Maliyet)</option>
 
-                            <option value="glm-4-flash">GLM-4.7-Flash (免费)</option>
-                            <option value="MiniMax-Text-01">MiMo Flash (免费)</option>
-                            <option value="moonshot-v1-128k">Kimi 128K (低成本)</option>
-                            <option value="doubao-pro-32k">Doubao-Pro (低成本)</option>
-                            <option value="tiangong-3">天工 3.0 (低成本)</option>
-                            <option value="Baichuan4">百川 4 (低成本)</option>
+                            <option value="glm-4-flash">GLM-4.7-Flash (Ücretsiz)</option>
+                            <option value="MiniMax-Text-01">MiMo Flash (Ücretsiz)</option>
+                            <option value="moonshot-v1-128k">Kimi 128K (Düşük Maliyet)</option>
+                            <option value="doubao-pro-32k">Doubao-Pro (Düşük Maliyet)</option>
+                            <option value="tiangong-3">Tiangong 3.0 (Düşük Maliyet)</option>
+                            <option value="Baichuan4">Baichuan 4 (Düşük Maliyet)</option>
                             <!-- Custom models injected by JS -->
                         </select>
-                        <a href="/settings#apikeys" class="form-link" style="margin-top:6px;font-size:12px;">⚙️ 管理供应商/添加自定义模型</a>
+                        <a href="/settings#apikeys" class="form-link" style="margin-top:6px;font-size:12px;" data-i18n="model_settings_link">⚙️ Sağlayıcı Yönetimi/Özel Model Ekle</a>
                     </div>
                     <div class="form-group">
-                        <label for="workflowSelect" class="form-label">工作流</label>
+                        <label for="workflowSelect" class="form-label" data-i18n="workflow_selection">İş Akışı</label>
                         <select id="workflowSelect" class="form-select">
-                            <option value="build" selected>🚀 完整开发 (build)</option>
-                            <option value="review">🔍 代码审查</option>
-                            <option value="debug">🐛 调试修复</option>
-                            <option value="test">🧪 测试用例</option>
-                            <option value="refactor">♻️ 重构优化</option>
-                            <option value="doc">📖 文档生成</option>
-                            <option value="pair">👥 结对编程</option>
-                            <option value="autopilot">🤖 自动驾驶</option>
-                            <option value="sequential">📋 顺序执行</option>
+                            <option value="build" selected>🚀 Tam Geliştirme (build)</option>
+                            <option value="review">🔍 Kod İncelemesi</option>
+                            <option value="debug">🐛 Hata Ayıklama</option>
+                            <option value="test">🧪 Test Durumları</option>
+                            <option value="refactor">♻️ Yeniden Düzenleme</option>
+                            <option value="doc">📖 Dokümantasyon</option>
+                            <option value="pair">👥 Çift Programlama</option>
+                            <option value="autopilot">🤖 Otopilot</option>
+                            <option value="sequential">📋 Sıralı Yürütme</option>
                         </select>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
-                    <span class="btn-text">▶ 启动 AI 团队</span>
+                    <span class="btn-text" data-i18n="submit_button">▶ Yapay Zeka Ekibini Başlat</span>
                     <div class="btn-spinner"></div>
                 </button>
             </form>
@@ -428,45 +429,45 @@
 
         <!-- Examples -->
         <section style="margin-bottom:40px;">
-            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">💡 试试这些任务</h3>
+            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;" data-i18n="try_examples">💡 Bu Görevleri Deneyin</h3>
             <div class="examples-grid">
-                <button class="example-card" data-task="实现一个 REST API 用户管理接口，包含 CRUD 操作，使用 FastAPI 框架" data-workflow="build">
+                <button class="example-card" data-task="FastAPI çerçevesini kullanarak CRUD işlemlerini içeren bir REST API kullanıcı yönetim arayüzü uygulayın" data-workflow="build">
                     <span class="example-icon">🌐</span>
-                    <span class="example-title">REST API 开发</span>
-                    <span class="example-desc">FastAPI 用户管理 CRUD</span>
+                    <span class="example-title" data-i18n="example_rest_title">REST API Geliştirme</span>
+                    <span class="example-desc" data-i18n="example_rest_desc">FastAPI Kullanıcı Yönetimi CRUD</span>
                 </button>
-                <button class="example-card" data-task="审查当前项目的代码质量和安全漏洞" data-workflow="review">
+                <button class="example-card" data-task="Mevcut projenin kod kalitesini ve güvenlik açıklarını inceleyin" data-workflow="review">
                     <span class="example-icon">🔍</span>
-                    <span class="example-title">代码审查</span>
-                    <span class="example-desc">质量 + 安全检查</span>
+                    <span class="example-title" data-i18n="example_review_title">Kod İncelemesi</span>
+                    <span class="example-desc" data-i18n="example_review_desc">Kalite + Güvenlik Kontrolü</span>
                 </button>
-                <button class="example-card" data-task="修复登录页面无法正确跳转的问题" data-workflow="debug">
+                <button class="example-card" data-task="Giriş sayfasının doğru şekilde yönlendirilememesi sorununu düzeltin" data-workflow="debug">
                     <span class="example-icon">🐛</span>
-                    <span class="example-title">Bug 调试</span>
-                    <span class="example-desc">定位并修复问题</span>
+                    <span class="example-title" data-i18n="example_debug_title">Hata Ayıklama</span>
+                    <span class="example-desc" data-i18n="example_debug_desc">Sorunları Bul ve Düzelt</span>
                 </button>
-                <button class="example-card" data-task="为项目编写单元测试，覆盖核心业务逻辑" data-workflow="test">
+                <button class="example-card" data-task="Proje için birim testleri yazın, temel iş mantığını kapsayın" data-workflow="test">
                     <span class="example-icon">🧪</span>
-                    <span class="example-title">测试用例</span>
-                    <span class="example-desc">核心逻辑全覆盖</span>
+                    <span class="example-title" data-i18n="example_test_title">Test Durumları</span>
+                    <span class="example-desc" data-i18n="example_test_desc">Temel Mantık Tam Kapsam</span>
                 </button>
             </div>
         </section>
 
         <!-- Features -->
         <section style="margin-bottom:40px;">
-            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;">⚡ 核心能力</h3>
+            <h3 style="font-size:18px;font-weight:600;text-align:center;margin-bottom:20px;" data-i18n="core_features">⚡ Temel Yetenekler</h3>
             <div class="grid-4">
-                <div class="feature-card"><span class="feature-icon">🧠</span><h4>智能路由</h4><p>按任务复杂度自动选模型，节省 30-50% Token</p></div>
-                <div class="feature-card"><span class="feature-icon">🤝</span><h4>多 Agent 协作</h4><p>多个专业 Agent 分工协作</p></div>
-                <div class="feature-card"><span class="feature-icon">💰</span><h4>零成本运行</h4><p>优先使用 GLM-4.7-Flash 免费额度</p></div>
-                <div class="feature-card"><span class="feature-icon">🔄</span><h4>全流程覆盖</h4><p>从探索分析到代码实现、测试验证</p></div>
+                <div class="feature-card"><span class="feature-icon">🧠</span><h4 data-i18n="feature_smart_routing">Akıllı Yönlendirme</h4><p data-i18n="feature_smart_routing_desc">Görev karmaşıklığına göre otomatik model seçimi, %30-50 Token tasarrufu</p></div>
+                <div class="feature-card"><span class="feature-icon">🤝</span><h4 data-i18n="feature_multi_agent">Çoklu Ajan İşbirliği</h4><p data-i18n="feature_multi_agent_desc">Birçok profesyonel ajen işbirliği</p></div>
+                <div class="feature-card"><span class="feature-icon">💰</span><h4 data-i18n="feature_zero_cost">Sıfır Maliyetli Çalışma</h4><p data-i18n="feature_zero_cost_desc">Öncelikle GLM-4.7-Flash ücretsiz kotasını kullanır</p></div>
+                <div class="feature-card"><span class="feature-icon">🔄</span><h4 data-i18n="feature_full_process">Tam Süreç Kapsamı</h4><p data-i18n="feature_full_process_desc">Keşif analizinden kod uygulamasına, test doğrulamasına kadar</p></div>
             </div>
         </section>
     </main>
 
     <footer class="footer">
-        <p>Made with ❤️ by Oh My Coder · Powered by GLM-4.7-Flash & Multi-Agent Architecture</p>
+        <p data-i18n="footer_credits">❤️ ile Oh My Coder tarafından yapıldı · GLM-4.7-Flash ve Çoklu Ajan Mimarisi tarafından desteklenmektedir</p>
     </footer>
 
     <script>
@@ -995,6 +996,9 @@
             <div id="cm-test-msg" style="margin-top:10px;font-size:13px;display:none;"></div>
         </div>
     </div>
+
+    <!-- i18n.js for TR/EN language support -->
+    <script src="/static/i18n.js"></script>
 
 </body>
 </html>

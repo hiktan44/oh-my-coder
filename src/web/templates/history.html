@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -107,34 +107,35 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links" id="navLinks">
-                <a href="/" class="nav-link">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link active">历史</a>
-                <a href="/docs" class="nav-link">文档</a>
-                <a href="/settings" class="nav-link">设置</a>
+                <a href="/" class="nav-link" data-i18n="nav_home">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link" data-i18n="nav_dashboard">Kontrol Paneli</a>
+                <a href="/history" class="nav-link active" data-i18n="nav_history">Geçmiş</a>
+                <a href="/docs" class="nav-link" data-i18n="nav_docs">Dokümantasyon</a>
+                <a href="/settings" class="nav-link" data-i18n="nav_settings">Ayarlar</a>
             </div>
             <div class="nav-actions">
-                <div class="nav-toggle" id="themeToggle" title="切换主题">☀️</div>
+                <div class="nav-toggle" id="langToggle" title="TR/EN Language Toggle">EN</div>
+                <div class="nav-toggle" id="themeToggle" title="Tema Değiştir">☀️</div>
                 <button class="nav-hamburger" id="navHamburger">☰</button>
             </div>
         </div>
     </nav>
 
     <main class="container">
-        <h1 class="page-title">📋 任务历史</h1>
-        <p class="page-desc">查看所有已执行的任务和结果。</p>
+        <h1 class="page-title" data-i18n="history_title">📋 Görev Geçmişi</h1>
+        <p class="page-desc" data-i18n="history_desc">Tüm yürütülen görevleri ve sonuçları görüntüleyin.</p>
 
         <div class="history-toolbar">
-            <input type="text" class="history-search" id="searchInput" placeholder="🔍 搜索任务...">
-            <button class="btn btn-ghost btn-sm" onclick="loadHistory()">刷新</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearAllTasks()" style="color:var(--danger);">清除全部</button>
+            <input type="text" class="history-search" id="searchInput" placeholder="🔍 Görev ara...">
+            <button class="btn btn-ghost btn-sm" onclick="loadHistory()" data-i18n="refresh_button">Yenile</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearAllTasks()" style="color:var(--danger);" data-i18n="clear_all">Tümünü Temizle</button>
         </div>
 
         <div class="history-list" id="historyList">
             <div class="empty-state">
                 <span class="empty-state-icon">📭</span>
-                <div class="empty-state-title">暂无历史记录</div>
-                <div class="empty-state-desc">执行任务后，历史记录会出现在这里。</div>
+                <div class="empty-state-title" data-i18n="no_history">Geçmiş kayıt yok</div>
+                <div class="empty-state-desc" data-i18n="no_history_desc">Görevler yürütüldükten sonra geçmiş kayıtları burada görünecektir.</div>
             </div>
         </div>
     </main>
@@ -143,20 +144,20 @@
     <div class="modal-overlay" id="taskModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">任务详情</h2>
+                <h2 class="modal-title" id="modalTitle" data-i18n="task_detail_title">Görev Detayları</h2>
                 <button class="modal-close" onclick="closeModal()">×</button>
             </div>
-            <div class="modal-body" id="modalBody">
-                加载中...
+            <div class="modal-body" id="modalBody" data-i18n="task_detail_loading">
+                Yükleniyor...
             </div>
             <div class="modal-actions">
-                <button class="btn btn-ghost" onclick="closeModal()">关闭</button>
-                <button class="btn btn-primary" id="saveReportBtn" onclick="saveReportToDesktop()">📄 保存报告到桌面</button>
+                <button class="btn btn-ghost" onclick="closeModal()" data-i18n="close">Kapat</button>
+                <button class="btn btn-primary" id="saveReportBtn" onclick="saveReportToDesktop()" data-i18n="save_report">📄 Raporu Masaüstüne Kaydet</button>
             </div>
         </div>
     </div>
 
-    <footer class="footer"><p>Made with ❤️ by Oh My Coder</p></footer>
+    <footer class="footer"><p data-i18n="footer_credits">❤️ ile Oh My Coder tarafından yapıldı</p></footer>
 
     <script>
         // XSS escape helper
@@ -358,5 +359,8 @@
             if (e.target.id === 'taskModal') closeModal();
         });
     </script>
+
+    <!-- i18n.js for TR/EN language support -->
+    <script src="/static/i18n.js"></script>
 </body>
 </html>

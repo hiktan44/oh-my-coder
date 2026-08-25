@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -122,28 +122,31 @@
                 <span class="nav-brand-name">Oh My Coder</span>
             </a>
             <div class="nav-links">
-                <a href="/" class="nav-link">首页</a>
-                <a href="/dashboard" class="nav-link">仪表板</a>
-                <a href="/history" class="nav-link">历史</a>
-                <a href="/coverage" class="nav-link active">覆盖率</a>
-                <a href="/docs" class="nav-link">文档</a>
-                <a href="/settings" class="nav-link">设置</a>
+                <a href="/" class="nav-link" data-i18n="nav_home">Ana Sayfa</a>
+                <a href="/dashboard" class="nav-link" data-i18n="nav_dashboard">Kontrol Paneli</a>
+                <a href="/history" class="nav-link" data-i18n="nav_history">Geçmiş</a>
+                <a href="/coverage" class="nav-link active" data-i18n="nav_coverage">Kapsam</a>
+                <a href="/docs" class="nav-link" data-i18n="nav_docs">Dokümantasyon</a>
+                <a href="/settings" class="nav-link" data-i18n="nav_settings">Ayarlar</a>
+            </div>
+            <div class="nav-actions">
+                <div class="nav-toggle" id="langToggle" title="TR/EN Language Toggle">EN</div>
             </div>
         </div>
     </nav>
 
     <div class="coverage-container">
         <div class="coverage-header">
-            <h1>📊 测试覆盖率</h1>
-            <p>查看代码测试覆盖情况，识别未覆盖的代码区域</p>
+            <h1 data-i18n="coverage_title">📊 Test Kapsamı</h1>
+            <p data-i18n="coverage_desc">Kod test kapsamını görüntüleyin, kapsanmamış kod alanlarını belirleyin</p>
         </div>
 
         <button class="run-btn" id="runBtn" onclick="runCoverage()">
-            🔄 重新分析
+            <span data-i18n="reanalyze_button">🔄 Yiden Analiz</span>
         </button>
 
         <div id="content">
-            <div class="loading">加载中...</div>
+            <div class="loading" data-i18n="loading">Yükleniyor...</div>
         </div>
     </div>
 
@@ -160,16 +163,16 @@
                 currentData = data;
                 render(data);
             } catch (e) {
-                content.innerHTML = `<div class="error">加载失败: ${e.message}</div>`;
+                content.innerHTML = `<div class="error">Yükleme başarısız: ${e.message}</div>`;
             }
         }
 
         async function runCoverage() {
             const btn = document.getElementById('runBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ 分析中...';
+            btn.textContent = '⏳ Analiz ediliyor...';
             const content = document.getElementById('content');
-            content.innerHTML = '<div class="loading">运行测试并收集覆盖率数据，请稍候...</div>';
+            content.innerHTML = '<div class="loading">Testleri çalıştır ve kapsam verilerini topla, lütfen bekleyin...</div>';
 
             try {
                 const res = await fetch('/api/coverage/run', { method: 'POST' });
@@ -177,10 +180,10 @@
                 currentData = data;
                 render(data);
             } catch (e) {
-                content.innerHTML = `<div class="error">分析失败: ${e.message}</div>`;
+                content.innerHTML = `<div class="error">Analiz başarısız: ${e.message}</div>`;
             } finally {
                 btn.disabled = false;
-                btn.textContent = '🔄 重新分析';
+                btn.textContent = '🔄 Yiden Analiz';
             }
         }
 
@@ -274,5 +277,8 @@
 
         loadCoverage();
     </script>
+
+    <!-- i18n.js for TR/EN language support -->
+    <script src="/static/i18n.js"></script>
 </body>
 </html>
