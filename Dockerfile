@@ -19,6 +19,10 @@ RUN pip install --no-cache-dir --upgrade pip \
 # 运行阶段
 FROM python:3.11-slim
 
+# 安装 curl（健康检查需要）
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # 复制依赖
