@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="tr" data-theme="dark">
 <head>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0e7490" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="OhMyCoder" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oh My Coder - 多智能体 AI 编程助手</title>
@@ -1000,5 +1007,12 @@
     <!-- i18n.js for TR/EN language support -->
     <script src="/static/i18n.js"></script>
 
+<script>
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () {});
+      });
+    }
+</script>
 </body>
 </html>

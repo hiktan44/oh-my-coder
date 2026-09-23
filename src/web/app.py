@@ -436,6 +436,23 @@ async def index(request: Request):
     return templates.TemplateResponse(request, "index.html")
 
 
+# ---- PWA: manifest, service worker ve ikonlar ---------------------
+from fastapi.responses import FileResponse as _PwaFR
+
+@app.get("/manifest.webmanifest")
+async def pwa_manifest():
+    return _PwaFR(web_dir / "static" / "pwa" / "manifest.webmanifest",
+                  media_type="application/manifest+json")
+
+@app.get("/sw.js")
+async def pwa_sw():
+    return _PwaFR(web_dir / "static" / "pwa" / "sw.js", media_type="text/javascript")
+
+@app.get("/icons/{name}")
+async def pwa_icon(name: str):
+    return _PwaFR(web_dir / "static" / "pwa" / "icons" / name, media_type="image/png")
+
+
 @app.get("/history", response_class=HTMLResponse)
 async def history_page(request: Request):
     """历史记录页面"""
