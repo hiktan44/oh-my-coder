@@ -20,6 +20,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+import src.web.app as web_app
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.web.app import (
@@ -33,7 +35,6 @@ from src.web.app import (
     _preprocess_target,
     app,
     json_dumps,
-    task_manager,
 )
 
 # ---------------------------------------------------------------------------
@@ -54,11 +55,11 @@ def client(monkeypatch, tmp_path):
 @pytest.fixture(autouse=True)
 def reset_task_manager():
     """Reset task manager state before each test."""
-    task_manager._tasks.clear()
-    task_manager._queues.clear()
+    web_app.task_manager._tasks.clear()
+    web_app.task_manager._queues.clear()
     yield
-    task_manager._tasks.clear()
-    task_manager._queues.clear()
+    web_app.task_manager._tasks.clear()
+    web_app.task_manager._queues.clear()
 
 
 @pytest.fixture
@@ -113,90 +114,90 @@ class TestTaskManager:
     """TaskManager utility functions."""
 
     def test_create_task(self):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid = task_manager.create_task(
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid = web_app.task_manager.create_task(
             task_desc="test task",
             model="deepseek",
             workflow="build",
             project_path="/tmp",
         )
-        assert tid in task_manager._tasks
-        assert task_manager.get_task(tid)["task"] == "test task"
+        assert tid in web_app.task_manager._tasks
+        assert web_app.task_manager.get_task(tid)["task"] == "test task"
 
     def test_update_step(self):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid = task_manager.create_task()
-        task_manager.update_step(tid, "executor", "active", "step output")
-        task = task_manager.get_task(tid)
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid = web_app.task_manager.create_task()
+        web_app.task_manager.update_step(tid, "executor", "active", "step output")
+        task = web_app.task_manager.get_task(tid)
         assert task["step_status"]["executor"] == "active"
         assert task["step_outputs"]["executor"] == "step output"
 
     def test_update_step_unknown_task(self):
-        task_manager.update_step("nonexistent", "executor", "active")
+        web_app.task_manager.update_step("nonexistent", "executor", "active")
 
     def test_complete_task_success(self):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid = task_manager.create_task()
-        task_manager.complete_task(tid, result={"ok": True})
-        task = task_manager.get_task(tid)
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid = web_app.task_manager.create_task()
+        web_app.task_manager.complete_task(tid, result={"ok": True})
+        task = web_app.task_manager.get_task(tid)
         assert task["status"] == "completed"
         assert task["result"] == {"ok": True}
 
     def test_complete_task_error(self):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid = task_manager.create_task()
-        task_manager.complete_task(tid, error="Something went wrong")
-        task = task_manager.get_task(tid)
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid = web_app.task_manager.create_task()
+        web_app.task_manager.complete_task(tid, error="Something went wrong")
+        task = web_app.task_manager.get_task(tid)
         assert task["status"] == "failed"
         assert task["error"] == "Something went wrong"
 
     def test_complete_task_unknown(self):
         # Should not raise
-        task_manager.complete_task("nonexistent", result={"ok": True})
+        web_app.task_manager.complete_task("nonexistent", result={"ok": True})
 
     def test_delete_task(self):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid = task_manager.create_task()
-        assert task_manager.delete_task(tid) is True
-        assert task_manager.get_task(tid) is None
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid = web_app.task_manager.create_task()
+        assert web_app.task_manager.delete_task(tid) is True
+        assert web_app.task_manager.get_task(tid) is None
 
     def test_delete_task_unknown(self):
-        assert task_manager.delete_task("nonexistent") is False
+        assert web_app.task_manager.delete_task("nonexistent") is False
 
     def test_list_tasks(self):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid1 = task_manager.create_task()
-        tid2 = task_manager.create_task()
-        tasks = task_manager.list_tasks()
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid1 = web_app.task_manager.create_task()
+        tid2 = web_app.task_manager.create_task()
+        tasks = web_app.task_manager.list_tasks()
         assert len(tasks) >= 2
         ids = [t["task_id"] for t in tasks]
         assert tid1 in ids
         assert tid2 in ids
 
     def test_get_queue(self):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid = task_manager.create_task()
-        q = task_manager.get_queue(tid)
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid = web_app.task_manager.create_task()
+        q = web_app.task_manager.get_queue(tid)
         assert q is not None
         assert isinstance(q, asyncio.Queue)
 
     def test_get_queue_unknown(self):
-        assert task_manager.get_queue("nonexistent") is None
+        assert web_app.task_manager.get_queue("nonexistent") is None
 
 
 class TestTaskAPI:
     """API routes for tasks."""
 
     def test_list_tasks_empty(self, client):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
         response = client.get("/api/tasks")
         assert response.status_code == 200
         assert "tasks" in response.json()
@@ -207,9 +208,9 @@ class TestTaskAPI:
 
     @patch("src.web.app.verify_api_token", return_value="token")
     def test_delete_task_with_token(self, mock_verify, client):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid = task_manager.create_task()
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid = web_app.task_manager.create_task()
         response = client.delete(f"/api/tasks/{tid}")
         assert response.status_code == 200
 
@@ -224,10 +225,10 @@ class TestApiHistory:
     """GET /api/history (app-level, not history_api)."""
 
     def test_api_history_returns_records(self, client):
-        task_manager._tasks.clear()
-        task_manager._queues.clear()
-        tid = task_manager.create_task()
-        task_manager._tasks[tid]["started_at"] = "2026-05-28T10:00:00"
+        web_app.task_manager._tasks.clear()
+        web_app.task_manager._queues.clear()
+        tid = web_app.task_manager.create_task()
+        web_app.task_manager._tasks[tid]["started_at"] = "2026-05-28T10:00:00"
         response = client.get("/api/history")
         assert response.status_code == 200
         data = response.json()

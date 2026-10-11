@@ -28,4 +28,4 @@ jobs:
       - name: Python sözdizimini doğrula
         run: python -m compileall -q src/web/app.py src/web/settings_security.py
       - name: Değişen Python dosyalarının Ruff kontrolü
-        run: ruff check src/web/app.py src/web/settings_security.py scripts/test-settings-security.py tests/test_settings_security.py tests/test_web_app_routes.py tests/test_web_app_more.py tests/test_web_app_extended.py
+        run: ruff check src/web/app.py src/web/settings_security.py scripts/test-settings-security.py tests/test_settings_security.py tests/test_web_app_routes.py tests/test_web_app_more.py tests/test_web_app_extended.py tests/test_web_history_api.py

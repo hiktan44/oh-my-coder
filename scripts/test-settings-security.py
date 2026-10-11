@@ -29,5 +29,6 @@ with tempfile.TemporaryDirectory(prefix="omc-settings-tests-") as directory:
             str(root / "tests/test_web_app_routes.py"),
             str(root / "tests/test_web_app_more.py"),
             str(root / "tests/test_web_app_extended.py"),
+            str(root / "tests/test_web_history_api.py") + "::TestAgentStatusSSE::test_sse_endpoint_exists",
         ])
 sys.exit(result)

@@ -37,6 +37,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+import src.web.app as web_app
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.web.app import (
@@ -45,7 +47,6 @@ from src.web.app import (
     _mask_key,
     _preprocess_target,
     app,
-    task_manager,
 )
 
 # ---------------------------------------------------------------------------
@@ -66,11 +67,11 @@ def client(monkeypatch, tmp_path):
 @pytest.fixture(autouse=True)
 def reset_task_manager():
     """每个测试前后重置 task_manager，避免状态泄漏"""
-    task_manager._tasks.clear()
-    task_manager._queues.clear()
+    web_app.task_manager._tasks.clear()
+    web_app.task_manager._queues.clear()
     yield
-    task_manager._tasks.clear()
-    task_manager._queues.clear()
+    web_app.task_manager._tasks.clear()
+    web_app.task_manager._queues.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -279,8 +280,8 @@ class TestTasksAPI:
 
     def test_list_tasks_with_tasks(self, client):
         """创建多个任务后列出"""
-        tid1 = task_manager.create_task(task_desc="Task 1", model="deepseek")
-        tid2 = task_manager.create_task(task_desc="Task 2", model="deepseek")
+        tid1 = web_app.task_manager.create_task(task_desc="Task 1", model="deepseek")
+        tid2 = web_app.task_manager.create_task(task_desc="Task 2", model="deepseek")
 
         response = client.get("/api/tasks")
         assert response.status_code == 200
@@ -298,8 +299,8 @@ class TestTasksAPI:
 
     def test_get_task_found(self, client):
         """获取存在的任务"""
-        tid = task_manager.create_task(task_desc="My Task", model="deepseek")
-        task_manager._tasks[tid]["status"] = "running"
+        tid = web_app.task_manager.create_task(task_desc="My Task", model="deepseek")
+        web_app.task_manager._tasks[tid]["status"] = "running"
 
         response = client.get(f"/api/tasks/{tid}")
         assert response.status_code == 200
@@ -316,7 +317,7 @@ class TestTasksAPI:
     @patch("src.web.app.verify_api_token", return_value="token")
     def test_delete_task_found(self, mock_verify, client):
         """删除存在的任务"""
-        tid = task_manager.create_task()
+        tid = web_app.task_manager.create_task()
 
         response = client.delete(f"/api/tasks/{tid}")
         assert response.status_code == 200
@@ -517,13 +518,13 @@ class TestSaveReport:
     def test_save_report_from_memory_task(self, client):
         """从内存 task_manager 读取任务并保存"""
         with tempfile.TemporaryDirectory() as tmpdir:
-            tid = task_manager.create_task(
+            tid = web_app.task_manager.create_task(
                 task_desc="Build feature X",
                 model="deepseek",
                 workflow="build",
                 project_path="/tmp",
             )
-            task_manager._tasks[tid].update({
+            web_app.task_manager._tasks[tid].update({
                 "started_at": "2026-05-28T10:00:00",
                 "status": "completed",
                 "stats": {
