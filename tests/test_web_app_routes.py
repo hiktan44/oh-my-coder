@@ -1269,7 +1269,8 @@ class TestConfigAPI:
 class TestExecuteAsyncTask:
     """POST /api/execute — async background task."""
 
-    def test_execute_auto_detect_github(self, client):
+    @patch("src.web.app.BackgroundTasks.add_task")
+    def test_execute_auto_detect_github(self, enqueue, client):
         """When no target_type is given, it should be auto-detected."""
         response = client.post(
             "/api/execute",
@@ -1285,8 +1286,10 @@ class TestExecuteAsyncTask:
         assert data["status"] == "started"
         assert "task_id" in data
         assert data["target_type"] == "github"
+        enqueue.assert_called_once()
 
-    def test_execute_auto_detect_local(self, client):
+    @patch("src.web.app.BackgroundTasks.add_task")
+    def test_execute_auto_detect_local(self, enqueue, client):
         response = client.post(
             "/api/execute",
             json={
@@ -1297,8 +1300,10 @@ class TestExecuteAsyncTask:
         assert response.status_code == 200
         data = response.json()
         assert data["target_type"] == "local"
+        enqueue.assert_called_once()
 
-    def test_execute_explicit_target_type(self, client):
+    @patch("src.web.app.BackgroundTasks.add_task")
+    def test_execute_explicit_target_type(self, enqueue, client):
         response = client.post(
             "/api/execute",
             json={
@@ -1310,6 +1315,7 @@ class TestExecuteAsyncTask:
         assert response.status_code == 200
         data = response.json()
         assert data["target_type"] == "url"
+        enqueue.assert_called_once()
 
     @patch("src.web.app.get_orchestrator")
     @patch("src.web.app.history_store")
