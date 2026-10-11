@@ -11,8 +11,6 @@ Covers:
 - Misc missing lines (import errors, exception handlers)
 """
 
-import json
-import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -27,13 +25,15 @@ from fastapi.testclient import TestClient
 def _make_client(monkeypatch):
     """Create TestClient with common mocks applied."""
     # Ensure ORCHESTRATOR and other globals are set
+    monkeypatch.setenv("OMC_API_TOKEN", "fictional-omc-admin-token-for-regression-20261011")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-key-for-testing")
     monkeypatch.setenv("GITHUB_TOKEN", "ghp_test")
     # Re-import to pick up env
     import importlib
+
     import src.web.app as app_module
     importlib.reload(app_module)
-    return TestClient(app_module.app), app_module
+    return TestClient(app_module.app, headers={"Authorization": "Bearer fictional-omc-admin-token-for-regression-20261011"}), app_module
 
 
 # ============================================================
@@ -44,12 +44,14 @@ class TestTestConnectionProvider:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
+        monkeypatch.setenv("OMC_API_TOKEN", "fictional-omc-admin-token-for-regression-20261011")
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
         import importlib
+
         import src.web.app as app_module
         importlib.reload(app_module)
         self.app = app_module
-        self.client = TestClient(app_module.app)
+        self.client = TestClient(app_module.app, headers={"Authorization": "Bearer fictional-omc-admin-token-for-regression-20261011"})
 
     def test_glm_provider(self, monkeypatch):
         """Test glm provider branch (line 1483-1493)."""
@@ -213,7 +215,7 @@ class TestTestConnectionProvider:
             assert resp.status_code == 200
             data = resp.json()
             assert data["ok"] is False
-            assert "网页" in data["msg"]
+            assert "web sayfası" in data["msg"]
 
     def test_401_unauthorized(self, monkeypatch):
         """Test 401 response (line ~1581-1582)."""
@@ -291,7 +293,7 @@ class TestTestConnectionProvider:
             assert resp.status_code == 200
             data = resp.json()
             assert data["ok"] is False
-            assert "超时" in data["msg"] or "timeout" in data["msg"].lower()
+            assert "zaman aşımı" in data["msg"] or "timeout" in data["msg"].lower()
 
     def test_connect_error(self, monkeypatch):
         """Test httpx.ConnectError (line ~1819-1821)."""
@@ -306,7 +308,7 @@ class TestTestConnectionProvider:
             assert resp.status_code == 502
             data = resp.json()
             assert data["ok"] is False
-            assert "连接失败" in data["msg"] or "Connection" in data["msg"]
+            assert "Bağlantı başarısız" in data["msg"] or "Connection" in data["msg"]
 
     def test_generic_exception(self, monkeypatch):
         """Test generic Exception in test_connection (line ~1833-1835)."""
@@ -331,12 +333,14 @@ class TestTestConnectionCustom:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
+        monkeypatch.setenv("OMC_API_TOKEN", "fictional-omc-admin-token-for-regression-20261011")
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
         import importlib
+
         import src.web.app as app_module
         importlib.reload(app_module)
         self.app = app_module
-        self.client = TestClient(app_module.app)
+        self.client = TestClient(app_module.app, headers={"Authorization": "Bearer fictional-omc-admin-token-for-regression-20261011"})
 
     def test_custom_mode_success(self, monkeypatch):
         """Test custom mode with successful response."""
@@ -390,12 +394,14 @@ class TestSessionAPI:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
+        monkeypatch.setenv("OMC_API_TOKEN", "fictional-omc-admin-token-for-regression-20261011")
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
         import importlib
+
         import src.web.app as app_module
         importlib.reload(app_module)
         self.app = app_module
-        self.client = TestClient(app_module.app)
+        self.client = TestClient(app_module.app, headers={"Authorization": "Bearer fictional-omc-admin-token-for-regression-20261011"})
         # Ensure SESSIONS_DIR exists for tests
         self.app_module = app_module
 
@@ -432,12 +438,14 @@ class TestWorkflowAPI:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
+        monkeypatch.setenv("OMC_API_TOKEN", "fictional-omc-admin-token-for-regression-20261011")
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
         import importlib
+
         import src.web.app as app_module
         importlib.reload(app_module)
         self.app = app_module
-        self.client = TestClient(app_module.app)
+        self.client = TestClient(app_module.app, headers={"Authorization": "Bearer fictional-omc-admin-token-for-regression-20261011"})
         self.app_module = app_module
 
     def test_list_workflows(self):
@@ -467,13 +475,17 @@ class TestSettingsAPI:
     """Test settings API error handling."""
 
     @pytest.fixture(autouse=True)
-    def _setup(self, monkeypatch):
+    def _setup(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("OMC_API_TOKEN", "fictional-omc-admin-token-for-regression-20261011")
         monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
         import importlib
+
         import src.web.app as app_module
         importlib.reload(app_module)
-        self.client = TestClient(app_module.app)
+        self.client = TestClient(app_module.app, headers={"Authorization": "Bearer fictional-omc-admin-token-for-regression-20261011"})
         self.app_module = app_module
+        monkeypatch.setattr(app_module, "SETTINGS_DIR", tmp_path)
+        monkeypatch.setattr(app_module, "SETTINGS_FILE", tmp_path / "config.json")
 
     def test_get_settings(self):
         """Test GET /api/settings (line ~1395-1396)."""

@@ -26,42 +26,41 @@ tests/test_web_app_more.py
  20. _cleanup_target()             - 完整场景
 """
 
-import asyncio
-import json
+# ---------------------------------------------------------------------------
+# Import — 必须放在 sys.path.insert 之后（与 app.py 内部逻辑一致）
+# ---------------------------------------------------------------------------
+import sys
 import tempfile
-from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-# ---------------------------------------------------------------------------
-# Import — 必须放在 sys.path.insert 之后（与 app.py 内部逻辑一致）
-# ---------------------------------------------------------------------------
-import sys
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.web.app import (
     _cleanup_target,
     _detect_target_type,
-    _preprocess_target,
     _mask_key,
+    _preprocess_target,
     app,
     task_manager,
 )
-from src.web.history_api import verify_api_token
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def client():
+def client(monkeypatch, tmp_path):
     """创建测试客户端"""
-    return TestClient(app)
+    import src.web.app as module
+    token = "fictional-omc-admin-token-for-regression-20261011"
+    monkeypatch.setenv("OMC_API_TOKEN", token)
+    monkeypatch.setattr(module, "SETTINGS_DIR", tmp_path)
+    monkeypatch.setattr(module, "SETTINGS_FILE", tmp_path / "config.json")
+    return TestClient(app, headers={"Authorization": "Bearer " + token})
 
 
 @pytest.fixture(autouse=True)
@@ -731,10 +730,10 @@ class TestMaskKey:
         "key, expected",
         [
             ("", ""),
-            ("abc", "abc"),           # 太短不脱敏
+            ("abc", "****"),           # Kısa anahtar da gizlenir
             ("sk-12345678", "*******5678"),
             ("sk-long-api-key-abcdefgh", "********************efgh"),
-            ("abcd", "abcd"),          # 正好4位不脱敏
+            ("abcd", "****"),          # Dört karakter de gizlenir
         ],
     )
     def test_mask_key(self, key, expected):

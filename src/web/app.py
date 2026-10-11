@@ -9,13 +9,16 @@ Web 界面入口 - FastAPI 应用
 """
 
 import asyncio
+import copy
 import json as _json
+import os
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import uuid
+from contextlib import asynccontextmanager
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -49,6 +52,7 @@ try:
         verify_api_token,
     )
     from src.web.local_models_api import router as local_models_router
+    from src.web.settings_security import require_settings_admin, settings_admin_token
     from src.web.share_api import router as share_router
     from src.web.team_api import router as team_router
 except ImportError as e:
@@ -155,11 +159,26 @@ def _cleanup_target(project_path: str, target_type: str):
 # ========================================
 # FastAPI App
 # ========================================
+@asynccontextmanager
+async def web_lifespan(_app: FastAPI):
+    settings_admin_token()
+    yield
+
+
 app = FastAPI(
     title="Oh My Coder Web",
     description="多智能体 AI 编程助手 Web 界面",
     version="0.1.0",
+    lifespan=web_lifespan,
 )
+
+
+@app.middleware("http")
+async def settings_cache_policy(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path in ("/settings", "/api/settings", "/api/test-connection"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 # 挂载静态文件和模板
 web_dir = Path(__file__).parent
@@ -438,6 +457,7 @@ async def index(request: Request):
 
 # ---- PWA: manifest, service worker ve ikonlar ---------------------
 from fastapi.responses import FileResponse as _PwaFR
+
 
 @app.get("/manifest.webmanifest")
 async def pwa_manifest():
@@ -1398,48 +1418,67 @@ def _read_settings() -> dict[str, Any]:
 
 def _mask_key(key: str) -> str:
     """对 API Key 做脱敏处理，只显示后 4 位"""
-    if not key or len(key) <= 4:
-        return key or ""
+    if not key:
+        return ""
+    if len(key) <= 4:
+        return "****"
     return "*" * (len(key) - 4) + key[-4:]
 
 
-@app.get("/settings", response_class=HTMLResponse)
+@app.get("/settings", response_class=HTMLResponse, dependencies=[Depends(require_settings_admin)])
 async def settings_page(request: Request):
     """设置页面"""
     return templates.TemplateResponse(request, "settings.html")
 
 
-@app.get("/api/settings")
+@app.get("/api/settings", dependencies=[Depends(require_settings_admin)])
 async def get_settings():
     """获取当前设置（API Key 脱敏）"""
-    settings = _read_settings()
-    # 脱敏 API Key
-    # masked = json_dumps(settings, ensure_ascii=False)  # keep original for structure
-    # Deep-copy models with masked keys
+    settings = copy.deepcopy(_read_settings())
     for _m in settings.get("models", {}).values():
-        raw_key = _m.get("api_key", "")
+        raw_key = _m.pop("api_key", "")
         _m["api_key_masked"] = _mask_key(raw_key)
         _m["has_key"] = bool(raw_key)
-        # 保留原始 key 供前端回填（localhost 安全）
-        # 不删除 api_key 字段，前端需要回填到 input
     return JSONResponse(settings)
 
 
-@app.post("/api/settings")
+def _write_settings(settings: dict) -> None:
+    SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=SETTINGS_DIR, delete=False
+        ) as output:
+            temporary = output.name
+            os.chmod(temporary, 0o600)
+            _json.dump(settings, output, ensure_ascii=False, indent=2)
+        os.replace(temporary, SETTINGS_FILE)
+    finally:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+@app.post("/api/settings", dependencies=[Depends(require_settings_admin)])
 async def save_settings(payload: dict):
     """保存设置到 ~/.omc/config.json"""
-    import json
-
     # 读取现有设置做合并
-    current = _read_settings()
+    current = copy.deepcopy(_read_settings())
+    if not isinstance(payload.get("models", {}), dict) or not isinstance(payload.get("defaults", {}), dict):
+        raise HTTPException(422, "Model ve tercih ayarları nesne olmalıdır.")
 
     # 合并 models
     if "models" in payload:
         for name, model_conf in payload["models"].items():
+            if not isinstance(model_conf, dict):
+                raise HTTPException(422, "Model ayarı nesne olmalıdır.")
             if name not in current["models"]:
                 current["models"][name] = {}
             for k, v in model_conf.items():
+                if k in ("api_key_masked", "has_key"):
+                    continue
                 if k == "api_key":
+                    if not isinstance(v, str):
+                        raise HTTPException(422, "API anahtarı metin olmalıdır.")
                     # 跳过脱敏值（以 * 开头的不写入）
                     if isinstance(v, str) and v.startswith("*"):
                         continue
@@ -1449,15 +1488,12 @@ async def save_settings(payload: dict):
     if "defaults" in payload:
         current["defaults"].update(payload["defaults"])
 
-    SETTINGS_DIR.mkdir(parents=True, exist_ok=True)
-    SETTINGS_FILE.write_text(
-        json.dumps(current, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    return JSONResponse({"status": "ok", "message": "设置已保存"})
+    _write_settings(current)
+    return JSONResponse({"status": "ok", "message": "Ayarlar kaydedildi."})
 
 
 # ===== 连接测试 =====
-@app.post("/api/test-connection")
+@app.post("/api/test-connection", dependencies=[Depends(require_settings_admin)])
 async def test_connection(payload: dict):
     """测试 API Key 是否可用。
 
@@ -1471,10 +1507,28 @@ async def test_connection(payload: dict):
 
     import httpx
 
+    def safe_message(value):
+        message = str(value)
+        return message.replace(api_key, "[gizlendi]") if isinstance(api_key, str) and api_key else message
+
     provider = payload.get("provider")
     api_key = payload.get("api_key")
     base_url = payload.get("base_url")
     model_id = payload.get("model_id")  # 仅 custom 模式
+
+    # Kayıtlı anahtar tarayıcıya dönmez. Boş anahtar alanıyla yapılan testte
+    # yalnız kayıtlı hedef kullanılır; anahtar farklı bir URL'ye taşınmaz.
+    if not api_key and (provider or payload.get("model_name")):
+        name = provider or payload["model_name"]
+        if not isinstance(name, str):
+            raise HTTPException(422, "Model adı metin olmalıdır.")
+        saved = _read_settings().get("models", {}).get(name, {})
+        api_key = saved.get("api_key", "")
+        base_url = saved.get("base_url") or None
+        if not provider:
+            model_id = saved.get("model_id") or saved.get("model")
+        if not api_key:
+            return JSONResponse({"ok": False, "msg": "Önce API anahtarını kaydedin."}, status_code=400)
 
     # ── Provider 模式 ──────────────────────────────────
     if provider:
@@ -1541,7 +1595,7 @@ async def test_connection(payload: dict):
                 }
             else:
                 return JSONResponse(
-                    {"ok": False, "msg": f"未知供应商: {provider}"}, status_code=400
+                    {"ok": False, "msg": f"Bilinmeyen sağlayıcı: {provider}"}, status_code=400
                 )
 
             headers = {
@@ -1560,23 +1614,23 @@ async def test_connection(payload: dict):
                     return JSONResponse(
                         {
                             "ok": False,
-                            "msg": "返回了网页而非 API 响应——请检查 Base URL 是否为 API 接口地址（非网页地址）",
+                            "msg": "API yanıtı yerine web sayfası döndü. API adresini kontrol edin.",
                         }
                     )
                 return JSONResponse(
                     {
                         "ok": True,
-                        "msg": f"连接成功 ({latency_ms}ms)",
+                        "msg": f"Bağlantı başarılı ({latency_ms}ms)",
                         "latency_ms": latency_ms,
                     }
                 )
             elif resp.status_code == 401:
                 return JSONResponse(
-                    {"ok": False, "msg": "API Key 无效（401 Unauthorized）"}
+                    {"ok": False, "msg": "API anahtarı geçersiz (401 Unauthorized)"}
                 )
             elif resp.status_code == 403:
                 return JSONResponse(
-                    {"ok": False, "msg": "API Key 被拒绝（403 Forbidden）"}
+                    {"ok": False, "msg": "API anahtarı reddedildi (403 Forbidden)"}
                 )
             else:
                 try:
@@ -1585,24 +1639,24 @@ async def test_connection(payload: dict):
                     print(f"[WARNING] Failed to parse error JSON: {e}")
                     err = resp.text[:100]
                 return JSONResponse(
-                    {"ok": False, "msg": f"API 错误 {resp.status_code}: {err}"},
+                    {"ok": False, "msg": f"API hatası {resp.status_code}: {safe_message(err)}"},
                     status_code=502,
                 )
 
         except httpx.TimeoutException:
             return JSONResponse(
-                {"ok": False, "msg": "连接超时（15s），请检查 Base URL 或网络"}
+                {"ok": False, "msg": "Bağlantı zaman aşımı (15 saniye). API adresini veya ağı kontrol edin."}
             )
         except httpx.ConnectError as e:
-            return JSONResponse({"ok": False, "msg": f"连接失败：{e}"}, status_code=502)
+            return JSONResponse({"ok": False, "msg": f"Bağlantı başarısız: {safe_message(e)}"}, status_code=502)
         except Exception as e:
-            return JSONResponse({"ok": False, "msg": f"测试失败: {e}"}, status_code=500)
+            return JSONResponse({"ok": False, "msg": f"Test başarısız: {safe_message(e)}"}, status_code=500)
 
     # ── Custom 模式 ──────────────────────────────────
     if base_url and model_id:
         if not api_key:
             return JSONResponse(
-                {"ok": False, "msg": "API Key 为空（自定义模型通常需要 Key）"},
+                {"ok": False, "msg": "Özel model için API anahtarı girin veya kayıtlı modeli seçin."},
                 status_code=400,
             )
         try:
@@ -1624,7 +1678,7 @@ async def test_connection(payload: dict):
                 return JSONResponse(
                     {
                         "ok": True,
-                        "msg": f"连接成功 ({latency_ms}ms)",
+                        "msg": f"Bağlantı başarılı ({latency_ms}ms)",
                         "latency_ms": latency_ms,
                     }
                 )
@@ -1635,18 +1689,18 @@ async def test_connection(payload: dict):
                     print(f"[WARNING] Failed to parse error JSON: {e}")
                     err = resp.text[:100]
                 return JSONResponse(
-                    {"ok": False, "msg": f"API 错误 {resp.status_code}: {err}"},
+                    {"ok": False, "msg": f"API hatası {resp.status_code}: {safe_message(err)}"},
                     status_code=502,
                 )
         except httpx.TimeoutException:
-            return JSONResponse({"ok": False, "msg": "连接超时（15s）"})
+            return JSONResponse({"ok": False, "msg": "Bağlantı zaman aşımı (15 saniye)."})
         except httpx.ConnectError as e:
-            return JSONResponse({"ok": False, "msg": f"连接失败：{e}"}, status_code=502)
+            return JSONResponse({"ok": False, "msg": f"Bağlantı başarısız: {safe_message(e)}"}, status_code=502)
         except Exception as e:
-            return JSONResponse({"ok": False, "msg": f"测试失败: {e}"}, status_code=500)
+            return JSONResponse({"ok": False, "msg": f"Test başarısız: {safe_message(e)}"}, status_code=500)
 
     return JSONResponse(
-        {"ok": False, "msg": "参数不完整（需 provider 或 base_url+model_id）"},
+        {"ok": False, "msg": "Sağlayıcı veya API adresi ve model kimliği gerekli."},
         status_code=400,
     )
 

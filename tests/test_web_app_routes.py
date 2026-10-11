@@ -7,6 +7,11 @@ workflow CRUD, chat, open-folder, save-report, coverage, and utility helpers.
 
 import asyncio
 import json
+
+# ---------------------------------------------------------------------------
+# Import the app
+# ---------------------------------------------------------------------------
+import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -15,43 +20,35 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-# ---------------------------------------------------------------------------
-# Import the app
-# ---------------------------------------------------------------------------
-import sys
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.web.app import (
-    ChatMessage,
-    ChatRequest,
-    ExecuteRequest,
-    SessionCreate,
-    SessionUpdate,
     _cleanup_target,
+    _detect_model,
     _detect_target_type,
     _detect_target_type_from_message,
-    _detect_model,
     _detect_workflow,
     _generate_task_summary,
     _mask_key,
     _preprocess_target,
-    _read_settings,
     app,
     json_dumps,
     task_manager,
 )
-from src.web.history_api import verify_api_token
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def client():
+def client(monkeypatch, tmp_path):
     """Create a test client for the main app."""
-    return TestClient(app)
+    import src.web.app as module
+    token = "fictional-omc-admin-token-for-regression-20261011"
+    monkeypatch.setenv("OMC_API_TOKEN", token)
+    monkeypatch.setattr(module, "SETTINGS_DIR", tmp_path)
+    monkeypatch.setattr(module, "SETTINGS_FILE", tmp_path / "config.json")
+    return TestClient(app, headers={"Authorization": "Bearer " + token})
 
 
 @pytest.fixture(autouse=True)
@@ -377,8 +374,9 @@ class TestSettingsAPI:
             # Real mask for 'sk-1234567890abcdef' (len 20): 16 stars + last 4
             assert model["api_key_masked"].endswith("cdef")
             assert model["has_key"] is True
+            assert "api_key" not in model
 
-    @patch("src.web.app.SETTINGS_DIR")
+    @patch("src.web.app._write_settings")
     @patch("src.web.app.SETTINGS_FILE")
     @patch("src.web.app._read_settings")
     def test_save_settings(self, mock_read, mock_file, mock_dir, client):
@@ -399,7 +397,7 @@ class TestSettingsAPI:
         assert response.status_code == 200
         assert response.json()["status"] == "ok"
 
-    @patch("src.web.app.SETTINGS_DIR")
+    @patch("src.web.app._write_settings")
     @patch("src.web.app.SETTINGS_FILE")
     @patch("src.web.app._read_settings")
     def test_save_settings_skips_masked_keys(self, mock_read, mock_file, mock_dir, client):
@@ -519,7 +517,7 @@ class TestConnectionAPI:
         assert response.status_code == 200
         data = response.json()
         assert data["ok"] is False
-        assert "网页" in data["msg"]
+        assert "web sayfası" in data["msg"]
 
     @patch("httpx.Client")
     def test_test_connection_timeout(self, mock_client_cls, client):
@@ -534,7 +532,7 @@ class TestConnectionAPI:
         assert response.status_code == 200
         data = response.json()
         assert data["ok"] is False
-        assert "超时" in data["msg"]
+        assert "zaman aşımı" in data["msg"]
 
     @patch("httpx.Client")
     def test_test_connection_connect_error(self, mock_client_cls, client):
@@ -1211,7 +1209,7 @@ class TestMaskKey:
         "key,expected",
         [
             ("", ""),
-            ("abc", "abc"),
+            ("abc", "****"),
             ("sk-12345678", "*******5678"),
             ("long-api-key-abcdefgh", "*****************efgh"),
         ],
@@ -1329,7 +1327,7 @@ class TestExecuteAsyncTask:
                 },
             )
             assert response.status_code == 200
-            tid = response.json()["task_id"]
+            _tid = response.json()["task_id"]
             # History should record the failure
             mock_store.save.assert_called()
             call_args = mock_store.save.call_args
