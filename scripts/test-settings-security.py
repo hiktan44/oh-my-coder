@@ -26,6 +26,8 @@ with tempfile.TemporaryDirectory(prefix="omc-settings-tests-") as directory:
         result = pytest.main([
             "-n", "0", "--tb=short",
             str(root / "tests/test_settings_security.py"),
+            str(root / "tests/test_web.py"),
+            str(root / "tests/test_share.py"),
             str(root / "tests/test_web_app_routes.py"),
             str(root / "tests/test_web_app_more.py"),
             str(root / "tests/test_web_app_extended.py"),

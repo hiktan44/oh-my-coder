@@ -1,4 +1,4 @@
-"""Ayar yönetimi için harici yönetici anahtarı ve istek doğrulaması."""
+"""Özel web işlemleri için harici yönetici anahtarı ve istek doğrulaması."""
 
 import base64
 import binascii
@@ -70,8 +70,8 @@ def require_settings_admin(request: Request) -> None:
     if not valid:
         raise HTTPException(
             401,
-            "Ayarları yönetmek için yönetici girişi gerekli.",
-            headers={"WWW-Authenticate": 'Basic realm="OMC Ayarlar", charset="UTF-8"'},
+            "Bu işlem için yönetici girişi gerekli.",
+            headers={"WWW-Authenticate": 'Basic realm="OMC", charset="UTF-8"'},
         )
 
     # Tarayıcı Basic kimlik bilgisini otomatik gönderdiği için yazma istekleri
@@ -81,4 +81,4 @@ def require_settings_admin(request: Request) -> None:
     if request.method not in ("GET", "HEAD", "OPTIONS") and origin is not None:
         expected_origin = os.environ.get("OMC_SETTINGS_ORIGIN") or str(request.base_url)
         if not _same_origin(origin, expected_origin):
-            raise HTTPException(403, "Başka bir siteden ayar değiştirilemez.")
+            raise HTTPException(403, "Başka bir siteden işlem yapılamaz.")

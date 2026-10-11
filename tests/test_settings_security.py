@@ -42,6 +42,102 @@ def owner(settings):
         yield client
 
 
+@pytest.mark.parametrize("method,path", [
+    ("GET", "/"), ("GET", "/history"), ("GET", "/dashboard"),
+    ("GET", "/api/tasks"), ("GET", "/api/tasks/fictional"), ("GET", "/api/history"),
+    ("GET", "/api/config"), ("GET", "/api/sessions"),
+    ("GET", "/api/share"), ("GET", "/sse/execute/fictional"),
+    ("POST", "/api/execute"), ("POST", "/api/chat"),
+    ("POST", "/api/share"), ("POST", "/api/share/abcd1234/import"),
+    ("DELETE", "/api/share/abcd1234"),
+    ("DELETE", "/api/tasks/fictional"), ("DELETE", "/api/history/fictional"),
+])
+@pytest.mark.parametrize("authorization", [None, "Bearer fictional-team-member"])
+def test_private_web_and_actions_require_owner(settings, method, path, authorization):
+    with TestClient(module.app) as client, patch("fastapi.BackgroundTasks.add_task") as enqueue:
+        response = client.request(method, path, headers={
+            **({"Authorization": authorization} if authorization else {}),
+            "omc_owner_authenticated": "true",  # HTTP başlığı scope işaretini taklit edemez.
+        }, json={"task": "fictional dry-run task", "project_path": "."} if method == "POST" else None)
+    assert response.status_code == 401
+    assert response.headers["cache-control"] == "no-store"
+    enqueue.assert_not_called()
+
+
+def test_browser_basic_owner_can_read_and_delete_tasks(settings, monkeypatch):
+    import src.web.history_api as history
+    manager = module.TaskManager()
+    task_id = manager.create_task(task_desc="fictional-private-owner-task")
+    monkeypatch.setattr(module, "task_manager", manager)
+    monkeypatch.setattr(history, "API_TOKEN", "fictional-stale-import-token")
+    with TestClient(module.app) as client:
+        assert client.get("/", auth=("yonetici", TOKEN)).status_code == 200
+        listing = client.get("/api/tasks", auth=("yonetici", TOKEN))
+        assert listing.status_code == 200
+        assert listing.json()["tasks"][0]["task_id"] == task_id
+        assert listing.headers["cache-control"] == "no-store"
+        private = client.get("/api/tasks/" + task_id, auth=("yonetici", TOKEN))
+        assert private.status_code == 200
+        assert private.json()["task"] == "fictional-private-owner-task"
+        assert private.headers["cache-control"] == "no-store"
+        assert client.delete("/api/tasks/" + task_id, auth=("yonetici", TOKEN)).status_code == 200
+    assert manager.get_task(task_id) is None
+
+
+@pytest.mark.parametrize("basic", [True, False])
+def test_owner_can_delete_history_independent_of_import_token(settings, monkeypatch, tmp_path, basic):
+    import src.web.history_api as history
+    store = history.HistoryStore(tmp_path / "fictional-history")
+    store.save("fixture", {"task": "fictional-private-record"})
+    monkeypatch.setattr(history, "history_store", store)
+    monkeypatch.setattr(history, "API_TOKEN", "fictional-stale-import-token")
+    with TestClient(module.app) as client:
+        response = client.delete("/api/history/fixture",
+                                 auth=("yonetici", TOKEN) if basic else None,
+                                 headers={} if basic else {"Authorization": "Bearer " + TOKEN})
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
+    assert store.load("fixture") is None
+
+
+def test_foreign_origin_cannot_queue_execution(owner):
+    with patch("fastapi.BackgroundTasks.add_task") as enqueue:
+        assert owner.post("/api/execute", headers={"Origin": "https://attacker.invalid"},
+                          json={"task": "fictional dry-run task", "project_path": "."}).status_code == 403
+    enqueue.assert_not_called()
+
+
+def test_owner_key_rotation_also_revokes_private_pages(owner, monkeypatch):
+    monkeypatch.setenv("OMC_API_TOKEN", "fictional-new-owner-token-for-tests-20261011")
+    assert owner.get("/").status_code == 401
+    assert owner.get("/api/tasks").status_code == 401
+
+
+@pytest.mark.parametrize("path", ["/health", "/favicon.ico", "/manifest.webmanifest", "/sw.js"])
+def test_public_operational_assets_remain_accessible(settings, path):
+    with TestClient(module.app) as client:
+        assert client.get(path).status_code == 200
+
+
+def test_published_share_read_only_and_expiry(settings, monkeypatch, tmp_path):
+    import src.web.share_api as share
+    monkeypatch.setattr(share, "SHARE_DIR", tmp_path)
+    record = {"share_id": "abcd1234", "created_at": "2026-10-11T00:00:00",
+              "session": {"history": {"task": "fictional-explicitly-published-content"}}}
+    target = tmp_path / "share_abcd1234.json"
+    target.write_text(json.dumps(record))
+    with TestClient(module.app) as client:
+        response = client.get("/api/share/abcd1234")
+        assert response.status_code == 200
+        assert "fictional-explicitly-published-content" in response.text
+        assert response.headers["cache-control"] == "no-store"
+        assert client.get("/api/share").status_code == 401
+        assert client.delete("/api/share/abcd1234").status_code == 401
+        record["expires_at"] = "2000-01-01T00:00:00"
+        target.write_text(json.dumps(record))
+        assert client.get("/api/share/abcd1234").status_code == 410
+
+
 @pytest.mark.parametrize("path,method", [
     ("/settings", "get"), ("/api/settings", "get"),
     ("/api/settings", "post"), ("/api/test-connection", "post"),

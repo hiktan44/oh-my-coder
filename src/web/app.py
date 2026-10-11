@@ -174,9 +174,26 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def settings_cache_policy(request: Request, call_next):
+async def owner_access_policy(request: Request, call_next):
+    path = request.url.path
+    public_read = request.method in ("GET", "HEAD") and (
+        path in ("/health", "/favicon.ico", "/manifest.webmanifest", "/sw.js")
+        or path.startswith(("/static/", "/icons/"))
+        # Yalnız yayımlanmış tek paylaşımı okuma herkese açıktır.
+        # Listeleme, oluşturma, içe aktarma ve silme yönetici gerektirir.
+        or re.fullmatch(r"/api/share/[a-f0-9]{8}", path) is not None
+    )
+    if not public_read:
+        try:
+            require_settings_admin(request)
+        except HTTPException as exc:
+            return JSONResponse(
+                {"detail": exc.detail}, status_code=exc.status_code,
+                headers={**(exc.headers or {}), "Cache-Control": "no-store"},
+            )
+        request.scope["omc_owner_authenticated"] = True
     response = await call_next(request)
-    if request.url.path in ("/settings", "/api/settings", "/api/test-connection"):
+    if not public_read or path.startswith("/api/share/"):
         response.headers["Cache-Control"] = "no-store"
     return response
 

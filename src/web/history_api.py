@@ -16,7 +16,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -29,8 +29,18 @@ security = HTTPBearer(auto_error=False)
 
 async def verify_api_token(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    request: Request = None,
 ) -> Optional[str]:
     """验证 API Token，未配置 token 时允许操作"""
+    if request is not None and request.scope.get("omc_owner_authenticated") is True:
+        # Ana uygulamanın Basic/Bearer kontrolü eski import anındaki token'dan
+        # bağımsızdır. HTTP başlığı bu sunucu içi scope değerini oluşturamaz.
+        from src.web.settings_security import (
+            require_settings_admin,
+            settings_admin_token,
+        )
+        require_settings_admin(request)
+        return settings_admin_token()
     if not API_TOKEN:
         return None  # 未配置 token，允许操作
 
