@@ -21,6 +21,6 @@ API Anahtarları bölümünde yeni anahtarı girip **Kaydet** seçin. Yeni değe
 
 ## Doğrulama
 
-`python scripts/test-settings-security.py` gerçek FastAPI HTTP doğrulaması ve geçici ayar dosyasıyla güvenlik ve mevcut web regresyonlarını çalıştırır. Import sırasında SQLite oluşturan modüller yalnız test sürecinde geçici kullanıcı dizinine yönlendirilir; `HOME` değiştirilmez. `node --test tests/settings-client-security.test.mjs` sayfanın JavaScript sözdizimini ve gerçek sayfa işlevlerini DOM/HTTP taklitleriyle kontrol eder. Bunlar gerçek tarayıcı veya canlı Coolify kabul testi değildir.
+`python scripts/test-settings-security.py` gerçek FastAPI HTTP doğrulaması ve geçici ayar dosyasıyla güvenlik ve mevcut web regresyonlarını çalıştırır. Import sırasında SQLite oluşturan modüller yalnız test sürecinde geçici kullanıcı dizinine yönlendirilir; `HOME` değiştirilmez. Test sürecinde gerçek TCP bağlantıları kapalıdır; sağlayıcı/HTTP yanıtları testlerin kendi taklitleriyle verilir. `node --test tests/settings-client-security.test.mjs` sayfanın JavaScript sözdizimini ve gerçek sayfa işlevlerini DOM/HTTP taklitleriyle kontrol eder. Bunlar gerçek tarayıcı veya canlı Coolify kabul testi değildir.
 
 Uygulama dağıtımı, gerçek token/sağlayıcı anahtarı değişikliği ve mevcut dosya izinlerinin üretimde doğrulanması ayrıca yapılmalıdır. [FastAPI HTTP Basic belgeleri](https://fastapi.tiangolo.com/advanced/security/http-basic-auth/) tarayıcı giriş istemini ve zaman karşılaştırması yaklaşımını açıklar.
