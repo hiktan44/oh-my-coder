@@ -420,8 +420,8 @@
             console.warn('Language detection error:', e);
         }
 
-        // 4. Default to Turkish
-        return 'tr';
+        // 4. IP lookup unavailable: non-Turkish browsers get English
+        return (function(){var l=((navigator.languages&&navigator.languages[0])||navigator.language||'').toLowerCase();return l?(l.indexOf('tr')===0?'tr':'en'):'tr';})();
     }
 
     // Update all elements with data-i18n attribute
