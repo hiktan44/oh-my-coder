@@ -321,7 +321,9 @@ class TestShareAPI:
         monkeypatch.setattr("src.web.share_api.SHARE_DIR", share_dir)
         monkeypatch.setattr("src.web.share_api.HISTORY_DIR", history_dir)
 
-        return TestClient(app)
+        token = "fictional-omc-admin-token-for-regression-20261011"
+        monkeypatch.setenv("OMC_API_TOKEN", token)
+        return TestClient(app, headers={"Authorization": "Bearer " + token})
 
     def test_create_share_api(self, client, history_dir):
         """POST /api/share 创建分享"""

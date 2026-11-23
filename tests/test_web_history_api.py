@@ -820,9 +820,7 @@ class TestAgentStatusSSE:
         test_app.include_router(agent_router)
 
         # 检查 /sse/status 路由是否存在
-        [r.path for r in test_app.routes]
-        # 如果找不到,至少确保测试不崩溃
-        assert True  # SSE 端点存在但难以测试
+        assert str(test_app.url_path_for("agent_status_sse")) == "/api/agents/sse/status"
 
 
 # ========================================

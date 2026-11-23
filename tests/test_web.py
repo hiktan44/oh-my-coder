@@ -19,9 +19,11 @@ class TestWebAPI:
     """Web API 测试"""
 
     @pytest.fixture
-    def client(self):
+    def client(self, monkeypatch):
         """创建测试客户端"""
-        return TestClient(app)
+        token = "fictional-omc-admin-token-for-regression-20261011"
+        monkeypatch.setenv("OMC_API_TOKEN", token)
+        return TestClient(app, headers={"Authorization": "Bearer " + token})
 
     def test_dashboard_stats_endpoint(self, client):
         """测试仪表板统计数据端点"""
