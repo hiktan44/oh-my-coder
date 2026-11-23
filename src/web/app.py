@@ -161,7 +161,15 @@ def _cleanup_target(project_path: str, target_type: str):
 # ========================================
 @asynccontextmanager
 async def web_lifespan(_app: FastAPI):
-    settings_admin_token()
+    try:
+        settings_admin_token()
+    except RuntimeError as exc:
+        # Konteynerin /health uç noktasıyla sağlıklı açılabilmesi için başlangıç
+        # çökertilmez; tüm özel/yönetici rotaları HTTP 503 ile fail-closed kalır.
+        print(
+            f"[SECURITY WARNING] {exc} Özel web ve ayar rotaları HTTP 503 döndürecektir.",
+            file=sys.stderr,
+        )
     yield
 
 
@@ -487,7 +495,12 @@ async def pwa_sw():
 
 @app.get("/icons/{name}")
 async def pwa_icon(name: str):
-    return _PwaFR(web_dir / "static" / "pwa" / "icons" / name, media_type="image/png")
+    icons_dir = (web_dir / "static" / "pwa" / "icons").resolve()
+    icon_path = (icons_dir / name).resolve()
+    if not icon_path.is_relative_to(icons_dir) or not icon_path.is_file():
+        raise HTTPException(status_code=404, detail="Icon not found")
+    media_type = "image/svg+xml" if icon_path.suffix == ".svg" else "image/png"
+    return _PwaFR(icon_path, media_type=media_type)
 
 
 @app.get("/history", response_class=HTMLResponse)

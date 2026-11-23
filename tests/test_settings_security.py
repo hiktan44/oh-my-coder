@@ -1,11 +1,13 @@
 """Gerçek HTTP doğrulaması ve geçici yapılandırma dosyasıyla F58 testleri."""
 
+import asyncio
 import copy
 import json
 import stat
 from unittest.mock import MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 import src.web.app as module
@@ -156,16 +158,29 @@ def test_anonymous_and_non_admin_cannot_access(settings, path, method, authoriza
 
 
 @pytest.mark.parametrize("token", [None, "", "short", " " * 40])
-def test_missing_or_weak_token_prevents_startup(settings, monkeypatch, token):
+def test_missing_or_weak_token_keeps_health_alive_and_fails_closed(settings, monkeypatch, capsys, token):
     if token is None:
         monkeypatch.delenv("OMC_API_TOKEN")
     else:
         monkeypatch.setenv("OMC_API_TOKEN", token)
     with pytest.raises(RuntimeError, match="OMC_API_TOKEN"):
-        with TestClient(module.app):
-            pass
-    # Yaşam döngüsü çalıştırılmadan da API kapalı kalır.
-    assert TestClient(module.app).get("/api/settings").status_code == 503
+        module.settings_admin_token()
+    before = module.SETTINGS_FILE.read_bytes()
+    with TestClient(module.app) as client, patch("fastapi.BackgroundTasks.add_task") as enqueue:
+        assert "[SECURITY WARNING]" in capsys.readouterr().err
+        assert client.get("/health").status_code == 200
+        for method, path, body in (
+            ("GET", "/", None),
+            ("GET", "/settings", None),
+            ("GET", "/api/settings", None),
+            ("POST", "/api/settings", {"models": {"deepseek": {"api_key": "changed"}}}),
+            ("POST", "/api/execute", {"task": "fictional", "project_path": "."}),
+        ):
+            response = client.request(method, path, json=body)
+            assert response.status_code == 503
+            assert response.headers["cache-control"] == "no-store"
+    assert module.SETTINGS_FILE.read_bytes() == before
+    enqueue.assert_not_called()
 
 
 def test_basic_owner_and_wrong_username(settings):
@@ -216,11 +231,27 @@ def test_public_origin_rejects_http_downgrade(owner, monkeypatch):
 
 
 @pytest.mark.parametrize("origin", ["null", "https://bad host", "https://testserver/path", "https://@testserver", "https://testserver?x=1"])
-def test_invalid_public_origin_prevents_startup(settings, monkeypatch, origin):
+def test_invalid_public_origin_keeps_health_alive_and_fails_closed(settings, monkeypatch, capsys, origin):
     monkeypatch.setenv("OMC_SETTINGS_ORIGIN", origin)
     with pytest.raises(RuntimeError, match="OMC_SETTINGS_ORIGIN"):
-        with TestClient(module.app):
-            pass
+        module.settings_admin_token()
+    with TestClient(module.app) as client:
+        assert "[SECURITY WARNING]" in capsys.readouterr().err
+        assert client.get("/health").status_code == 200
+        for path in ("/", "/settings", "/api/settings"):
+            response = client.get(path, headers={"Authorization": "Bearer " + TOKEN})
+            assert response.status_code == 503
+            assert response.headers["cache-control"] == "no-store"
+
+
+def test_public_icon_endpoint_confines_paths_and_returns_404(settings):
+    with TestClient(module.app) as client:
+        assert client.get("/icons/icon-192.png").status_code == 200
+        assert client.get("/icons/does-not-exist.png").status_code == 404
+        assert client.get("/icons/..%2F..%2Fapp.py").status_code == 404
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(module.pwa_icon("../../../app.py"))
+    assert exc.value.status_code == 404
 
 
 def test_key_preservation_replacement_clear_and_file_permissions(owner):
